@@ -1,0 +1,19 @@
+{
+  "username": "ZylarBot",
+  "uuid": "13c4b83c-96f9-318c-bdbc-bdfaa8250b78",
+  "rank": "mvp_plus_plus",
+  "isOp": false,
+  "island": {
+    "originX": 1000,
+    "originZ": 0,
+    "spawnX": 1000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5
+  },
+  "lastLogin": "2026-10-12T03:04:21.963Z",
+  "rankId": "mvp_plus_plus",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791774261967
+}

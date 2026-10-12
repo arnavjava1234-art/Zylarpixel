@@ -1,0 +1,21 @@
+{
+  "username": "chuchichan",
+  "uuid": "8c6aed22-d9f1-3701-9f87-2feb2e74113b",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "chuchichan",
+    "originX": 3000,
+    "originZ": 0,
+    "spawnX": 3000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-12T02:54:08.904Z",
+  "rankId": "default",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791773648904
+}

@@ -1,0 +1,32 @@
+{
+  "username": "ARNAVJAVA",
+  "uuid": "308c3f3c-d3cd-3d54-bb19-e8cb9246c6fd",
+  "rank": "owner",
+  "isOp": true,
+  "island": {
+    "originX": 0,
+    "originZ": 0,
+    "spawnX": 0.5,
+    "spawnY": 101,
+    "spawnZ": 0.5
+  },
+  "lastLogin": "2026-10-12T03:04:22.757Z",
+  "rankId": "owner",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [
+    {
+      "slot": 9,
+      "name": "dandelion",
+      "itemId": 183,
+      "count": 2
+    },
+    {
+      "slot": 36,
+      "name": "dirt",
+      "itemId": 15,
+      "count": 2
+    }
+  ],
+  "lastSeen": 1791774262758
+}

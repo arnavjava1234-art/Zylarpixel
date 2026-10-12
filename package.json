@@ -1,0 +1,28 @@
+{
+  "name": "arena-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx server.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "share": "share.bat",
+    "playit": "playit.bat"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "minecraft-protocol": "^1.68.0",
+    "mineflayer": "^4.39.0",
+    "prismarine-chunk": "^1.41.0",
+    "prismarine-registry": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
