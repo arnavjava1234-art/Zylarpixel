@@ -688,12 +688,12 @@ proxyServer.on('playerJoin', (client: any) => {
   };
 
   const handleLimboSafety = (packet: any) => {
-    if (session.isInLimbo && packet && typeof packet.y === 'number' && packet.y < 85) {
+    if (session.isInLimbo && packet && typeof packet.y === 'number' && packet.y < 100) {
       try {
         session.client.write('position', {
-          x: 8.5,
-          y: 102.0,
-          z: 8.5,
+          x: LIMBO_X,
+          y: LIMBO_Y,
+          z: LIMBO_Z,
           yaw: 0,
           pitch: 0,
           flags: 0x00,
