@@ -31,7 +31,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: 'admin', description: 'Open Master Staff Admin GUI', opOnly: true },
   { name: 'rank', description: 'Assign ranks to players', opOnly: true },
   { name: 'bypass', description: 'Toggle Admin Guest Build Bypass', opOnly: true },
-  { name: 'restart', description: 'Instant in-memory hot reboot', opOnly: true },
+  { name: 'restart', description: 'Reboot backend server and reload code from disk', opOnly: true },
   { name: 'op', description: 'Grant operator status', opOnly: true },
   { name: 'deop', description: 'Revoke operator status', opOnly: true },
   { name: 'coins', description: 'Manage player purse balance (/coins <player> set/add/remove <amount>)', opOnly: true },
