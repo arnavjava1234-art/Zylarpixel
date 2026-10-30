@@ -584,10 +584,14 @@ export class ZylarServer {
         const { spawn } = require('child_process');
         const childArgs = [...process.execArgv, ...process.argv.slice(1)];
         this.log('INFO', `🚀 Spawning fresh process: ${process.execPath} ${childArgs.join(' ')}`);
+        const logDir = path.resolve(__dirname, '../../logs');
+        if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+        const outLog = fs.openSync(path.join(logDir, `${this.config.serverId}.log`), 'a');
         const child = spawn(process.execPath, childArgs, {
           cwd: process.cwd(),
           detached: true,
-          stdio: 'inherit'
+          stdio: ['ignore', outLog, outLog],
+          windowsHide: true
         });
         child.unref();
       } catch (err: any) {
