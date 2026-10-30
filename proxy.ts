@@ -182,26 +182,28 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   }
 
   try {
-    // 1. View center and Limbo chunk platform (Overworld-native, instant 0-delay load)
-    session.client.write('update_view_position', { chunkX: 0, chunkZ: 0 });
-    if (LIMBO_CHUNK_PACKET) {
-      session.client.write('map_chunk', LIMBO_CHUNK_PACKET);
-    }
+    // 1. Put player in Spectator mode (gamemode: 3) so player cannot fall, take void damage, or die
+    session.client.write('game_state_change', {
+      reason: 3,
+      gameMode: 3
+    });
 
-    // 2. Teleport onto the platform
+    // 2. Safe void coordinates (X: 500,000, Y: 150, Z: 500,000) - zero chunk collision with any world/island!
+    const limboChunkCoord = Math.floor(LIMBO_X / 16);
+    session.client.write('update_view_position', { chunkX: limboChunkCoord, chunkZ: limboChunkCoord });
     session.client.write('position', {
-      x: 8.5,
-      y: 102.0,
-      z: 8.5,
+      x: LIMBO_X,
+      y: LIMBO_Y,
+      z: LIMBO_Z,
       yaw: 0,
       pitch: 0,
       flags: 0x00,
-      teleportId: Math.floor(Math.random() * 10000)
+      teleportId: 99999
     });
 
-    // 4. Safe abilities: allow flying, no fall damage
+    // 3. Invulnerable flying abilities in void
     session.client.write('abilities', {
-      flags: 0x07,
+      flags: 0x0F, // invulnerable, flying, can fly, creative/spectator
       flyingSpeed: 0.05,
       walkingSpeed: 0.1
     });
