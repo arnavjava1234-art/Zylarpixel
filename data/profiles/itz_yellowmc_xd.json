@@ -13,7 +13,9 @@
     "intelligence": 0,
     "maxMana": 100,
     "critChance": 30,
-    "critDamage": 50
+    "critDamage": 50,
+    "mana": 100,
+    "damage": 0
   },
   "skills": {
     "combat": 1,
@@ -354,7 +356,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793356509323,
+  "lastSeen": 1793356519790,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -388,7 +390,9 @@
     }
   ],
   "cooldowns": {
-    "Speed Boost": 1793356436954
+    "Speed Boost": 1793356524780
   },
-  "activeBuffs": {}
+  "activeBuffs": {
+    "speedBoostUntil": 1793356549788
+  }
 }
