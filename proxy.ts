@@ -54,62 +54,10 @@ const proxyServer = (mc as any).createServer({
   registryCodec: mcData1192.loginPacket.dimensionCodec
 } as any);
 
-function buildLimboChunkPacket(): any {
-  const chunk = new Chunk1192();
-  const obsidianId = mcData1192.blocksByName.obsidian ? mcData1192.blocksByName.obsidian.defaultState : 49;
-  const seaLanternId = mcData1192.blocksByName.sea_lantern ? mcData1192.blocksByName.sea_lantern.defaultState : 169;
-
-  // 5x5 Obsidian platform at Y=100
-  for (let x = 6; x <= 10; x++) {
-    for (let z = 6; z <= 10; z++) {
-      chunk.setBlockStateId(new Vec3(x, 100, z), obsidianId);
-    }
-  }
-  // Center Sea Lantern at (8, 101, 8)
-  chunk.setBlockStateId(new Vec3(8, 101, 8), seaLanternId);
-
-  const surfaceHeight = 175n;
-  const heightmapLongs: bigint[] = [];
-  let currentLong = 0n;
-  let countInLong = 0;
-  for (let i = 0; i < 256; i++) {
-    currentLong |= (surfaceHeight << BigInt(countInLong * 9));
-    countInLong++;
-    if (countInLong === 7 || i === 255) {
-      heightmapLongs.push(currentLong);
-      currentLong = 0n;
-      countInLong = 0;
-    }
-  }
-  const motionBlockingData = heightmapLongs.map((l: bigint) => [Number(l >> 32n), Number(l & 0xFFFFFFFFn)]);
-  const heightmapNbt = {
-    type: 'compound',
-    name: '',
-    value: {
-      MOTION_BLOCKING: { type: 'longArray', value: motionBlockingData },
-      WORLD_SURFACE: { type: 'longArray', value: motionBlockingData }
-    }
-  };
-
-  return {
-    x: 0,
-    z: 0,
-    heightmaps: heightmapNbt,
-    biomes: chunk.dumpBiomes(),
-    chunkData: chunk.dump(),
-    blockEntities: [],
-    trustEdges: true,
-    ...chunk.dumpLight()
-  };
-}
-
-let LIMBO_CHUNK_PACKET: any = null;
-try {
-  LIMBO_CHUNK_PACKET = buildLimboChunkPacket();
-  log('INFO', '🌌 Pre-baked Limbo Void Chunk packet initialized successfully.');
-} catch (e: any) {
-  log('WARN', 'Failed to pre-bake Limbo chunk:', e?.message || e);
-}
+// Limbo Void coordinates (deep space, zero chunk collisions, zero chunk streaming)
+const LIMBO_X = 500000.5;
+const LIMBO_Y = 150.0;
+const LIMBO_Z = 500000.5;
 
 interface ProxySession {
   client: any;
