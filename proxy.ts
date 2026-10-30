@@ -212,6 +212,179 @@ setInterval(() => {
   broadcastGlobalProxyTablist();
 }, 2500);
 
+function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
+  if (session.isInLimbo) return;
+  if (!session.client || session.client.state !== mc.states.PLAY) return;
+
+  session.isInLimbo = true;
+  session.previousServer = lastServer;
+  session.currentServer = 'limbo';
+  session.isSwitching = false;
+
+  log('INFO', `[Limbo] Moving ${session.username} to Temporary Limbo Host (Backend ${lastServer} dropped/restarting)`);
+
+  if (session.backend) {
+    try {
+      const oldBackend = session.backend;
+      session.backend = null;
+      oldBackend.removeAllListeners();
+      oldBackend.on('error', () => {});
+      oldBackend.end();
+    } catch (_) {}
+  }
+
+  try {
+    // 1. Send respawn to The End (dark space sky)
+    session.client.write('respawn', {
+      dimension: 'minecraft:the_end',
+      worldName: 'minecraft:the_end',
+      hashedSeed: [0, 0],
+      gamemode: 2, // Adventure
+      previousGamemode: 255,
+      isDebug: false,
+      isFlat: false,
+      copyMetadata: true,
+      death: undefined
+    });
+
+    // 2. View center and Limbo chunk platform
+    session.client.write('update_view_position', { chunkX: 0, chunkZ: 0 });
+    if (LIMBO_CHUNK_PACKET) {
+      session.client.write('map_chunk', LIMBO_CHUNK_PACKET);
+    }
+
+    // 3. Teleport onto the platform
+    session.client.write('position', {
+      x: 8.5,
+      y: 102.0,
+      z: 8.5,
+      yaw: 0,
+      pitch: 0,
+      flags: 0x00,
+      teleportId: Math.floor(Math.random() * 10000)
+    });
+
+    // 4. Safe abilities: allow flying, no fall damage
+    session.client.write('abilities', {
+      flags: 0x07,
+      flyingSpeed: 0.05,
+      walkingSpeed: 0.1
+    });
+
+    // 5. Notify player: clear title, subtitle, and informative chat
+    session.client.write('set_title_text', {
+      text: JSON.stringify({ text: '§d§lZYLARPIXEL LIMBO' })
+    });
+    session.client.write('set_title_subtitle', {
+      text: JSON.stringify({ text: '§eServer is restarting... Reconnecting soon!' })
+    });
+    session.client.write('set_title_time', {
+      fadeIn: 10,
+      stay: 80,
+      fadeOut: 20
+    });
+
+    session.client.write('system_chat', {
+      content: JSON.stringify({
+        text: '\n§8-----------------------------------------------------\n§c§l[ZylarPixel Network] §eGame server is restarting for an update!\n§7You have been temporarily transferred to the §dProxy Limbo Host§7.\n§aHolding your connection safe... Reconnecting in a few seconds!\n§8-----------------------------------------------------\n'
+      }),
+      isOverlay: false
+    });
+
+    session.client.write('named_sound_effect', {
+      soundName: 'block.portal.travel',
+      soundCategory: 0,
+      x: Math.floor(8.5 * 8),
+      y: Math.floor(102.0 * 8),
+      z: Math.floor(8.5 * 8),
+      volume: 0.6,
+      pitch: 1.2,
+      seed: [0, 0]
+    });
+  } catch (err: any) {
+    log('WARN', `Error moving ${session.username} to Limbo:`, err?.message);
+  }
+
+  startLimboPoller(session);
+  broadcastGlobalProxyTablist();
+}
+
+function startLimboPoller(session: ProxySession) {
+  if (session.limboRetryTimer) {
+    clearInterval(session.limboRetryTimer);
+    session.limboRetryTimer = undefined;
+  }
+
+  let attempts = 0;
+  const targetServer = session.previousServer || 'hub';
+  const targetPort = targetServer === 'hub' ? HUB_PORT : ISLANDS_PORT;
+
+  session.limboRetryTimer = setInterval(() => {
+    if (!session.isInLimbo || !session.client || session.client.state !== mc.states.PLAY) {
+      if (session.limboRetryTimer) {
+        clearInterval(session.limboRetryTimer);
+        session.limboRetryTimer = undefined;
+      }
+      return;
+    }
+
+    attempts++;
+
+    // Heartbeat action bar
+    try {
+      const dots = '.'.repeat((attempts % 3) + 1);
+      session.client.write('action_bar', {
+        text: JSON.stringify({
+          text: `§e⚡ Holding in Proxy Limbo... Checking ${targetServer === 'hub' ? 'Village Hub' : 'Private Island'}${dots}`
+        })
+      });
+    } catch (_) {}
+
+    // TCP Probe
+    const socket = net.createConnection({ host: '127.0.0.1', port: targetPort, timeout: 800 }, () => {
+      socket.destroy();
+      if (session.limboRetryTimer) {
+        clearInterval(session.limboRetryTimer);
+        session.limboRetryTimer = undefined;
+      }
+      log('INFO', `[Limbo] Detected backend ${targetServer} on port ${targetPort} is UP! Reconnecting ${session.username}...`);
+
+      try {
+        session.client.write('system_chat', {
+          content: JSON.stringify({ text: `§a✔ Backend server is back online! Reconnecting you now...` }),
+          isOverlay: false
+        });
+      } catch (_) {}
+
+      session.isSwitching = true;
+      connectToBackend(session, targetServer);
+    });
+
+    socket.on('error', () => {
+      socket.destroy();
+      // If island server is down for >15s, probe Hub as fallback
+      if (attempts > 15 && targetServer === 'islands') {
+        const hubSocket = net.createConnection({ host: '127.0.0.1', port: HUB_PORT, timeout: 800 }, () => {
+          hubSocket.destroy();
+          if (session.limboRetryTimer) {
+            clearInterval(session.limboRetryTimer);
+            session.limboRetryTimer = undefined;
+          }
+          log('INFO', `[Limbo] Islands took long, falling back to Hub for ${session.username}...`);
+          session.previousServer = 'hub';
+          session.isSwitching = true;
+          connectToBackend(session, 'hub');
+        });
+        hubSocket.on('error', () => hubSocket.destroy());
+      }
+    });
+
+    socket.on('timeout', () => {
+      socket.destroy();
+    });
+  }, 1000);
+}
+
 function connectToBackend(session: ProxySession, target: 'hub' | 'islands', initialCommand?: string) {
   const targetPort = target === 'hub' ? HUB_PORT : ISLANDS_PORT;
   log('INFO', `Connecting ${session.username} to backend ${target} (: ${targetPort})...`);
@@ -244,6 +417,9 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
 
   backendClient.on('error', (err: any) => {
     log('WARN', `Backend ${target} error for ${session.username}:`, err.message);
+    if (!session.isInLimbo) {
+      enterLimbo(session, target);
+    }
   });
 
   backendClient.on('connect', () => {
@@ -278,8 +454,15 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
     if (meta.name === 'login') {
       log('INFO', `Backend login received for ${session.username} on ${target}`);
       session.lastPortalWarp = Date.now() + 3500;
-      if (session.isSwitching) {
+      const wasInLimbo = session.isInLimbo;
+      if (session.isSwitching || wasInLimbo) {
         session.isSwitching = false;
+        session.isInLimbo = false;
+        if (session.limboRetryTimer) {
+          clearInterval(session.limboRetryTimer);
+          session.limboRetryTimer = undefined;
+        }
+
         // Perform Nether -> Overworld dimension swap so Minecraft Java client clears chunk cache and loads target world cleanly
         try {
           session.client.write('respawn', {
@@ -305,6 +488,30 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
             death: undefined
           });
           log('INFO', `Successfully sent Nether -> Overworld dimension reset to ${session.username}`);
+
+          if (wasInLimbo) {
+            session.client.write('set_title_text', {
+              text: JSON.stringify({ text: '§a§lRECONNECTED!' })
+            });
+            session.client.write('set_title_subtitle', {
+              text: JSON.stringify({ text: `§7Welcome back to ${target === 'hub' ? 'Village Hub' : 'Private Island'}` })
+            });
+            session.client.write('set_title_time', {
+              fadeIn: 5,
+              stay: 40,
+              fadeOut: 15
+            });
+            session.client.write('named_sound_effect', {
+              soundName: 'entity.player.levelup',
+              soundCategory: 0,
+              x: 0,
+              y: 70 * 8,
+              z: 0,
+              volume: 0.8,
+              pitch: 1.2,
+              seed: [0, 0]
+            });
+          }
         } catch (e: any) {
           log('ERROR', `Error sending respawn to ${session.username}:`, e.message);
         }
@@ -366,24 +573,8 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
 
   backendClient.on('end', () => {
     log('INFO', `Backend ${target} disconnected for ${session.username}`);
-    if (!session.isSwitching) {
-      // If backend closed unexpectedly, fall back to Hub
-      if (target !== 'hub') {
-        connectToBackend(session, 'hub');
-      } else {
-        try {
-          session.client.end('§c[ZylarPixel] Backend Hub connection lost.');
-        } catch (_) {}
-      }
-    }
-  });
-
-  backendClient.on('error', (err: any) => {
-    log('ERROR', `Backend ${target} error for ${session.username}:`, err.message);
-    if (!session.isSwitching) {
-      try {
-        session.client.end('§c[ZylarPixel] Backend server error.');
-      } catch (_) {}
+    if (!session.isSwitching && !session.isInLimbo) {
+      enterLimbo(session, target);
     }
   });
 }
