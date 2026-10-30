@@ -1331,10 +1331,150 @@
           }
         }
       }
+    },
+    {
+      "slot": 37,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRogue Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\"§7Damage: §c+20\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
+                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
+                    "{\"text\":\"§8Mana Cost: §350\"}",
+                    "{\"text\":\"§8Cooldown: §a5s\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROGUE_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "uuid": {
+                "type": "string",
+                "value": "8b74f910-e64e-49f5-833a-8be15f9788cf"
+              },
+              "origin": {
+                "type": "string",
+                "value": "ZYLARPIXEL"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "slot": 43,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRogue Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\"§7Damage: §c+20\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
+                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
+                    "{\"text\":\"§8Mana Cost: §350\"}",
+                    "{\"text\":\"§8Cooldown: §a5s\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROGUE_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "uuid": {
+                "type": "string",
+                "value": "81b6de2c-aee8-4f94-9671-8f348ead55c2"
+              },
+              "origin": {
+                "type": "string",
+                "value": "ZYLARPIXEL"
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793356509655,
+  "lastSeen": 1793356515709,
   "bankTransactions": [
     {
       "type": "deposit",
