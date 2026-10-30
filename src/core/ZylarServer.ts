@@ -576,46 +576,47 @@ export class ZylarServer {
     players.clear();
     this.droppedItems.clear();
 
-    let hasRespawned = false;
-    const doSpawnAndExit = () => {
-      if (hasRespawned) return;
-      hasRespawned = true;
+    let hasReloaded = false;
+    const doReloadAndStart = () => {
+      if (hasReloaded) return;
+      hasReloaded = true;
       try {
-        const { spawn } = require('child_process');
-        const childArgs = [...process.execArgv, ...process.argv.slice(1)];
-        this.log('INFO', `🚀 Spawning fresh process: ${process.execPath} ${childArgs.join(' ')}`);
-        const logDir = path.resolve(__dirname, '../../logs');
-        if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-        const outLog = fs.openSync(path.join(logDir, `${this.config.serverId}.log`), 'a');
-        const child = spawn(process.execPath, childArgs, {
-          cwd: process.cwd(),
-          detached: true,
-          stdio: ['ignore', outLog, outLog],
-          windowsHide: true
-        });
-        child.unref();
+        this.log('INFO', '🔄 Purging module cache to hot-reload all new code from disk...');
+        for (const key of Object.keys(require.cache)) {
+          if (key.includes('arena-server') && !key.includes('node_modules')) {
+            delete require.cache[key];
+          }
+        }
       } catch (err: any) {
-        this.log('ERROR', `Failed to spawn replacement process: ${err?.message || err}`);
+        this.log('WARN', `Error clearing module cache: ${err?.message || err}`);
       }
+
       setTimeout(() => {
-        process.exit(0);
-      }, 300);
+        try {
+          this.start();
+          this.isRestarting = false;
+          this.log('INFO', '🚀 Hot reload complete! Server is running and listening.');
+        } catch (startErr: any) {
+          this.log('ERROR', `Failed to restart server: ${startErr?.message || startErr}`);
+          this.isRestarting = false;
+        }
+      }, 350);
     };
 
-    const safetyTimeout = setTimeout(doSpawnAndExit, 1000);
+    const safetyTimeout = setTimeout(doReloadAndStart, 1200);
 
     if (this.serverInstance) {
       try {
         this.serverInstance.close(() => {
           clearTimeout(safetyTimeout);
-          this.log('INFO', 'Socket server closed cleanly. Respawning process in 300ms...');
-          setTimeout(doSpawnAndExit, 300);
+          this.log('INFO', 'Socket server closed cleanly. Reloading code and rebinding in 300ms...');
+          setTimeout(doReloadAndStart, 300);
         });
       } catch (_) {
-        setTimeout(doSpawnAndExit, 500);
+        setTimeout(doReloadAndStart, 500);
       }
     } else {
-      setTimeout(doSpawnAndExit, 500);
+      setTimeout(doReloadAndStart, 500);
     }
   }
 
