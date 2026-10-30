@@ -1524,7 +1524,12 @@ export class ZylarServer {
 
         // 3. Master Admin Menu (WindowId = 1)
         if (pData.openWindowId === 1) {
-          if (clickedSlot === 21) {
+          if (clickedSlot === 8) {
+            // Restart Server (Redstone Block, Top-Right Corner)
+            pData.openWindowId = 0;
+            try { client.write('close_window', { windowId: 1 }); } catch (_) {}
+            this.triggerServerRestart();
+          } else if (clickedSlot === 21) {
             // Rank Manager (Nether Star)
             if (players.size > 1) openPlayerSelector(client, pData, players);
             else openRankSelector(client, pData, pData);
