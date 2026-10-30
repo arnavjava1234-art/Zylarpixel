@@ -11,7 +11,7 @@
  * - Instant 1-click spawning into player hotbar/inventory with audio feedback
  */
 
-import { createGuiItem, openAdminMenu } from './adminMenu';
+import { createGuiItem, openAdminMenu, createAdminBaseSlots } from './adminMenu';
 import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition } from '../items';
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
