@@ -558,32 +558,60 @@ export class ZylarServer {
     if (this.isRestarting) return;
     this.isRestarting = true;
 
-    this.log('INFO', '🔄 Hot restart triggered! Rebooting ZylarServer instance in-memory...');
+    this.log('INFO', '🔄 Server restart triggered! Saving all players and rebooting fresh process from disk...');
+
+    if (this.botTickerInterval) {
+      clearInterval(this.botTickerInterval);
+      this.botTickerInterval = null;
+    }
 
     for (const [_, p] of players) {
       try {
         persistPlayerSession(p);
-        p.client.end('§d§lZYLARPIXEL SKYBLOCK\n\n§cServer is restarting!\n§ePlease reconnect in 2 seconds...');
+        sendSystemMessage(p.client, '§c§l[ZylarPixel] §eServer restart initiated! Transferring to Limbo...', p.is119);
+        // Destroy the backend socket so the Master Proxy immediately catches it and transitions the player into Limbo!
         p.client.destroy();
       } catch (_) {}
     }
     players.clear();
     this.droppedItems.clear();
 
+    let hasRespawned = false;
+    const doSpawnAndExit = () => {
+      if (hasRespawned) return;
+      hasRespawned = true;
+      try {
+        const { spawn } = require('child_process');
+        const childArgs = [...process.execArgv, ...process.argv.slice(1)];
+        this.log('INFO', `🚀 Spawning fresh process: ${process.execPath} ${childArgs.join(' ')}`);
+        const child = spawn(process.execPath, childArgs, {
+          cwd: process.cwd(),
+          detached: true,
+          stdio: 'inherit'
+        });
+        child.unref();
+      } catch (err: any) {
+        this.log('ERROR', `Failed to spawn replacement process: ${err?.message || err}`);
+      }
+      setTimeout(() => {
+        process.exit(0);
+      }, 300);
+    };
+
+    const safetyTimeout = setTimeout(doSpawnAndExit, 1000);
+
     if (this.serverInstance) {
       try {
-        this.serverInstance.close();
-      } catch (_) {}
-
-      this.serverInstance.on('close', () => {
-        setTimeout(() => {
-          this.start();
-          this.isRestarting = false;
-        }, 250);
-      });
+        this.serverInstance.close(() => {
+          clearTimeout(safetyTimeout);
+          this.log('INFO', 'Socket server closed cleanly. Respawning process in 300ms...');
+          setTimeout(doSpawnAndExit, 300);
+        });
+      } catch (_) {
+        setTimeout(doSpawnAndExit, 500);
+      }
     } else {
-      this.start();
-      this.isRestarting = false;
+      setTimeout(doSpawnAndExit, 500);
     }
   }
 
