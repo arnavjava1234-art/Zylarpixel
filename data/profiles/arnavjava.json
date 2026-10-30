@@ -13,9 +13,7 @@
     "intelligence": 0,
     "maxMana": 100,
     "critChance": 30,
-    "critDamage": 50,
-    "mana": 100,
-    "damage": 0
+    "critDamage": 50
   },
   "skills": {
     "combat": 1,
@@ -1263,10 +1261,80 @@
           }
         }
       }
+    },
+    {
+      "slot": 41,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRogue Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\"§7Damage: §c+20\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
+                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
+                    "{\"text\":\"§8Mana Cost: §350\"}",
+                    "{\"text\":\"§8Cooldown: §a5s\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROGUE_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "uuid": {
+                "type": "string",
+                "value": "ff074dfe-1a83-4698-96e2-715d248047a5"
+              },
+              "origin": {
+                "type": "string",
+                "value": "ZYLARPIXEL"
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793356364169,
+  "lastSeen": 1793356377899,
   "bankTransactions": [
     {
       "type": "deposit",
