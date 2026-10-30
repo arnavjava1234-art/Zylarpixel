@@ -11,15 +11,7 @@
  * - Private feedback sent strictly to the admin
  */
 
-import { createGuiItem } from './adminMenu';
-import { createPlayerSkullItem } from '../storage/skinService';
-import { formatPlayerName } from '../config/ranks';
-import { loadPlayerData, savePlayerData, getAllDiskPlayerNames } from '../storage/diskStorage';
-import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
-import { findPlayerByName, persistPlayerSession, sendSystemMessage } from '../players/playerManager';
-import { updatePlayerScoreboardPurse } from '../core/scoreboard';
-import { parseCoinInput, formatCoins, playSound, restoreSignBlock } from './bankMenu';
-import { openAdminMenu } from './adminMenu';
+import { createGuiItem, openAdminMenu, createAdminBaseSlots } from './adminMenu';
 
 export const ADMIN_COIN_SELECTOR_WINDOW_ID = 11;
 export const ADMIN_COIN_ACTION_WINDOW_ID = 12;
