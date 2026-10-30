@@ -46,7 +46,7 @@ export function openAdminMenu(client: any, pData: any): void {
   });
 
   // 2. Populate 54 slots
-  const items = new Array(54).fill(null).map(() => createGuiItem('gray_stained_glass_pane', 1, '§7', []));
+  const items = new Array(54).fill(null).map(() => createGuiItem('black_stained_glass_pane', 1, '§8', []));
 
   // Slot 8: Server Restart Tool (Redstone Block, Top-Right Corner)
   items[8] = createGuiItem(
