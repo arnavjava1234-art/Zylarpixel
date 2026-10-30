@@ -35,6 +35,22 @@ export function createGuiItem(itemName: string, count: number, displayName: stri
   };
 }
 
+export function createAdminBaseSlots(totalSlots: number = 54): any[] {
+  const items = new Array(totalSlots);
+  const rows = Math.floor(totalSlots / 9);
+  for (let i = 0; i < totalSlots; i++) {
+    const r = Math.floor(i / 9);
+    const c = i % 9;
+    const isBorder = (r === 0 || r === rows - 1 || c === 0 || c === 8);
+    if (isBorder) {
+      items[i] = createGuiItem('black_stained_glass_pane', 1, '§8', []);
+    } else {
+      items[i] = createGuiItem('gray_stained_glass_pane', 1, '§7', []);
+    }
+  }
+  return items;
+}
+
 export function openAdminMenu(client: any, pData: any): void {
   pData.openWindowId = 1;
 
@@ -45,8 +61,8 @@ export function openAdminMenu(client: any, pData: any): void {
     windowTitle: JSON.stringify({ text: '§8ZylarPixel Admin Control Panel' })
   });
 
-  // 2. Populate 54 slots
-  const items = new Array(54).fill(null).map(() => createGuiItem('black_stained_glass_pane', 1, '§8', []));
+  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  const items = createAdminBaseSlots(54);
 
   // Slot 8: Server Restart Tool (Redstone Block, Top-Right Corner)
   items[8] = createGuiItem(
