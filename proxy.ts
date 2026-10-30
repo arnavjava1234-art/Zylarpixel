@@ -234,26 +234,13 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   }
 
   try {
-    // 1. Send respawn to The End (dark space sky)
-    session.client.write('respawn', {
-      dimension: 'minecraft:the_end',
-      worldName: 'minecraft:the_end',
-      hashedSeed: [0, 0],
-      gamemode: 2, // Adventure
-      previousGamemode: 255,
-      isDebug: false,
-      isFlat: false,
-      copyMetadata: true,
-      death: undefined
-    });
-
-    // 2. View center and Limbo chunk platform
+    // 1. View center and Limbo chunk platform (Overworld-native, instant 0-delay load)
     session.client.write('update_view_position', { chunkX: 0, chunkZ: 0 });
     if (LIMBO_CHUNK_PACKET) {
       session.client.write('map_chunk', LIMBO_CHUNK_PACKET);
     }
 
-    // 3. Teleport onto the platform
+    // 2. Teleport onto the platform
     session.client.write('position', {
       x: 8.5,
       y: 102.0,
