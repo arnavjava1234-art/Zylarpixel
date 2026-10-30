@@ -16,7 +16,7 @@ export function openPlayerSelector(client: any, pData: any, playersMap: Map<numb
     windowTitle: JSON.stringify({ text: '§8Select Player to Change Rank' })
   });
 
-  const items = new Array(54).fill(null).map(() => createGuiItem('gray_stained_glass_pane', 1, '§7', []));
+  const items = new Array(54).fill(null).map(() => createGuiItem('black_stained_glass_pane', 1, '§8', []));
 
   // Populate online players across row 2 (Slots 19..25)
   const onlineList = Array.from(playersMap.values());
