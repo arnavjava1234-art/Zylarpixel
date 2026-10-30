@@ -183,9 +183,7 @@ export function openCoinActionMenu(
     windowTitle: JSON.stringify({ text: `§8Purse: ${targetUsername}` })
   });
 
-  const items = new Array(36).fill(null).map(() =>
-    createGuiItem('black_stained_glass_pane', 1, '§8', [])
-  );
+  const items = createAdminBaseSlots(36);
 
   // Fetch current purse
   let currentPurse = 0;
