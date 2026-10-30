@@ -171,6 +171,18 @@ export function syncPlayerAttributes(client: any, entityId: number, speedStat: n
     const effectiveSpeed = Math.max(20, Math.min(500, speedStat || 100));
     const vanillaSpeedAttr = 0.1 * (effectiveSpeed / 100.0);
 
+    // Keep FOV locked (FOV never changes for the player, only their movement speed changes!)
+    // In Minecraft client: FOV = (movement_speed / walkingSpeed + 1.0) / 2.0
+    // By keeping walkingSpeed dynamically matched to vanillaSpeedAttr, the FOV multiplier is locked to 1.0!
+    try {
+      const currentFlags = client._abilitiesFlags !== undefined ? client._abilitiesFlags : (client._isHub ? 0x01 : 0x00);
+      client.write('abilities', {
+        flags: currentFlags,
+        flyingSpeed: 0.05,
+        walkingSpeed: vanillaSpeedAttr
+      });
+    } catch (_) {}
+
     const targetIds = [entityId];
     if (typeof client?.id === 'number' && !targetIds.includes(client.id)) targetIds.push(client.id);
     if (!targetIds.includes(99999)) targetIds.push(99999);
