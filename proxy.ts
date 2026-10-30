@@ -410,7 +410,8 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
         }
 
         if (session.hasInitialJoined) {
-          // Perform Nether -> Overworld dimension swap so Minecraft Java client clears chunk cache and loads target world cleanly
+          // Perform synchronous Nether -> Overworld dimension reset so Minecraft Java client
+          // completely clears chunk cache BEFORE backend sends new chunks and position!
           try {
             session.client.write('respawn', {
               dimension: 'minecraft:the_nether',
@@ -420,25 +421,26 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
               previousGamemode: 255,
               isDebug: false,
               isFlat: false,
-              copyMetadata: true,
+              copyMetadata: false,
               death: undefined
             });
-            setTimeout(() => {
-              try {
-                session.client.write('respawn', {
-                  dimension: 'minecraft:overworld',
-                  worldName: 'minecraft:overworld',
-                  hashedSeed: [0, 0],
-                  gamemode: target === 'hub' ? 2 : 0,
-                  previousGamemode: 255,
-                  isDebug: false,
-                  isFlat: false,
-                  copyMetadata: true,
-                  death: undefined
-                });
-                log('INFO', `Successfully sent Nether -> Overworld dimension reset to ${session.username}`);
-              } catch (_) {}
-            }, 60);
+            session.client.write('respawn', {
+              dimension: 'minecraft:overworld',
+              worldName: 'minecraft:overworld',
+              hashedSeed: [0, 0],
+              gamemode: target === 'hub' ? 2 : 0,
+              previousGamemode: 255,
+              isDebug: false,
+              isFlat: false,
+              copyMetadata: false,
+              death: undefined
+            });
+            // Ensure client gamemode is immediately synced
+            session.client.write('game_state_change', {
+              reason: 3,
+              gameMode: target === 'hub' ? 2 : 0
+            });
+            log('INFO', `Successfully sent synchronous dimension reset to ${session.username} for ${target}`);
           } catch (e: any) {
             log('ERROR', `Error sending respawn to ${session.username}:`, e.message);
           }
