@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-30T10:35:01.641Z",
+  "lastLogin": "2026-10-30T10:35:09.649Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -215,66 +215,6 @@
               "id": {
                 "type": "string",
                 "value": "POPPY"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 37,
-      "name": "dirt",
-      "itemId": 15,
-      "count": 4,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fDirt\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "DIRT"
               },
               "rarity": {
                 "type": "string",
@@ -1029,16 +969,33 @@
     },
     {
       "slot": 38,
-      "name": "golden_sword",
-      "itemId": 745,
-      "count": 1,
+      "name": "dirt",
+      "itemId": 15,
+      "count": 4,
       "nbtData": {
         "type": "compound",
         "name": "",
         "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "id": {
+                "type": "string",
+                "value": "DIRT"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              }
+            }
           },
           "Unbreakable": {
             "type": "byte",
@@ -1049,50 +1006,23 @@
             "value": {
               "Name": {
                 "type": "string",
-                "value": "{\"text\":\"§fRogue Sword\"}"
+                "value": "{\"text\":\"§fDirt\"}"
               },
               "Lore": {
                 "type": "list",
                 "value": {
                   "type": "string",
                   "value": [
-                    "{\"text\":\"§7Damage: §c+20\"}",
                     "{\"text\":\" \"}",
-                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
-                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
-                    "{\"text\":\"§8Mana Cost: §350\"}",
-                    "{\"text\":\"§8Cooldown: §a5s\"}",
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                    "{\"text\":\"§f§lCOMMON\"}"
                   ]
                 }
               }
             }
           },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "ROGUE_SWORD"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "SWORD"
-              },
-              "uuid": {
-                "type": "string",
-                "value": "dd55ca51-3fb5-40a0-81a2-c5aad2aa5c10"
-              },
-              "origin": {
-                "type": "string",
-                "value": "ZYLARPIXEL"
-              }
-            }
+          "HideFlags": {
+            "type": "int",
+            "value": 254
           }
         }
       }
@@ -1430,7 +1360,77 @@
           }
         }
       }
+    },
+    {
+      "slot": 42,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRogue Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\"§7Damage: §c+20\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
+                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
+                    "{\"text\":\"§8Mana Cost: §350\"}",
+                    "{\"text\":\"§8Cooldown: §a5s\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROGUE_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "uuid": {
+                "type": "string",
+                "value": "c115363a-b7d7-474e-b525-283d5e43950f"
+              },
+              "origin": {
+                "type": "string",
+                "value": "ZYLARPIXEL"
+              }
+            }
+          }
+        }
+      }
     }
   ],
-  "lastSeen": 1793356501641
+  "lastSeen": 1793356509649
 }
