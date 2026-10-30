@@ -1377,6 +1377,12 @@ export class ZylarServer {
       }
     });
 
+    client.on('abilities', (data: any) => {
+      if (data && typeof data.flags === 'number') {
+        client._abilitiesFlags = data.flags;
+      }
+    });
+
     client.on('arm_animation', (data: any) => {
       for (const [_, other] of players) {
         if (other.client.id !== client.id && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
