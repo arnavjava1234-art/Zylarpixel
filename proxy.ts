@@ -450,33 +450,45 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
           session.limboRetryTimer = undefined;
         }
 
-        // Perform Nether -> Overworld dimension swap so Minecraft Java client clears chunk cache and loads target world cleanly
-        try {
-          session.client.write('respawn', {
-            dimension: 'minecraft:the_nether',
-            worldName: 'minecraft:the_nether',
-            hashedSeed: [0, 0],
-            gamemode: target === 'hub' ? 2 : 0,
-            previousGamemode: 255,
-            isDebug: false,
-            isFlat: false,
-            copyMetadata: true,
-            death: undefined
-          });
-          session.client.write('respawn', {
-            dimension: 'minecraft:overworld',
-            worldName: 'minecraft:overworld',
-            hashedSeed: [0, 0],
-            gamemode: target === 'hub' ? 2 : 0,
-            previousGamemode: 255,
-            isDebug: false,
-            isFlat: false,
-            copyMetadata: true,
-            death: undefined
-          });
-          log('INFO', `Successfully sent Nether -> Overworld dimension reset to ${session.username}`);
+        if (session.hasInitialJoined) {
+          // Perform Nether -> Overworld dimension swap so Minecraft Java client clears chunk cache and loads target world cleanly
+          try {
+            session.client.write('respawn', {
+              dimension: 'minecraft:the_nether',
+              worldName: 'minecraft:the_nether',
+              hashedSeed: [0, 0],
+              gamemode: target === 'hub' ? 2 : 0,
+              previousGamemode: 255,
+              isDebug: false,
+              isFlat: false,
+              copyMetadata: true,
+              death: undefined
+            });
+            setTimeout(() => {
+              try {
+                session.client.write('respawn', {
+                  dimension: 'minecraft:overworld',
+                  worldName: 'minecraft:overworld',
+                  hashedSeed: [0, 0],
+                  gamemode: target === 'hub' ? 2 : 0,
+                  previousGamemode: 255,
+                  isDebug: false,
+                  isFlat: false,
+                  copyMetadata: true,
+                  death: undefined
+                });
+                log('INFO', `Successfully sent Nether -> Overworld dimension reset to ${session.username}`);
+              } catch (_) {}
+            }, 60);
+          } catch (e: any) {
+            log('ERROR', `Error sending respawn to ${session.username}:`, e.message);
+          }
+        } else {
+          session.hasInitialJoined = true;
+        }
 
-          if (wasInLimbo) {
+        if (wasInLimbo) {
+          try {
             session.client.write('set_title_text', {
               text: JSON.stringify({ text: '§a§lRECONNECTED!' })
             });
@@ -498,9 +510,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
               pitch: 1.2,
               seed: [0, 0]
             });
-          }
-        } catch (e: any) {
-          log('ERROR', `Error sending respawn to ${session.username}:`, e.message);
+          } catch (_) {}
         }
 
         if (session.pendingCommand) {
