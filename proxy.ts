@@ -620,6 +620,14 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // High-level navigation command interceptor at the Master Proxy layer
   const handleProxyCommand = (rawText: string) => {
+    if (session.isInLimbo) {
+      session.client.write('system_chat', {
+        content: JSON.stringify({ text: '§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!' }),
+        isOverlay: false
+      });
+      return true;
+    }
+
     const cmdText = rawText.startsWith('/') ? rawText.slice(1).trim().toLowerCase() : rawText.trim().toLowerCase();
     const cmdParts = cmdText.split(/\s+/);
     const cmdBase = cmdParts[0];
@@ -689,6 +697,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Portal Step Detection (Client-Side Collision Detection)
   const checkPortalStep = (x: number, y: number, z: number) => {
+    if (session.isInLimbo) return;
     const now = Date.now();
     if (session.isSwitching) return;
     if (session.lastPortalWarp && now < session.lastPortalWarp) return;
@@ -720,13 +729,31 @@ proxyServer.on('playerJoin', (client: any) => {
     }
   };
 
+  const handleLimboSafety = (packet: any) => {
+    if (session.isInLimbo && packet && typeof packet.y === 'number' && packet.y < 85) {
+      try {
+        session.client.write('position', {
+          x: 8.5,
+          y: 102.0,
+          z: 8.5,
+          yaw: 0,
+          pitch: 0,
+          flags: 0x00,
+          teleportId: Math.floor(Math.random() * 10000)
+        });
+      } catch (_) {}
+    }
+  };
+
   client.on('position', (packet: any) => {
+    handleLimboSafety(packet);
     if (packet && typeof packet.x === 'number') {
       checkPortalStep(packet.x, packet.y, packet.z);
     }
   });
 
   client.on('position_look', (packet: any) => {
+    handleLimboSafety(packet);
     if (packet && typeof packet.x === 'number') {
       checkPortalStep(packet.x, packet.y, packet.z);
     }
@@ -734,6 +761,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Forward packets from player client to backend
   client.on('raw', (buffer: Buffer, meta: any) => {
+    if (session.isInLimbo) return;
     if (session.backend && session.backend.state === mc.states.PLAY) {
       try {
         session.backend.writeRaw(buffer);
@@ -749,6 +777,10 @@ proxyServer.on('playerJoin', (client: any) => {
 
   client.on('end', () => {
     log('INFO', `[-] Player disconnected from Proxy: ${username}`);
+    if (session.limboRetryTimer) {
+      clearInterval(session.limboRetryTimer);
+      session.limboRetryTimer = undefined;
+    }
     if (session.backend) {
       try {
         const oldBackend = session.backend;
