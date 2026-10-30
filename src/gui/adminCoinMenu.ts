@@ -37,9 +37,7 @@ export function openCoinPlayerSelector(
     windowTitle: JSON.stringify({ text: '§8Manage Coins: Select Player' })
   });
 
-  const items = new Array(54).fill(null).map(() =>
-    createGuiItem('black_stained_glass_pane', 1, '§8', [])
-  );
+  const items = createAdminBaseSlots(54);
 
   const slotPlayerMap = new Map<number, { username: string; isOnline: boolean; purse: number; targetPData?: any }>();
   const availableSlots = [
