@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-30T17:18:08.257Z",
+  "lastLogin": "2026-10-30T17:18:17.376Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -155,66 +155,6 @@
               "id": {
                 "type": "string",
                 "value": "DANDELION"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 36,
-      "name": "poppy",
-      "itemId": 184,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fPoppy\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "POPPY"
               },
               "rarity": {
                 "type": "string",
@@ -1572,5 +1512,5 @@
       }
     }
   ],
-  "lastSeen": 1793380688257
+  "lastSeen": 1793380697376
 }

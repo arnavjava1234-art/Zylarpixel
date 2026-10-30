@@ -83,66 +83,6 @@
       }
     },
     {
-      "slot": 36,
-      "name": "poppy",
-      "itemId": 184,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fPoppy\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "POPPY"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
       "slot": 11,
       "name": "emerald",
       "itemId": 723,
@@ -1474,7 +1414,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793380688265,
+  "lastSeen": 1793380697381,
   "bankTransactions": [
     {
       "type": "deposit",
