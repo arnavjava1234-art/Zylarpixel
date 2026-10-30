@@ -7,7 +7,7 @@
  * - Row 5 (Slot 49): Back to Admin Menu Arrow
  */
 
-import { createGuiItem } from './adminMenu';
+import { createGuiItem, createAdminBaseSlots } from './adminMenu';
 import { RANKS } from '../config/ranks';
 
 export const RANK_SLOT_MAP: Record<number, string> = {
