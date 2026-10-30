@@ -39,7 +39,7 @@ export function openCoinPlayerSelector(
   });
 
   const items = new Array(54).fill(null).map(() =>
-    createGuiItem('gray_stained_glass_pane', 1, '§7', [])
+    createGuiItem('black_stained_glass_pane', 1, '§8', [])
   );
 
   const slotPlayerMap = new Map<number, { username: string; isOnline: boolean; purse: number; targetPData?: any }>();
