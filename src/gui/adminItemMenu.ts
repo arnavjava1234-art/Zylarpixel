@@ -49,10 +49,8 @@ export function openAdminItemSpawner(
     })
   });
 
-  // 1. Fill all 54 slots with dark black stained glass border
-  const items = new Array(54).fill(null).map(() =>
-    createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
-  );
+  // 1. Fill slots: Outer border = Black Stained Glass, Inner = Gray Stained Glass
+  const items = createAdminBaseSlots(54);
 
   const slotItemMap = new Map<number, SkyBlockItemDefinition>();
   const pageItems = allItems.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
