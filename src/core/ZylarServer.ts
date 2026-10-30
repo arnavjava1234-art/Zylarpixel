@@ -910,10 +910,13 @@ export class ZylarServer {
     }
 
     // 2. Abilities
+    const initialAbilitiesFlags = (this.config.worldType === 'hub') ? 0x01 : (pData.isOp ? 0x07 : 0x00);
+    client._abilitiesFlags = initialAbilitiesFlags;
+    client._isHub = (this.config.worldType === 'hub');
     client.write('abilities', {
-      flags: (this.config.worldType === 'hub') ? 0x01 : (pData.isOp ? 0x07 : 0x00),
+      flags: initialAbilitiesFlags,
       flyingSpeed: 0.05,
-      walkingSpeed: 0.1
+      walkingSpeed: 0.1 * ((pData.stats.speed || 100) / 100.0)
     });
 
     // 3. View Distance & View Center
