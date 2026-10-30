@@ -48,6 +48,22 @@ export function openAdminMenu(client: any, pData: any): void {
   // 2. Populate 54 slots
   const items = new Array(54).fill(null).map(() => createGuiItem('gray_stained_glass_pane', 1, '§7', []));
 
+  // Slot 8: Server Restart Tool (Redstone Block, Top-Right Corner)
+  items[8] = createGuiItem(
+    'redstone_block',
+    1,
+    '§c§lRestart Server ⚡',
+    [
+      '§7Reboots the backend server and',
+      '§7hot-reloads all new code from disk!',
+      ' ',
+      '§e⚡ Players are held safely in Proxy Limbo',
+      '§e   and reconnected automatically in ~2s.',
+      ' ',
+      '§cClick to trigger instant restart! ⚠'
+    ]
+  );
+
   // Slot 19: Island & World Tools (Compass)
   items[19] = createGuiItem(
     'compass',
