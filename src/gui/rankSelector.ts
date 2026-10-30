@@ -41,8 +41,8 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
     windowTitle: JSON.stringify({ text: title })
   });
 
-  // 2. Populate 54 slots (default all to border glass)
-  const items = new Array(54).fill(null).map(() => createGuiItem('black_stained_glass_pane', 1, '§8', []));
+  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  const items = createAdminBaseSlots(54);
 
   // Populate Staff & Player Ranks
   for (const [slotStr, rankId] of Object.entries(RANK_SLOT_MAP)) {
