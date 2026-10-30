@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-30T10:32:57.895Z",
+  "lastLogin": "2026-10-30T10:33:35.963Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -20,7 +20,7 @@
     "critChance": 30,
     "critDamage": 50,
     "intelligence": 0,
-    "mana": 76,
+    "mana": 52,
     "maxMana": 100,
     "speed": 100
   },
@@ -1113,80 +1113,23 @@
                 "type": "string",
                 "value": "COMMON"
               },
-              "itemType": {
+              "id": {
                 "type": "string",
-                "value": "SWORD"
+                "value": "ROGUE_SWORD"
               },
               "uuid": {
                 "type": "string",
-                "value": "4f7972d1-2c89-43ba-93da-92d8387e794f"
+                "value": "c99e6165-a600-45f9-9845-bfb225d6e7ff"
               },
               "origin": {
                 "type": "string",
                 "value": "ZYLARPIXEL"
               },
-              "id": {
+              "itemType": {
                 "type": "string",
-                "value": "ROGUE_SWORD"
+                "value": "SWORD"
               }
             }
-          },
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          },
-          "Damage": {
-            "type": "int",
-            "value": 0
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fRogue Sword\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\"§7Damage: §c+20\"}",
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
-                    "{\"text\":\"§7Gain §a+50 ✦ Speed §7for §a20 seconds§7.\"}",
-                    "{\"text\":\"§8Mana Cost: §320\"}",
-                    "{\"text\":\"§8Cooldown: §a60s\"}",
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON SWORD\"}"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "slot": 40,
-      "name": "golden_sword",
-      "itemId": 745,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
           },
           "display": {
             "type": "compound",
@@ -1213,30 +1156,17 @@
               }
             }
           },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "ROGUE_SWORD"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "SWORD"
-              },
-              "uuid": {
-                "type": "string",
-                "value": "c99e6165-a600-45f9-9845-bfb225d6e7ff"
-              },
-              "origin": {
-                "type": "string",
-                "value": "ZYLARPIXEL"
-              }
-            }
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "Damage": {
+            "type": "int",
+            "value": 0
+          },
+          "HideFlags": {
+            "type": "int",
+            "value": 254
           }
         }
       }
@@ -1432,5 +1362,5 @@
       }
     }
   ],
-  "lastSeen": 1793356377895
+  "lastSeen": 1793356415963
 }
