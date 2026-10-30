@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-30T10:36:37.821Z",
+  "lastLogin": "2026-10-30T10:36:43.440Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -20,7 +20,7 @@
     "critChance": 30,
     "critDamage": 50,
     "intelligence": 0,
-    "mana": 90,
+    "mana": 100,
     "maxMana": 100,
     "speed": 100
   },
@@ -392,5 +392,5 @@
       }
     }
   ],
-  "lastSeen": 1793356597821
+  "lastSeen": 1793356603440
 }
