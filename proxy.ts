@@ -11,9 +11,13 @@ import * as mc from 'minecraft-protocol';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as net from 'net';
 import { mcData1192 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
+
+const Vec3 = require('vec3');
+const Chunk1192 = require('prismarine-chunk')('1.19.2');
 
 const PROXY_PORT = 25565;
 const HUB_PORT = 25566;
