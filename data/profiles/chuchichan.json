@@ -1,0 +1,85 @@
+{
+  "username": "chuchichan",
+  "rank": "default",
+  "isOp": false,
+  "coins": 60,
+  "bank": 0,
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "speed": 100,
+    "intelligence": 0,
+    "maxMana": 100,
+    "critChance": 30,
+    "critDamage": 50
+  },
+  "skills": {
+    "combat": 1,
+    "mining": 1,
+    "foraging": 1,
+    "farming": 1
+  },
+  "inventory": [
+    {
+      "slot": 36,
+      "name": "dirt",
+      "itemId": 15,
+      "count": 2,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fDirt\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "DIRT"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "currentServer": "hub",
+  "lastSeen": 1792246448440,
+  "bankTransactions": []
+}

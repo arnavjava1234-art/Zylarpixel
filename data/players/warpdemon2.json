@@ -1,0 +1,36 @@
+{
+  "username": "WarpDemon2",
+  "uuid": "3586049b-696f-35f4-a809-a9ce65b13e26",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "WarpDemon2",
+    "originX": 47000,
+    "originZ": 0,
+    "spawnX": 47000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-18T10:23:45.650Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1792319025650
+}

@@ -32,6 +32,20 @@ export interface IslandData {
   pvpEnabled?: boolean;
 }
 
+export interface PlayerStats {
+  health: number;
+  maxHealth: number;
+  defense: number;
+  strength: number;
+  damage: number;
+  critChance: number;
+  critDamage: number;
+  intelligence: number;
+  mana: number;
+  maxMana: number;
+  speed: number;
+}
+
 export interface PlayerSession {
   client: any;
   username: string;
@@ -52,6 +66,9 @@ export interface PlayerSession {
   teleportLockUntil?: number;
   island?: IslandData;
   bypassGuestProtection?: boolean;
+  stats: PlayerStats;
+  openWindowId?: number;
+  currentGuiItems?: any[];
 }
 
 export interface StoredPlayerData {
@@ -61,6 +78,7 @@ export interface StoredPlayerData {
   isOp: boolean;
   island: IslandData;
   lastLogin: string;
+  stats?: Partial<PlayerStats>;
 }
 
 export interface BlockModification {

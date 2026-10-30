@@ -1,0 +1,34 @@
+{
+  "username": "Island_Mia",
+  "uuid": "339c8a74-c631-3971-aee7-c0dacb01c17d",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Island_Mia",
+    "originX": 20000,
+    "originZ": 0,
+    "spawnX": 20000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-13T13:33:57.418Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791898437418
+}

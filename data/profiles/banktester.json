@@ -1,0 +1,64 @@
+{
+  "username": "banktester",
+  "rank": "default",
+  "isOp": false,
+  "coins": 550000,
+  "bank": 0,
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "speed": 100,
+    "intelligence": 0,
+    "maxMana": 100,
+    "critChance": 30,
+    "critDamage": 50
+  },
+  "skills": {
+    "combat": 1,
+    "mining": 1,
+    "foraging": 1,
+    "farming": 1
+  },
+  "inventory": [],
+  "currentServer": "hub",
+  "lastSeen": 1792317375339,
+  "bankTransactions": [
+    {
+      "type": "deposit",
+      "amount": 20000,
+      "timestamp": 1792077590377
+    },
+    {
+      "type": "deposit",
+      "amount": 550000,
+      "timestamp": 1792317102190
+    },
+    {
+      "type": "deposit",
+      "amount": 550000,
+      "timestamp": 1792317226213
+    },
+    {
+      "type": "deposit",
+      "amount": 550000,
+      "timestamp": 1792317289668
+    },
+    {
+      "type": "withdraw",
+      "amount": 1675000,
+      "timestamp": 1792317289731
+    },
+    {
+      "type": "deposit",
+      "amount": 550000,
+      "timestamp": 1792317364653
+    },
+    {
+      "type": "withdraw",
+      "amount": 550000,
+      "timestamp": 1792317365330
+    }
+  ]
+}

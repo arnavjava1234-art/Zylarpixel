@@ -1,0 +1,36 @@
+{
+  "username": "ModernTestBot",
+  "uuid": "528290ac-36ed-3d79-8e28-245f95b5d9b9",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "ModernTestBot",
+    "originX": 33000,
+    "originZ": 0,
+    "spawnX": 33000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-17T08:22:31.210Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1792225351210
+}

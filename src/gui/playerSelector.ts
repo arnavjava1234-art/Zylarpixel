@@ -4,6 +4,7 @@
  */
 
 import { createGuiItem } from './adminMenu';
+import { createPlayerSkullItem } from '../storage/skinService';
 import { formatPlayerName } from '../config/ranks';
 
 export function openPlayerSelector(client: any, pData: any, playersMap: Map<number, any>): void {
@@ -28,9 +29,8 @@ export function openPlayerSelector(client: any, pData: any, playersMap: Map<numb
     if (slot < 35) {
       pData.playerSelectorSlots.set(slot, target);
       const isSelf = (target.username === pData.username);
-      items[slot] = createGuiItem(
-        'player_head',
-        1,
+      items[slot] = createPlayerSkullItem(
+        target.username,
         formatPlayerName(target.rank, target.username) + (isSelf ? ' §7(You)' : ''),
         [
           `§7Username: §f${target.username}`,

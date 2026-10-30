@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { IslandData, StoredPlayerData } from '../types';
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'data');
+const DATA_DIR = path.join(process.cwd(), 'data');
 const PLAYERS_DIR = path.join(DATA_DIR, 'players');
 const ISLANDS_DIR = path.join(DATA_DIR, 'islands');
 
@@ -106,9 +106,11 @@ export function loadPlayerData(username: string): StoredPlayerData | null {
 
 // Memory cache for exact player username casing: lowercase -> original casing
 const playerCasingCache = new Map<string, string>();
+let isCasingCachePopulated = false;
 
 function populateCasingCache(): void {
-  if (playerCasingCache.size > 0) return;
+  if (isCasingCachePopulated) return;
+  isCasingCachePopulated = true;
   try {
     if (!fs.existsSync(PLAYERS_DIR)) return;
     const files = fs.readdirSync(PLAYERS_DIR).filter(f => f.endsWith('.json'));

@@ -31,15 +31,28 @@ export const TITLE_FRAMES = [
 
 let currentTitleIndex = 0;
 
-export function sendScoreboard(client: any, is119: boolean, islandName: string = 'Your Island'): void {
+export function formatScoreboardPurse(purse: number): string {
+  const p = typeof purse === 'number' && !isNaN(purse) ? purse : 0.0;
+  return p.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
+export function sendScoreboard(client: any, is119: boolean, islandName: string = 'Your Island', initialPurse: number = 0.0): void {
   try {
     const title = TITLE_FRAMES[currentTitleIndex];
 
-    // 1. Create Objective 'sb'
+    // 0. Remove previous Objective 'sb' first to wipe all previous scoreboard score lines completely
+    try {
+      client.write('scoreboard_objective', {
+        name: 'sb',
+        action: 1 // REMOVE
+      });
+    } catch (_) {}
+
+    // 1. Create Objective 'sb' fresh
     if (is119) {
       client.write('scoreboard_objective', {
         name: 'sb',
-        action: 0,
+        action: 0, // CREATE
         displayText: JSON.stringify({ text: title }),
         type: 0
       });
@@ -53,11 +66,16 @@ export function sendScoreboard(client: any, is119: boolean, islandName: string =
       });
     }
 
+    client._currentIslandScoreboardName = islandName;
+
     // 2. Display on Sidebar (position: 1)
     client.write('scoreboard_display_objective', {
       position: 1,
       name: 'sb'
     });
+
+    const purseFormatted = formatScoreboardPurse(initialPurse);
+    client._lastScoreboardPurseStr = purseFormatted;
 
     // 3. Set Scores (Hypixel layout with Bits & Quest Objective)
     const lines = [
@@ -68,7 +86,7 @@ export function sendScoreboard(client: any, is119: boolean, islandName: string =
       '§fTime: §712:00pm',
       `§fLocation: §a${islandName}`,
       '  ',
-      '§fPurse: §60.0',
+      `§fPurse: §6${purseFormatted}`,
       '§fBits: §b0',
       '   ',
       '§eObjective',
@@ -97,6 +115,46 @@ export function sendScoreboard(client: any, is119: boolean, islandName: string =
       }
     });
   } catch (e) {}
+}
+
+export function updatePlayerScoreboardPurse(pData: any): void {
+  if (!pData || !pData.client) return;
+  const client = pData.client;
+  const is119 = pData.is119;
+  const oldPurseStr = client._lastScoreboardPurseStr || pData.lastScoreboardPurseStr || '0.0';
+  const newPurseStr = formatScoreboardPurse(pData.purse || 0);
+
+  if (oldPurseStr === newPurseStr) return;
+
+  try {
+    if (is119) {
+      client.write('scoreboard_score', {
+        itemName: `§fPurse: §6${oldPurseStr}`,
+        action: 1,
+        scoreName: 'sb'
+      });
+      client.write('scoreboard_score', {
+        itemName: `§fPurse: §6${newPurseStr}`,
+        action: 0,
+        scoreName: 'sb',
+        value: 7
+      });
+    } else {
+      client.write('reset_score', {
+        entity_name: `§fPurse: §6${oldPurseStr}`,
+        objective_name: 'sb'
+      });
+      client.write('scoreboard_score', {
+        itemName: `§fPurse: §6${newPurseStr}`,
+        scoreName: 'sb',
+        value: 7,
+        display_name: undefined,
+        number_format: undefined
+      });
+    }
+    client._lastScoreboardPurseStr = newPurseStr;
+    pData.lastScoreboardPurseStr = newPurseStr;
+  } catch (_) {}
 }
 
 export function updateTablist(client: any, is119: boolean, islandName: string = 'Your Island'): void {
@@ -263,3 +321,59 @@ export function startScoreboardAnimation(playersMap: Map<any, any>): void {
     }
   }, 250);
 }
+
+export function initBelowNameHealth(client: any, is119: boolean): void {
+  try {
+    try {
+      client.write('scoreboard_objective', {
+        name: 'health',
+        action: 1 // REMOVE
+      });
+    } catch (_) {}
+
+    if (is119) {
+      client.write('scoreboard_objective', {
+        name: 'health',
+        action: 0, // CREATE
+        displayText: JSON.stringify({ text: '§c❤' }),
+        type: 0 // integer
+      });
+    } else {
+      client.write('scoreboard_objective', {
+        name: 'health',
+        action: 0,
+        displayText: nbt.comp({ text: nbt.string('§c❤') }),
+        type: 0,
+        number_format: undefined
+      });
+    }
+
+    client.write('scoreboard_display_objective', {
+      position: 2, // 2 = below_name
+      name: 'health'
+    });
+  } catch (e) {}
+}
+
+export function updatePlayerHealthScore(observerClient: any, targetUsername: string, health: number, is119: boolean): void {
+  try {
+    const val = Math.max(0, Math.ceil(health));
+    if (is119) {
+      observerClient.write('scoreboard_score', {
+        itemName: targetUsername,
+        action: 0,
+        scoreName: 'health',
+        value: val
+      });
+    } else {
+      observerClient.write('scoreboard_score', {
+        itemName: targetUsername,
+        scoreName: 'health',
+        value: val,
+        display_name: undefined,
+        number_format: undefined
+      });
+    }
+  } catch (_) {}
+}
+

@@ -1,0 +1,34 @@
+{
+  "username": "DirectVerifier",
+  "uuid": "9ae64787-2731-3ce5-a303-ab6cde32fcbe",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "DirectVerifier",
+    "originX": 24000,
+    "originZ": 0,
+    "spawnX": 24000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-14T05:42:00.132Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791956520132
+}

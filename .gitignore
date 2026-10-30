@@ -1,7 +1,17 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
-.DS_Store
+
+# Runtime Logs
+logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+
+# Workspace & Binaries
+.gemini/
+playit.exe
+
+# OS files
+.DS_Store
+Thumbs.db

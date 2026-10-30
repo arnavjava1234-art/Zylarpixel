@@ -10,10 +10,23 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-12T03:04:21.963Z",
+  "lastLogin": "2026-10-13T01:59:41.378Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
   "rankId": "mvp_plus_plus",
   "purse": 60,
   "bits": 0,
   "inventory": [],
-  "lastSeen": 1791774261967
+  "lastSeen": 1791856781379
 }

@@ -1,0 +1,36 @@
+{
+    "username":  "VerifyStats",
+    "uuid":  "c05e93d7-dbd6-3385-8d27-180ef6833a6d",
+    "rank":  "default",
+    "isOp":  false,
+    "island":  {
+                   "owner":  "VerifyStats",
+                   "originX":  8000,
+                   "originZ":  0,
+                   "spawnX":  8000.5,
+                   "spawnY":  101,
+                   "spawnZ":  0.5,
+                   "tier":  1
+               },
+    "lastLogin":  "2026-10-12T05:53:50.359Z",
+    "stats":  {
+                  "health":  100,
+                  "maxHealth":  100,
+                  "defense":  0,
+                  "strength":  0,
+                  "damage":  0,
+                  "critChance":  30,
+                  "critDamage":  50,
+                  "intelligence":  0,
+                  "mana":  100,
+                  "maxMana":  100,
+                  "speed":  100
+              },
+    "rankId":  "default",
+    "purse":  60,
+    "bits":  0,
+    "inventory":  [
+
+                  ],
+    "lastSeen":  1791784430359
+}

@@ -1,0 +1,36 @@
+{
+    "username":  "ProbeBot",
+    "uuid":  "f8858de8-743c-37c4-a7a3-b7c3c93eeaaf",
+    "rank":  "default",
+    "isOp":  false,
+    "island":  {
+                   "owner":  "ProbeBot",
+                   "originX":  6000,
+                   "originZ":  0,
+                   "spawnX":  6000.5,
+                   "spawnY":  101,
+                   "spawnZ":  0.5,
+                   "tier":  1
+               },
+    "lastLogin":  "2026-10-12T05:41:50.758Z",
+    "stats":  {
+                  "health":  100,
+                  "maxHealth":  100,
+                  "defense":  0,
+                  "strength":  0,
+                  "damage":  0,
+                  "critChance":  30,
+                  "critDamage":  50,
+                  "intelligence":  0,
+                  "mana":  100,
+                  "maxMana":  100,
+                  "speed":  100
+              },
+    "rankId":  "default",
+    "purse":  60,
+    "bits":  0,
+    "inventory":  [
+
+                  ],
+    "lastSeen":  1791783710758
+}

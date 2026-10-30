@@ -1,0 +1,34 @@
+{
+  "username": "Village_Alex",
+  "uuid": "9185c572-381d-3207-8b00-dbfb3b59c0df",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Village_Alex",
+    "originX": 21000,
+    "originZ": 0,
+    "spawnX": 21000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-13T13:16:43.054Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791897403054
+}

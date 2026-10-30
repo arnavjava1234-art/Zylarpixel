@@ -1,0 +1,36 @@
+{
+  "username": "Speedster2",
+  "uuid": "88e054c1-226f-39ba-8c9c-cf863018ae34",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Speedster2",
+    "originX": 49000,
+    "originZ": 0,
+    "spawnX": 49000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-18T10:23:45.781Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1792319025781
+}

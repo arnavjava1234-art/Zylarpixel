@@ -48,8 +48,19 @@ export function openAdminMenu(client: any, pData: any): void {
   // 2. Populate 54 slots
   const items = new Array(54).fill(null).map(() => createGuiItem('gray_stained_glass_pane', 1, '§7', []));
 
-  // Slot 22: Rank Manager (Nether Star)
-  items[22] = createGuiItem(
+  // Slot 19: Island & World Tools (Compass)
+  items[19] = createGuiItem(
+    'compass',
+    1,
+    '§a§lIsland & World Tools',
+    [
+      '§7Control starter islands & world physics.',
+      '§7Feature: §fComing Soon in Next Phase'
+    ]
+  );
+
+  // Slot 21: Rank Manager (Nether Star)
+  items[21] = createGuiItem(
     'nether_star',
     1,
     '§e§lRank Manager',
@@ -61,25 +72,30 @@ export function openAdminMenu(client: any, pData: any): void {
     ]
   );
 
-  // Slot 20: Island & World Tools (Compass)
-  items[20] = createGuiItem(
-    'compass',
+  // Slot 23: Purse & Economy Manager (Gold Ingot)
+  items[23] = createGuiItem(
+    'gold_ingot',
     1,
-    '§a§lIsland & World Tools',
+    '§6§lPurse & Economy Manager',
     [
-      '§7Control starter islands & world physics.',
-      '§7Feature: §fComing Soon in Next Phase'
+      '§7Manage coins for any player.',
+      '§7Actions: §fSet, Add, Remove',
+      '§7Supports: §aOnline §7& §cOffline §7players',
+      ' ',
+      '§eClick to open Player Selector! §b▶'
     ]
   );
 
-  // Slot 24: Item & Combat Tools (Diamond Sword)
-  items[24] = createGuiItem(
+  // Slot 25: Item & Combat Tools (Diamond Sword)
+  items[25] = createGuiItem(
     'diamond_sword',
     1,
     '§c§lItem & Combat Spawner',
     [
-      '§7Spawn custom weapons & armor.',
-      '§7Feature: §fComing Soon in Next Phase'
+      '§7Browse & spawn custom SkyBlock items.',
+      '§7Supports multi-page catalog.',
+      ' ',
+      '§eClick to open Item Spawner! §b▶'
     ]
   );
 

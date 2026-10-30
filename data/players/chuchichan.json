@@ -12,10 +12,82 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-10-12T02:54:08.904Z",
+  "lastLogin": "2026-10-17T14:14:08.435Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
   "rankId": "default",
   "purse": 60,
+  "bank": 0,
+  "bankTransactions": [],
   "bits": 0,
-  "inventory": [],
-  "lastSeen": 1791773648904
+  "inventory": [
+    {
+      "slot": 36,
+      "name": "dirt",
+      "itemId": 15,
+      "count": 2,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fDirt\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "DIRT"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "lastSeen": 1792246448435
 }

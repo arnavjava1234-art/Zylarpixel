@@ -1,0 +1,36 @@
+{
+  "username": "Trader1",
+  "uuid": "5a98c4c6-6731-31e5-89c1-2d38d154c22f",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Trader1",
+    "originX": 50000,
+    "originZ": 0,
+    "spawnX": 50000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-18T10:23:45.805Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1792319025805
+}

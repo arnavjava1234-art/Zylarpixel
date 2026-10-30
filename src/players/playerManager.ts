@@ -9,6 +9,9 @@ import { RANKS, getRank, formatPlayerName, RankDefinition } from '../config/rank
 import { sendScoreboardTeam } from '../core/scoreboard';
 import { loadPlayerData, savePlayerData, allocateIslandForPlayer } from '../storage/diskStorage';
 import { PlayerSession, IslandData } from '../types';
+import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
+
+import { createDefaultStats } from '../stats/statsManager';
 
 export const players = new Map<number, any>();
 
@@ -23,15 +26,26 @@ export function createPlayerSession(client: any, is119: boolean): any {
   let initialOp: boolean;
   const inventory = new Map<number, any>();
   let purse = 60.0;
+  let bank = 0;
+  let bankTransactions: any[] = [];
   let bits = 0;
   let island: IslandData;
+  let stats = createDefaultStats();
+
+  const sharedProf = loadPlayerProfile(username);
 
   if (saved) {
     initialRank = getRank((saved as any).rankId || saved.rank);
     initialOp = (typeof saved.isOp === 'boolean') ? saved.isOp : isMasterUser;
-    purse = (typeof (saved as any).purse === 'number') ? (saved as any).purse : 60.0;
+    purse = (typeof (saved as any).purse === 'number') ? (saved as any).purse : (typeof sharedProf.coins === 'number' ? sharedProf.coins : 60.0);
+    bank = (typeof (saved as any).bank === 'number') ? (saved as any).bank : (typeof sharedProf.bank === 'number' ? sharedProf.bank : 0);
+    bankTransactions = Array.isArray((saved as any).bankTransactions) ? (saved as any).bankTransactions : (Array.isArray(sharedProf.bankTransactions) ? sharedProf.bankTransactions : []);
     bits = (saved as any).bits || 0;
     island = saved.island || allocateIslandForPlayer(username);
+    if ((saved as any).stats) {
+      stats = createDefaultStats((saved as any).stats);
+    }
+    stats.speed = 100; // Base speed is strictly 100
 
     if (Array.isArray((saved as any).inventory)) {
       (saved as any).inventory.forEach((item: any) => {
@@ -43,6 +57,12 @@ export function createPlayerSession(client: any, is119: boolean): any {
     initialRank = isMasterUser ? RANKS.owner : RANKS.default;
     initialOp = isMasterUser;
     island = allocateIslandForPlayer(username);
+    bank = typeof sharedProf.bank === 'number' ? sharedProf.bank : 0;
+    bankTransactions = Array.isArray(sharedProf.bankTransactions) ? sharedProf.bankTransactions : [];
+    if (typeof sharedProf.coins === 'number') {
+      purse = sharedProf.coins;
+    }
+    stats.speed = 100;
   }
 
   const pData: any = {
@@ -57,6 +77,8 @@ export function createPlayerSession(client: any, is119: boolean): any {
     rank: initialRank,
     isOp: initialOp,
     purse,
+    bank,
+    bankTransactions,
     bits,
     selectedSlot: 0,
     inventory,
@@ -64,7 +86,19 @@ export function createPlayerSession(client: any, is119: boolean): any {
     currentGuiItems: null,
     targetPlayerForRank: null, // For Admin GUI player rank selection
     spawnedPlayers: new Set<number>(), // Set of other player entityIds spawned for this client
-    lastPortalNotice: 0
+    lastPortalNotice: 0,
+    loadedChunks: new Set<string>(),
+    currentChunkX: 0,
+    currentChunkZ: 0,
+    teleportLockUntil: 0,
+    voidImmunityUntil: 0,
+    pendingTeleportId: undefined,
+    lastBroadcastX: undefined,
+    lastBroadcastY: undefined,
+    lastBroadcastZ: undefined,
+    stats,
+    baseSpeed: 100,
+    activeBuffs: sharedProf.activeBuffs || {}
   };
 
   players.set(client.id, pData);
@@ -82,9 +116,17 @@ export function persistPlayerSession(pData: any): void {
       slot,
       name: item.name,
       itemId: item.itemId,
-      count: item.count
+      count: item.count,
+      nbtData: item.nbtData
     });
   }
+
+  // Base speed is strictly protected: temporary speed buffs are NEVER saved as permanent base stats!
+  const baseSpeed = pData.baseSpeed !== undefined ? pData.baseSpeed : 100;
+  const statsToPersist = {
+    ...pData.stats,
+    speed: baseSpeed
+  };
 
   savePlayerData(pData.username, {
     username: pData.username,
@@ -93,14 +135,46 @@ export function persistPlayerSession(pData: any): void {
     isOp: pData.isOp,
     island: pData.island,
     lastLogin: new Date().toISOString(),
+    stats: statsToPersist,
     ...( {
       rankId: pData.rank.id,
       purse: pData.purse,
+      bank: pData.bank,
+      bankTransactions: pData.bankTransactions,
       bits: pData.bits,
       inventory: invArray,
       lastSeen: Date.now()
     } as any)
   });
+
+  // Sync directly to the cross-server Shared Profile
+  try {
+    const prof = loadPlayerProfile(pData.username);
+    prof.coins = pData.purse;
+    prof.bank = pData.bank;
+    prof.bankTransactions = pData.bankTransactions;
+    prof.inventory = invArray;
+    prof.stats = {
+      health: pData.stats.health,
+      maxHealth: pData.stats.maxHealth,
+      defense: pData.stats.defense,
+      strength: pData.stats.strength,
+      speed: baseSpeed,
+      intelligence: pData.stats.intelligence,
+      maxMana: pData.stats.maxMana,
+      critChance: pData.stats.critChance,
+      critDamage: pData.stats.critDamage
+    };
+    if (pData.speedBoostExpiresAt && pData.speedBoostExpiresAt > Date.now()) {
+      if (!prof.activeBuffs) prof.activeBuffs = {};
+      prof.activeBuffs.speedBoostUntil = pData.speedBoostExpiresAt;
+    } else if (prof.activeBuffs) {
+      delete prof.activeBuffs.speedBoostUntil;
+    }
+    prof.rank = pData.rank.id;
+    prof.isOp = pData.isOp;
+    savePlayerProfile(prof);
+  } catch (e) {}
 }
 
 export function getPlayerSession(clientId: number): any {
@@ -120,6 +194,10 @@ export function findPlayerByName(username: string): any {
 export function removePlayerSession(clientId: number): void {
   const pData = players.get(clientId);
   if (pData) {
+    if (pData.speedBoostTimer) {
+      clearTimeout(pData.speedBoostTimer);
+      pData.speedBoostTimer = undefined;
+    }
     persistPlayerSession(pData);
     players.delete(clientId);
 
@@ -152,7 +230,7 @@ export function setPlayerRank(pData: any, newRank: RankDefinition): void {
           action: 'update_display_name',
           data: [{
             uuid: pData.client.uuid,
-            displayName: JSON.stringify({ text: formatPlayerName(newRank, pData.username) })
+            displayName: JSON.stringify({ text: `§8[§aIsland§8] ${formatPlayerName(newRank, pData.username)}` })
           }]
         });
       }

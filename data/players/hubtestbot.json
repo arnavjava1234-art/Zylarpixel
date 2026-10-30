@@ -1,0 +1,34 @@
+{
+  "username": "HubTestBot",
+  "uuid": "771538a1-1149-32e8-9991-ffb3a3bc9b14",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "HubTestBot",
+    "originX": 14000,
+    "originZ": 0,
+    "spawnX": 14000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-12T16:43:53.006Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100
+  },
+  "rankId": "default",
+  "purse": 60,
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1791823433006
+}

@@ -139,10 +139,18 @@ export const RANKS: Record<string, RankDefinition> = {
   }
 };
 
-export function getRank(rankId?: string): RankDefinition {
-  if (!rankId) return RANKS.default;
-  const key = String(rankId).toLowerCase().replace(/[^a-z0-9_]/g, '');
-  return RANKS[key] || RANKS.default;
+export function getRank(rankId?: string): RankDefinition | null {
+  if (!rankId) return null;
+  const rawKey = String(rankId).toLowerCase().trim();
+  if (rawKey === 'mvp++' || rawKey === 'mvpplusplus') return RANKS.mvp_plus_plus;
+  if (rawKey === 'mvp+' || rawKey === 'mvpplus') return RANKS.mvp_plus;
+  if (rawKey === 'vip+' || rawKey === 'vipplus') return RANKS.vip_plus;
+  const key = rawKey.replace(/[^a-z0-9_]/g, '');
+  return RANKS[key] || null;
+}
+
+export function getRankOrDefault(rankId?: string): RankDefinition {
+  return getRank(rankId) || RANKS.default;
 }
 
 export function formatPlayerName(rank: RankDefinition, username: string): string {
