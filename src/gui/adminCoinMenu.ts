@@ -187,7 +187,7 @@ export function openCoinActionMenu(
   });
 
   const items = new Array(36).fill(null).map(() =>
-    createGuiItem('gray_stained_glass_pane', 1, '§7', [])
+    createGuiItem('black_stained_glass_pane', 1, '§8', [])
   );
 
   // Fetch current purse
