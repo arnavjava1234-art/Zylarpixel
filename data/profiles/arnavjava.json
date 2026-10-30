@@ -1476,7 +1476,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793365982834,
+  "lastSeen": 1793366012845,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -1572,7 +1572,5 @@
   "cooldowns": {
     "Speed Boost": 1793365987821
   },
-  "activeBuffs": {
-    "speedBoostUntil": 1793366012831
-  }
+  "activeBuffs": {}
 }
