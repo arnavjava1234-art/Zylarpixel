@@ -8,6 +8,7 @@ import * as mc from 'minecraft-protocol';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import * as nbt from 'prismarine-nbt';
 
 import {
   mcData1192,
