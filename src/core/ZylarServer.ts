@@ -749,11 +749,11 @@ export class ZylarServer {
       this.tickDroppedItems();
     }, 100);
 
-    // F. Hub Banker NPC & Crop Guardian Ticker (every 50ms / 20 TPS)
+    // F. Hub Banker NPC & Crop Guardians Ticker (every 50ms / 20 TPS)
     if (this.config.worldType === 'hub') {
       this.botTickerInterval = setInterval(() => {
         tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
-        tickCropGuardian(players, (deg: number) => this.toProtocolByte(deg));
+        tickCropGuardians(this, players, (deg: number) => this.toProtocolByte(deg));
       }, 50);
     }
   }
