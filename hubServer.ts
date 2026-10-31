@@ -18,7 +18,7 @@ const hub = new ZylarServer({
   serverName: 'Village Hub',
   port: 25566,
   motd: '§d§lZYLARPIXEL §7[Authentic Hub]',
-  gamemode: 2, // Adventure Mode (safe-zone)
+  gamemode: 0, // Survival Mode (authentic Hypixel Hub with server-side block protection)
   pvp: false,  // Zero PvP in the Hub
   allowBlockBreaking: false,
   allowBlockPlacement: false,
