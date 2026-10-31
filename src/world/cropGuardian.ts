@@ -253,16 +253,32 @@ export const CROP_PROTECTORS: CropProtector[] = [
 /**
  * Finds the appropriate Protector for a broken crop coordinate
  */
-export function getProtectorForCrop(x: number, y: number, z: number): CropProtector {
-  // First check specific bounding boxes
-  for (const protector of CROP_PROTECTORS) {
+export function getProtectorForCrop(x: number, y: number, z: number, rawCropName?: string): CropProtector {
+  const cleanCrop = rawCropName ? rawCropName.replace('minecraft:', '').toLowerCase() : '';
+
+  // 1. Direct Crop Type Prioritization
+  if (cleanCrop === 'nether_wart') {
+    // Alchemist Lab (ID 8809) vs Mountain Tower (ID 8810)
+    return (y >= 100) ? CROP_PROTECTORS[9] : CROP_PROTECTORS[8];
+  }
+  if (cleanCrop === 'carrot' || cleanCrop === 'carrots') {
+    return CROP_PROTECTORS[6]; // ID 8807
+  }
+  if (cleanCrop === 'potato' || cleanCrop === 'potatoes') {
+    return CROP_PROTECTORS[7]; // ID 8808
+  }
+
+  // 2. Specific Enclosed Gardens First (Nether Wart plots, Village gardens)
+  const priorityOrder = [8, 9, 4, 5, 1, 2, 3, 0, 7, 6];
+  for (const idx of priorityOrder) {
+    const protector = CROP_PROTECTORS[idx];
     const b = protector.bounds;
     if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY && z >= b.minZ && z <= b.maxZ) {
       return protector;
     }
   }
 
-  // Fallback: Closest protector by 2D horizontal distance
+  // 3. Fallback: Closest protector by 2D horizontal distance
   let closest = CROP_PROTECTORS[0];
   let minD = Infinity;
   for (const p of CROP_PROTECTORS) {
