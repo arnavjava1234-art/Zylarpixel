@@ -91,10 +91,11 @@ import {
   handleBankerInteraction
 } from '../npc/bankerNpc';
 import {
-  spawnCropGuardian,
-  tickCropGuardian,
+  spawnCropGuardians,
+  tickCropGuardians,
   isHarvestableHubCrop,
-  handleHubCropHarvest
+  handleHubCropHarvest,
+  isHubMinionExclusionZone
 } from '../world/cropGuardian';
 import {
   handleBankClick,
