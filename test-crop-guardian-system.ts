@@ -73,21 +73,21 @@ assert(p5.id === 8805, 'Village sunken garden maps to Protector 5 (8805)', `(got
 const p6 = getProtectorForCrop(48, 70, -97);
 assert(p6.id === 8806, 'Village path garden maps to Protector 6 (8806)', `(got: ${p6.name})`);
 
-// Carrot Garden (-23, 70, 20)
-const p7 = getProtectorForCrop(-23, 70, 20);
+// Carrot Garden (-12, 70, 20)
+const p7 = getProtectorForCrop(-12, 70, 20);
 assert(p7.id === 8807, 'Carrot garden maps to Protector 7 (8807)', `(got: ${p7.name})`);
 
-// Potato Plots (55, 70, -80)
-const p8 = getProtectorForCrop(55, 70, -80);
-assert(p8.id === 8808, 'Potato plots map to Protector 8 (8808)', `(got: ${p8.name})`);
+// Large Barn Potato Plot (87, 70, -96)
+const p8 = getProtectorForCrop(87, 70, -96);
+assert(p8.id === 8808, 'Large Barn Potato plot maps to Protector 8 (8808)', `(got: ${p8.name})`);
 
-// Alchemist Nether Wart (42, 68, -67)
-const p9 = getProtectorForCrop(42, 68, -67);
-assert(p9.id === 8809, 'Alchemist Nether Wart maps to Protector 9 (8809)', `(got: ${p9.name})`);
+// Village Potato Garden by Hay Bales (27, 69, -85)
+const p9 = getProtectorForCrop(27, 69, -85);
+assert(p9.id === 8809, 'Village Hay Bale Potato garden maps to Protector 9 (8809)', `(got: ${p9.name})`);
 
-// Mountain Tower Nether Wart (-32, 123, -124)
-const p10 = getProtectorForCrop(-32, 123, -124);
-assert(p10.id === 8810, 'Mountain Tower Nether Wart maps to Protector 10 (8810)', `(got: ${p10.name})`);
+// Alchemist Nether Wart (41, 68, -66)
+const p10 = getProtectorForCrop(41, 68, -66);
+assert(p10.id === 8810, 'Alchemist Nether Wart maps to Protector 10 (8810)', `(got: ${p10.name})`);
 
 // 3. Testing 5x5 Hub Wheat Minion Exclusion Zone
 console.log('\n--- 3. Testing 5x5 Hub Wheat Minion Exclusion Zone ---');
