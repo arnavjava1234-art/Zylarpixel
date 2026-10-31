@@ -1,0 +1,37 @@
+{
+  "username": "Bot2_UpperTerrace",
+  "uuid": "0e681139-6773-3ec0-ab7c-661fad68f653",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Bot2_UpperTerrace",
+    "originX": 55000,
+    "originZ": 0,
+    "spawnX": 55000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-31T15:41:46.469Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1793461306469
+}

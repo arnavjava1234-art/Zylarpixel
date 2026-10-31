@@ -1,0 +1,37 @@
+{
+  "username": "Bot5_SunkenGarden",
+  "uuid": "51047be5-bb40-389e-9322-b3f16842993a",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Bot5_SunkenGarden",
+    "originX": 58000,
+    "originZ": 0,
+    "spawnX": 58000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-31T15:41:50.900Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1793461310900
+}
