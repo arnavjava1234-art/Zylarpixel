@@ -108,140 +108,140 @@ export interface CropProtector {
  * The 10 Dedicated Protectors (Guardians) covering every crop territory in the Hub
  */
 export const CROP_PROTECTORS: CropProtector[] = [
-  // 1. Main Lower Wheat Field
+  // 1. Main Lower Wheat Field (659 blocks)
   {
     id: 8801,
     uuid: '7c72f1a1-8801-4b10-8877-e1a3fc82e38f',
     name: 'Main Lower Wheat Field',
-    bounds: { minX: 18, maxX: 71, minY: 67, maxY: 74, minZ: -154, maxZ: -119 },
-    basePos: { x: 45.5, y: 76.2, z: -136.5 },
-    currentY: 76.2,
+    bounds: { minX: 18, maxX: 71, minY: 68, maxY: 74, minZ: -154, maxZ: -119 },
+    basePos: { x: 41.3, y: 75.2, z: -136.4 },
+    currentY: 75.2,
     yaw: 0,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 2. Upper Wheat Terrace
+  // 2. Upper Wheat Terrace (186 blocks)
   {
     id: 8802,
     uuid: '7c72f1a2-8802-4b10-8877-e1a3fc82e38f',
     name: 'Upper Wheat Terrace',
-    bounds: { minX: 65, maxX: 85, minY: 70, maxY: 77, minZ: -169, maxZ: -155 },
-    basePos: { x: 74.5, y: 78.0, z: -162.5 },
-    currentY: 78.0,
+    bounds: { minX: 65, maxX: 85, minY: 70, maxY: 76, minZ: -169, maxZ: -154 },
+    basePos: { x: 73.3, y: 76.8, z: -161.0 },
+    currentY: 76.8,
     yaw: 36,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 3. Windmill / Barn Wheat Hillside
+  // 3. Windmill Circular Wheat Patch (145 blocks - Image 2)
   {
     id: 8803,
     uuid: '7c72f1a3-8803-4b10-8877-e1a3fc82e38f',
-    name: 'Windmill / Barn Wheat Hillside',
-    bounds: { minX: 53, maxX: 67, minY: 70, maxY: 77, minZ: -192, maxZ: -175 },
-    basePos: { x: 60.5, y: 78.0, z: -183.5 },
-    currentY: 78.0,
+    name: 'Windmill Circular Wheat Patch',
+    bounds: { minX: 53, maxX: 67, minY: 70, maxY: 76, minZ: -192, maxZ: -175 },
+    basePos: { x: 59.0, y: 76.8, z: -183.7 },
+    currentY: 76.8,
     yaw: 72,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 4. Western Wheat Strip
+  // 4. Western Wheat Strip (109 blocks)
   {
     id: 8804,
     uuid: '7c72f1a4-8804-4b10-8877-e1a3fc82e38f',
     name: 'Western Wheat Strip',
-    bounds: { minX: 18, maxX: 31, minY: 68, maxY: 75, minZ: -186, maxZ: -171 },
-    basePos: { x: 24.5, y: 76.5, z: -178.5 },
-    currentY: 76.5,
+    bounds: { minX: 18, maxX: 31, minY: 69, maxY: 75, minZ: -186, maxZ: -171 },
+    basePos: { x: 23.3, y: 75.8, z: -178.7 },
+    currentY: 75.8,
     yaw: 108,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 5. Village Sunken Garden (Wheat)
+  // 5. Village Sunken Garden (35 blocks - Image 3)
   {
     id: 8805,
     uuid: '7c72f1a5-8805-4b10-8877-e1a3fc82e38f',
     name: 'Village Sunken Garden',
-    bounds: { minX: 35, maxX: 44, minY: 66, maxY: 72, minZ: -91, maxZ: -81 },
-    basePos: { x: 39.5, y: 73.5, z: -86.5 },
-    currentY: 73.5,
+    bounds: { minX: 35, maxX: 46, minY: 66, maxY: 72, minZ: -93, maxZ: -82 },
+    basePos: { x: 42.4, y: 73.2, z: -89.4 },
+    currentY: 73.2,
     yaw: 144,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 6. Village Path Garden (Wheat)
+  // 6. Village Path Garden (Square patch in Image 1)
   {
     id: 8806,
     uuid: '7c72f1a6-8806-4b10-8877-e1a3fc82e38f',
     name: 'Village Path Garden',
-    bounds: { minX: 45, maxX: 53, minY: 68, maxY: 74, minZ: -103, maxZ: -93 },
-    basePos: { x: 48.5, y: 75.5, z: -97.5 },
-    currentY: 75.5,
+    bounds: { minX: 45, maxX: 53, minY: 68, maxY: 74, minZ: -103, maxZ: -94 },
+    basePos: { x: 48.5, y: 74.5, z: -97.5 },
+    currentY: 74.5,
     yaw: 180,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 7. Carrot Garden
+  // 7. Carrot Garden (92 blocks)
   {
     id: 8807,
     uuid: '7c72f1a7-8807-4b10-8877-e1a3fc82e38f',
     name: 'Carrot Garden',
-    bounds: { minX: -46, maxX: 0, minY: 68, maxY: 75, minZ: 3, maxZ: 38 },
-    basePos: { x: -23.5, y: 76.5, z: 20.5 },
-    currentY: 76.5,
+    bounds: { minX: -46, maxX: 0, minY: 67, maxY: 74, minZ: 3, maxZ: 38 },
+    basePos: { x: -12.6, y: 74.0, z: 20.9 },
+    currentY: 74.0,
     yaw: 216,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 8. Potato Plots
+  // 8. Large Barn Potato Plot (52 blocks)
   {
     id: 8808,
     uuid: '7c72f1a8-8808-4b10-8877-e1a3fc82e38f',
-    name: 'Potato Plots',
-    bounds: { minX: 18, maxX: 93, minY: 68, maxY: 75, minZ: -102, maxZ: -58 },
-    basePos: { x: 55.5, y: 76.5, z: -80.5 },
-    currentY: 76.5,
+    name: 'Large Barn Potato Plot',
+    bounds: { minX: 80, maxX: 95, minY: 68, maxY: 75, minZ: -105, maxZ: -90 },
+    basePos: { x: 87.3, y: 75.5, z: -96.7 },
+    currentY: 75.5,
     yaw: 252,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 9. Alchemist's Lab Nether Wart Garden
+  // 9. Village Potato Garden by Hay Bales (Image 4)
   {
     id: 8809,
     uuid: '7c72f1a9-8809-4b10-8877-e1a3fc82e38f',
-    name: 'Alchemist Lab Nether Wart Garden',
-    bounds: { minX: 28, maxX: 58, minY: 66, maxY: 73, minZ: -76, maxZ: -58 },
-    basePos: { x: 42.5, y: 74.5, z: -67.5 },
-    currentY: 74.5,
+    name: 'Village Potato Garden (Hay Bales)',
+    bounds: { minX: 16, maxX: 32, minY: 67, maxY: 73, minZ: -89, maxZ: -57 },
+    basePos: { x: 26.5, y: 73.8, z: -85.0 },
+    currentY: 73.8,
     yaw: 288,
     queue: [],
     currentTask: null,
     taskStartTime: 0,
     taskEndTime: 0
   },
-  // 10. Mountain Tower Nether Wart Plot
+  // 10. Alchemist's Lab Nether Wart Garden (130 blocks - Image 5)
   {
     id: 8810,
     uuid: '7c72f1aa-8810-4b10-8877-e1a3fc82e38f',
-    name: 'Mountain Tower Nether Wart Plot',
-    bounds: { minX: -45, maxX: -20, minY: 118, maxY: 130, minZ: -135, maxZ: -115 },
-    basePos: { x: -32.5, y: 128.5, z: -124.5 },
-    currentY: 128.5,
+    name: 'Alchemist Lab Nether Wart Garden',
+    bounds: { minX: 28, maxX: 58, minY: 66, maxY: 73, minZ: -76, maxZ: -58 },
+    basePos: { x: 41.4, y: 72.0, z: -66.6 },
+    currentY: 72.0,
     yaw: 324,
     queue: [],
     currentTask: null,
@@ -258,18 +258,17 @@ export function getProtectorForCrop(x: number, y: number, z: number, rawCropName
 
   // 1. Direct Crop Type Prioritization
   if (cleanCrop === 'nether_wart') {
-    // Alchemist Lab (ID 8809) vs Mountain Tower (ID 8810)
-    return (y >= 100) ? CROP_PROTECTORS[9] : CROP_PROTECTORS[8];
+    return CROP_PROTECTORS[9]; // ID 8810 (Alchemist Lab)
   }
   if (cleanCrop === 'carrot' || cleanCrop === 'carrots') {
     return CROP_PROTECTORS[6]; // ID 8807
   }
   if (cleanCrop === 'potato' || cleanCrop === 'potatoes') {
-    return CROP_PROTECTORS[7]; // ID 8808
+    return (x > 50) ? CROP_PROTECTORS[7] : CROP_PROTECTORS[8]; // ID 8808 vs ID 8809
   }
 
-  // 2. Specific Enclosed Gardens First (Nether Wart plots, Village gardens)
-  const priorityOrder = [8, 9, 4, 5, 1, 2, 3, 0, 7, 6];
+  // 2. Specific Enclosed Gardens First
+  const priorityOrder = [9, 8, 4, 5, 1, 2, 3, 0, 7, 6];
   for (const idx of priorityOrder) {
     const protector = CROP_PROTECTORS[idx];
     const b = protector.bounds;
