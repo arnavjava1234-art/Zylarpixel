@@ -206,12 +206,12 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
   items[32] = createGuiItem(
     'hay_block',
     1,
-    `§6☘ Farming Fortune §f${Math.floor(stats.farmingFortune || 0)}`,
+    `§a☘ Farming Fortune: §f${Math.floor(stats.farmingFortune || 0)}`,
     [
       '§7Farming Fortune increases your chance',
       '§7to get multiple drops from crops.',
       ' ',
-      `§7Current Fortune: §6+${Math.floor(stats.farmingFortune || 0)}`,
+      `§7Current Fortune: §a+${Math.floor(stats.farmingFortune || 0)}`,
       `§7Extra Drop Multiplier: §e+${Math.floor(stats.farmingFortune || 0)}%`,
       ' ',
       '§8Every 100 Fortune grants +100% chance',
