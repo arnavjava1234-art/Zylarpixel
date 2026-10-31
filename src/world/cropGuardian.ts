@@ -373,59 +373,69 @@ function createGoldenSunSkullItem(is119: boolean): any {
 }
 
 /**
- * Spawns all 10 Floating Protector Armor Stands for a newly joined Hub player.
- * Notice: Zero corny holograms or floating nametags! Strictly clean floating heads.
+ * Spawns a single Protector entity with its custom Golden Sun skull for a client
  */
-export function spawnCropGuardians(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
+export function spawnSingleProtector(
+  client: any,
+  is119: boolean,
+  protector: CropProtector,
+  toProtocolByte: (deg: number) => number
+): void {
   try {
     const armorStandType = is119 ? 2 : (mcData1211.entitiesByName['armor_stand']?.id || 2);
     const headItem = createGoldenSunSkullItem(is119);
 
-    for (const protector of CROP_PROTECTORS) {
-      // 1. Invisible Small Marker Armor Stand
-      client.write('spawn_entity', {
-        entityId: protector.id,
-        objectUUID: protector.uuid,
-        type: armorStandType,
-        x: protector.basePos.x,
-        y: protector.currentY,
-        z: protector.basePos.z,
-        pitch: 0,
-        yaw: toProtocolByte(protector.yaw),
-        headPitch: 0,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
+    // 1. Invisible Small Marker Armor Stand
+    client.write('spawn_entity', {
+      entityId: protector.id,
+      objectUUID: protector.uuid,
+      type: armorStandType,
+      x: protector.basePos.x,
+      y: protector.currentY,
+      z: protector.basePos.z,
+      pitch: 0,
+      yaw: toProtocolByte(protector.yaw),
+      headPitch: 0,
+      objectData: 0,
+      velocity: { x: 0, y: 0, z: 0 }
+    });
 
-      // Metadata:
-      // Index 0: 0x20 (Invisible)
-      // Index 15: 0x01 (isSmall) | 0x08 (noBasePlate) | 0x10 (isMarker) = 0x19
-      client.write('entity_metadata', {
-        entityId: protector.id,
-        metadata: [
-          { key: 0, type: 0, value: 0x20 },
-          { key: 15, type: 0, value: 0x19 }
-        ]
-      });
+    // Metadata: 0x20 Invisible, 0x19 Small + Marker + NoBasePlate
+    client.write('entity_metadata', {
+      entityId: protector.id,
+      metadata: [
+        { key: 0, type: 0, value: 0x20 },
+        { key: 15, type: 0, value: 0x19 }
+      ]
+    });
 
-      // 2. Equip Golden Sun Skull on Helmet (slot 5)
-      client.write('entity_equipment', {
-        entityId: protector.id,
-        equipments: [
-          {
-            slot: 5,
-            item: headItem
-          }
-        ]
-      });
-    }
+    // 2. Equip Golden Sun Skull on Helmet (slot 5)
+    client.write('entity_equipment', {
+      entityId: protector.id,
+      equipments: [
+        {
+          slot: 5,
+          item: headItem
+        }
+      ]
+    });
   } catch (_) {}
+}
+
+/**
+ * Spawns all Crop Guardians for a newly joined Hub player.
+ */
+export function spawnCropGuardians(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
+  for (const protector of CROP_PROTECTORS) {
+    spawnSingleProtector(client, is119, protector, toProtocolByte);
+  }
 }
 
 /**
  * 24/7 Ticker for all 10 Crop Guardians:
  * - Rotates yaw 360° continuously (yaw += 3° per tick).
  * - Smooth vertical sinusoidal bobbing (Y += Math.sin(t) * 0.2) on a 1.5-second cycle.
+ * - Dynamic 85-block range tracking: smoothly spawns and despawns protectors as players explore the Hub.
  * - Head continues spinning smoothly even while firing the regrowth laser beam!
  * - Independent sequential 1-by-1 FIFO queues with 0.8s continuous laser ray.
  */
@@ -444,27 +454,44 @@ export function tickCropGuardians(
     protector.currentY = protector.basePos.y + bobOffset;
     const yawByte = toProtocolByte(protector.yaw);
 
-    // Broadcast smooth head rotation and vertical hover bobbing to nearby players
+    // Broadcast smooth head rotation, vertical hover bobbing, and dynamic range tracking
     for (const [_, p] of playerMap) {
       if (!p.client) continue;
-      const dist = Math.hypot(p.x - protector.basePos.x, p.z - protector.basePos.z);
-      if (dist > 96.0) continue;
+      p._spawnedProtectors = p._spawnedProtectors || new Set<number>();
+      const dist = Math.hypot((p.x || 0) - protector.basePos.x, (p.z || 0) - protector.basePos.z);
 
-      try {
-        p.client.write('entity_teleport', {
-          entityId: protector.id,
-          x: protector.basePos.x,
-          y: protector.currentY,
-          z: protector.basePos.z,
-          yaw: yawByte,
-          pitch: 0,
-          onGround: false
-        });
-        p.client.write('entity_head_rotation', {
-          entityId: protector.id,
-          headYaw: yawByte
-        });
-      } catch (_) {}
+      // Within tracking range (85 blocks):
+      if (dist <= 85.0) {
+        if (!p._spawnedProtectors.has(protector.id)) {
+          spawnSingleProtector(p.client, p.is119, protector, toProtocolByte);
+          p._spawnedProtectors.add(protector.id);
+        }
+
+        try {
+          p.client.write('entity_teleport', {
+            entityId: protector.id,
+            x: protector.basePos.x,
+            y: protector.currentY,
+            z: protector.basePos.z,
+            yaw: yawByte,
+            pitch: 0,
+            onGround: false
+          });
+          p.client.write('entity_head_rotation', {
+            entityId: protector.id,
+            headYaw: yawByte
+          });
+        } catch (_) {}
+      } else if (dist > 105.0) {
+        if (p._spawnedProtectors.has(protector.id)) {
+          try {
+            p.client.write('entity_destroy', {
+              entityIds: [protector.id]
+            });
+          } catch (_) {}
+          p._spawnedProtectors.delete(protector.id);
+        }
+      }
     }
 
     // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
