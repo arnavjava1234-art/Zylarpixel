@@ -10,16 +10,16 @@
 const mc = require('minecraft-protocol');
 
 const BOT_TARGETS = [
-  { id: 1, name: 'Bot1_LowerWheat', patch: 'Main Lower Wheat Field', crop: 'wheat', pos: { x: 35, y: 70, z: -140 }, orbId: 8801, orbPos: { x: 45.5, y: 76.2, z: -136.5 } },
-  { id: 2, name: 'Bot2_UpperTerrace', patch: 'Upper Wheat Terrace', crop: 'wheat', pos: { x: 74, y: 72, z: -162 }, orbId: 8802, orbPos: { x: 74.5, y: 78.0, z: -162.5 } },
-  { id: 3, name: 'Bot3_WindmillHill', patch: 'Windmill / Barn Wheat Hillside', crop: 'wheat', pos: { x: 60, y: 72, z: -183 }, orbId: 8803, orbPos: { x: 60.5, y: 78.0, z: -183.5 } },
-  { id: 4, name: 'Bot4_WestStrip', patch: 'Western Wheat Strip', crop: 'wheat', pos: { x: 24, y: 70, z: -178 }, orbId: 8804, orbPos: { x: 24.5, y: 76.5, z: -178.5 } },
-  { id: 5, name: 'Bot5_SunkenGarden', patch: 'Village Sunken Garden', crop: 'wheat', pos: { x: 39, y: 68, z: -86 }, orbId: 8805, orbPos: { x: 39.5, y: 73.5, z: -86.5 } },
-  { id: 6, name: 'Bot6_PathGarden', patch: 'Village Path Garden', crop: 'wheat', pos: { x: 48, y: 70, z: -97 }, orbId: 8806, orbPos: { x: 48.5, y: 75.5, z: -97.5 } },
-  { id: 7, name: 'Bot7_Carrots', patch: 'Carrot Garden', crop: 'carrots', pos: { x: -23, y: 70, z: 20 }, orbId: 8807, orbPos: { x: -23.5, y: 76.5, z: 20.5 } },
-  { id: 8, name: 'Bot8_Potatoes', patch: 'Potato Plots', crop: 'potatoes', pos: { x: 55, y: 70, z: -80 }, orbId: 8808, orbPos: { x: 55.5, y: 76.5, z: -80.5 } },
-  { id: 9, name: 'Bot9_AlchemistWart', patch: 'Alchemist Nether Wart Garden', crop: 'nether_wart', pos: { x: 42, y: 68, z: -67 }, orbId: 8809, orbPos: { x: 42.5, y: 74.5, z: -67.5 } },
-  { id: 10, name: 'Bot10_TowerWart', patch: 'Mountain Tower Nether Wart Plot', crop: 'nether_wart', pos: { x: -32, y: 123, z: -124 }, orbId: 8810, orbPos: { x: -32.5, y: 128.5, z: -124.5 } }
+  { id: 1, name: 'Inspect_Wheat1', patch: 'Main Lower Wheat Field', crop: 'wheat', pos: { x: 35, y: 70, z: -140 }, orbId: 8801, orbPos: { x: 45.5, y: 76.2, z: -136.5 } },
+  { id: 2, name: 'Inspect_Wheat2', patch: 'Upper Wheat Terrace', crop: 'wheat', pos: { x: 74, y: 72, z: -162 }, orbId: 8802, orbPos: { x: 74.5, y: 78.0, z: -162.5 } },
+  { id: 3, name: 'Inspect_Wheat3', patch: 'Windmill / Barn Wheat Hillside', crop: 'wheat', pos: { x: 60, y: 72, z: -183 }, orbId: 8803, orbPos: { x: 60.5, y: 78.0, z: -183.5 } },
+  { id: 4, name: 'Inspect_Wheat4', patch: 'Western Wheat Strip', crop: 'wheat', pos: { x: 24, y: 70, z: -178 }, orbId: 8804, orbPos: { x: 24.5, y: 76.5, z: -178.5 } },
+  { id: 5, name: 'Inspect_Wheat5', patch: 'Village Sunken Garden', crop: 'wheat', pos: { x: 39, y: 68, z: -86 }, orbId: 8805, orbPos: { x: 39.5, y: 73.5, z: -86.5 } },
+  { id: 6, name: 'Inspect_Wheat6', patch: 'Village Path Garden', crop: 'wheat', pos: { x: 48, y: 70, z: -97 }, orbId: 8806, orbPos: { x: 48.5, y: 75.5, z: -97.5 } },
+  { id: 7, name: 'Inspect_Carrot', patch: 'Carrot Garden', crop: 'carrots', pos: { x: -23, y: 70, z: 20 }, orbId: 8807, orbPos: { x: -23.5, y: 76.5, z: 20.5 } },
+  { id: 8, name: 'Inspect_Potato', patch: 'Potato Plots', crop: 'potatoes', pos: { x: 55, y: 70, z: -80 }, orbId: 8808, orbPos: { x: 55.5, y: 76.5, z: -80.5 } },
+  { id: 9, name: 'Inspect_Wart1', patch: 'Alchemist Nether Wart Garden', crop: 'nether_wart', pos: { x: 42, y: 68, z: -67 }, orbId: 8809, orbPos: { x: 42.5, y: 74.5, z: -67.5 } },
+  { id: 10, name: 'Inspect_Wart2', patch: 'Mountain Tower Nether Wart Plot', crop: 'nether_wart', pos: { x: -32, y: 123, z: -124 }, orbId: 8810, orbPos: { x: -32.5, y: 128.5, z: -124.5 } }
 ];
 
 console.log('🚀 Summoning 10 Real Player Bots to inspect Hub Systems...\n');
