@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-30T17:18:17.376Z",
+  "lastLogin": "2026-10-31T13:05:59.725Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -22,7 +22,8 @@
     "intelligence": 0,
     "mana": 100,
     "maxMana": 100,
-    "speed": 100
+    "speed": 100,
+    "farmingFortune": 0
   },
   "rankId": "owner",
   "purse": 0,
@@ -1512,5 +1513,5 @@
       }
     }
   ],
-  "lastSeen": 1793380697376
+  "lastSeen": 1793451959726
 }

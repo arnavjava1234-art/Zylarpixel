@@ -13,7 +13,8 @@
     "intelligence": 0,
     "maxMana": 100,
     "critChance": 30,
-    "critDamage": 50
+    "critDamage": 50,
+    "farmingFortune": 0
   },
   "skills": {
     "combat": 1,
@@ -1414,7 +1415,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793380697381,
+  "lastSeen": 1793451959735,
   "bankTransactions": [
     {
       "type": "deposit",
