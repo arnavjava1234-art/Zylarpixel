@@ -1304,10 +1304,10 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC & Crop Guardian (if Hub)
+    // 8. Server-Side Banker NPC & 10 Crop Guardians (if Hub)
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
-      spawnCropGuardian(client, is119, (deg: number) => this.toProtocolByte(deg));
+      spawnCropGuardians(client, is119, (deg: number) => this.toProtocolByte(deg));
     }
 
     // 8b. Active Dropped Items
