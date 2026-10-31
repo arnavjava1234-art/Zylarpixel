@@ -176,30 +176,6 @@ export function handleCommand(
     return;
   }
 
-  // Farming & Speed Boost (/boost [amount])
-  if (cmd === 'boost') {
-    const boostAmount = parts[1] ? parseInt(parts[1], 10) : 100;
-    const fortuneAdd = isNaN(boostAmount) ? 100 : boostAmount;
-    pData.stats.farmingFortune = (pData.stats.farmingFortune || 0) + fortuneAdd;
-    pData.stats.speed = Math.min(400, (pData.stats.speed || 100) + 50);
-    const { syncPlayerAttributes } = require('../stats/statsManager');
-    syncPlayerAttributes(client, pData.entityId, pData.stats.speed, is119);
-    sendSystemMessage(client, `§a§lBOOST! §fGranted §6+${fortuneAdd} ☘ Farming Fortune §fand §f+50 ✦ Speed§f!`, is119);
-    sendSystemMessage(client, `§7Current Farming Fortune: §6☘ ${pData.stats.farmingFortune} §7| Speed: §f✦ ${pData.stats.speed}`, is119);
-    try {
-      client.write('named_sound_effect', {
-        soundName: 'entity.player.levelup',
-        soundCategory: 0,
-        x: Math.floor(pData.x * 8),
-        y: Math.floor(pData.y * 8),
-        z: Math.floor(pData.z * 8),
-        volume: 0.9,
-        pitch: 1.2,
-        seed: [0, 0]
-      });
-    } catch (_) {}
-    return;
-  }
 
   // Help Menu (/help)
   if (cmd === 'help') {
