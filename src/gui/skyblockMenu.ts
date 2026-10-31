@@ -78,7 +78,6 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
   );
 
   // Row 2 Center
-  const ff = Math.floor(pSession.stats?.farmingFortune || 0);
   items[13] = createGuiItem(
     'player_head',
     1,
@@ -86,8 +85,6 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
     [
       '§7View your equipment, stats,',
       '§7accessories, and more!',
-      ' ',
-      `§7Farming Fortune: §6☘ ${ff}`,
       ' ',
       '§eClick to view!'
     ]
