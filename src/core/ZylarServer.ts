@@ -761,10 +761,29 @@ export class ZylarServer {
   private tickDroppedItems(): void {
     const now = Date.now();
     for (const [entityId, item] of this.droppedItems) {
+      // 5-minute (300 seconds) Despawn Timer
+      if (now - item.spawnTime > 300000) {
+        for (const [__, observer] of players) {
+          try {
+            observer.client.write('entity_destroy', {
+              entityIds: [entityId]
+            });
+          } catch (_) {}
+        }
+        this.droppedItems.delete(entityId);
+        continue;
+      }
+
       for (const [_, p] of players) {
         if (!p.client) continue;
+
+        // Strict Anti-Theft: Only the breaker who owns the crop drop can pick it up!
+        if (item.owner && item.owner !== p.username) {
+          continue;
+        }
+
         const dist = Math.hypot(p.x - item.x, p.y - item.y, p.z - item.z);
-        if (dist <= 1.8 && (now - item.spawnTime > 400)) {
+        if (dist <= 1.8 && (now - item.spawnTime > 300)) {
           // Candidate slots: hotbar 36..43 (skipping slot 44 Nether Star), then main inventory 9..35
           const candidateSlots: number[] = [];
           for (let s = 36; s <= 43; s++) candidateSlots.push(s);
@@ -777,10 +796,12 @@ export class ZylarServer {
 
           // 1. Calculate available space in player inventory for this item
           let availableSpace = 0;
+          let emptySlotCount = 0;
           for (const slot of candidateSlots) {
             const existing = p.inventory.get(slot);
             if (!existing) {
               availableSpace += maxStack;
+              emptySlotCount++;
             } else if (!isSkyBlockItemStack(existing) && existing.name === item.name && existing.count < maxStack) {
               availableSpace += (maxStack - existing.count);
             }
@@ -788,6 +809,9 @@ export class ZylarServer {
 
           // If inventory cannot accept any items, do NOT void or destroy the item!
           if (availableSpace <= 0) {
+            if (emptySlotCount === 0) {
+              this.showInventoryFullTitle(p);
+            }
             continue;
           }
 
@@ -937,16 +961,43 @@ export class ZylarServer {
     }
   }
 
-  public spawnDroppedItem(name: string, count: number, x: number, y: number, z: number): void {
+  public showInventoryFullTitle(p: any): void {
+    const lastWarning = p._lastInvFullWarning || 0;
+    const now = Date.now();
+    if (now - lastWarning >= 20000) { // 20-second cooldown per player
+      p._lastInvFullWarning = now;
+      try {
+        if (p.is119) {
+          p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
+          p.client.write('set_title_text', { text: JSON.stringify({ text: '§c§lINVENTORY FULL' }) });
+        } else {
+          p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
+          p.client.write('set_title_text', { text: nbt.comp({ text: nbt.string('§c§lINVENTORY FULL') }) });
+        }
+        p.client.write('named_sound_effect', {
+          soundName: 'block.chest.locked',
+          soundCategory: 0,
+          x: Math.floor(p.x * 8),
+          y: Math.floor(p.y * 8),
+          z: Math.floor(p.z * 8),
+          volume: 1.0,
+          pitch: 0.8,
+          seed: [0, 0]
+        });
+      } catch (_) {}
+    }
+  }
+
+  public spawnDroppedItem(name: string, count: number, x: number, y: number, z: number, owner?: string): void {
     const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
     const itemDef121 = mcData1211.itemsByName[name] || mcData1211.blocksByName[name];
     if (!itemDef119 && !itemDef121) return;
 
     const baseDef = itemDef119 || itemDef121;
     const itemEntityId = this.nextEntityId++;
-    const spawnX = x + 0.5;
-    const spawnY = y + 0.35;
-    const spawnZ = z + 0.5;
+    const spawnX = x + 0.5 + (Math.random() - 0.5) * 0.2;
+    const spawnY = y + 0.2;
+    const spawnZ = z + 0.5 + (Math.random() - 0.5) * 0.2;
 
     this.droppedItems.set(itemEntityId, {
       entityId: itemEntityId,
@@ -956,12 +1007,13 @@ export class ZylarServer {
       x: spawnX,
       y: spawnY,
       z: spawnZ,
-      spawnTime: Date.now()
+      spawnTime: Date.now(),
+      owner
     });
 
-    const velX = Math.floor((Math.random() - 0.5) * 600);
-    const velY = 1000;
-    const velZ = Math.floor((Math.random() - 0.5) * 600);
+    const velX = Math.floor((Math.random() - 0.5) * 400);
+    const velY = 1600; // Natural upward pop (~0.2 blocks/tick)
+    const velZ = Math.floor((Math.random() - 0.5) * 400);
 
     for (const [_, p] of players) {
       if (!p.client) continue;
