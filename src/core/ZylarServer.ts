@@ -145,6 +145,7 @@ interface DroppedItem {
   y: number;
   z: number;
   spawnTime: number;
+  owner?: string;
 }
 
 function generateOfflineUuid(username: string): string {
