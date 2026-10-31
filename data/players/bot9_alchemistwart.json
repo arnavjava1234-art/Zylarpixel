@@ -1,0 +1,37 @@
+{
+  "username": "Bot9_AlchemistWart",
+  "uuid": "cfe80cdf-8961-35b8-a173-cac55e0f9f7e",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Bot9_AlchemistWart",
+    "originX": 62000,
+    "originZ": 0,
+    "spawnX": 62000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-10-31T15:42:02.117Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "lastSeen": 1793461322117
+}
