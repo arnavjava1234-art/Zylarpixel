@@ -1982,6 +1982,12 @@ export class ZylarServer {
         const mcData = is119 ? mcData1192 : mcData1211;
         const blockName = mcData.blocksByStateId[stateId]?.name || '';
 
+        // Check 5x5 Hub Wheat Minion Exclusion Zone (X: 45..49, Y: 70, Z: -139..-135)
+        if (this.config.worldType === 'hub' && isHubMinionExclusionZone(x, y, z)) {
+          handleHubCropHarvest(this, pData, x, y, z, 'wheat', sequence);
+          return;
+        }
+
         // Special-case the 4 core Hub crops: wheat, carrots, potatoes, nether_wart
         if (this.config.worldType === 'hub' && isHarvestableHubCrop(blockName)) {
           if (data.status === 0 || data.status === 2) {
