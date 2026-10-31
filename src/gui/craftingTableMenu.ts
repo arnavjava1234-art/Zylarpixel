@@ -265,56 +265,17 @@ export function addItemToPlayerInventory(pData: any, itemId: number, count: numb
 export function dropItemAtPlayerFeet(pData: any, itemId: number, count: number, is119: boolean = true): void {
   if (!pData || count <= 0) return;
   const server = pData.server;
-  if (!server || !server.droppedItems) return;
+  if (!server) return;
 
   const mcData = is119 ? mcData1192 : mcData1211;
   const itemDef = mcData.items[itemId];
   const name = itemDef ? itemDef.name : 'item';
-  const entityId = server.nextEntityId++;
   const x = pData.x || 0;
-  const y = (pData.y || 70) + 0.35;
+  const y = pData.y || 70;
   const z = pData.z || 0;
 
-  server.droppedItems.set(entityId, {
-    entityId,
-    itemId,
-    count,
-    name,
-    x,
-    y,
-    z,
-    spawnTime: Date.now()
-  });
-
-  const playersMap = server.players || new Map();
-  for (const [_, p] of playersMap) {
-    try {
-      p.client.write('spawn_entity', {
-        entityId,
-        entityUUID: '00000000-0000-0000-0000-' + entityId.toString().padStart(12, '0'),
-        type: is119 ? 44 : 58,
-        x,
-        y,
-        z,
-        yaw: 0,
-        pitch: 0,
-        headYaw: 0,
-        data: 1,
-        velocityX: 0,
-        velocityY: 0,
-        velocityZ: 0
-      });
-      p.client.write('entity_metadata', {
-        entityId,
-        metadata: [
-          {
-            key: 8,
-            type: is119 ? 6 : 7,
-            value: tagVanillaItemStack({ present: true, itemId, itemCount: count }, p.is119)
-          }
-        ]
-      });
-    } catch (_) {}
+  if (typeof server.spawnDroppedItem === 'function') {
+    server.spawnDroppedItem(name, count, x, y, z);
   }
 }
 

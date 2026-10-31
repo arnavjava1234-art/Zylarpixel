@@ -403,3 +403,121 @@ export function tagVanillaItemStack(itemStack: any, is119: boolean = true): any 
   };
 }
 
+/**
+ * Ensures item stack is formatted correctly for the target protocol version:
+ * - 1.19.2: { present: boolean, itemId?: number, itemCount?: number, nbtData?: any }
+ * - 1.21.1: SlotComponent format { itemCount: number, itemId?: number, addedComponentCount: number, removedComponentCount: number, components: any[], removeComponents: any[] }
+ */
+export function formatSlotForClient(item: any, is119: boolean = true): any {
+  if (
+    !item ||
+    item.present === false ||
+    (typeof item.count === 'number' && item.count <= 0) ||
+    (typeof item.itemCount === 'number' && item.itemCount <= 0)
+  ) {
+    return is119 ? { present: false } : { itemCount: 0 };
+  }
+
+  if (is119) {
+    if (item.present !== undefined) return item;
+    return {
+      present: true,
+      itemId: item.itemId,
+      itemCount: item.itemCount || item.count || 1,
+      nbtData: item.nbtData
+    };
+  }
+
+  // 1.21.1 SlotComponent format: if already formatted, return directly
+  if (item.addedComponentCount !== undefined && Array.isArray(item.components)) {
+    return item;
+  }
+
+  const count = item.itemCount || item.count || 1;
+  let targetItemId = item.itemId;
+
+  // If itemId was resolved from 1.19.2, translate to 1.21.1
+  if (typeof targetItemId === 'number') {
+    const def119 = mcData1192.items[targetItemId];
+    if (def119) {
+      const def121 = mcData1211.itemsByName[def119.name] || mcData1211.blocksByName[def119.name];
+      if (def121) targetItemId = def121.id;
+    }
+  }
+
+  const components: any[] = [];
+
+  // Parse components out of nbtData if present
+  if (item.nbtData?.value) {
+    const val = item.nbtData.value;
+
+    // 1. Custom Name
+    if (val.display?.value?.Name?.value) {
+      components.push({
+        type: 'custom_name',
+        data: {
+          type: 'string',
+          value: val.display.value.Name.value
+        }
+      });
+    }
+
+    // 2. Lore
+    const rawLore = val.display?.value?.Lore?.value?.value;
+    if (Array.isArray(rawLore) && rawLore.length > 0) {
+      components.push({
+        type: 'lore',
+        data: rawLore.map((line: any) => ({
+          type: 'string',
+          value: typeof line === 'string' ? line : JSON.stringify(line)
+        }))
+      });
+    }
+
+    // 3. SkyBlock ExtraAttributes / Custom Data
+    if (val.ExtraAttributes?.value) {
+      components.push({
+        type: 'custom_data',
+        data: {
+          type: 'compound',
+          name: '',
+          value: {
+            ExtraAttributes: val.ExtraAttributes
+          }
+        }
+      });
+    }
+
+    // 4. Custom Skull / Profile
+    if (val.SkullOwner?.value) {
+      const so = val.SkullOwner.value;
+      const textures = so.Properties?.value?.textures?.value?.value;
+      const texVal = Array.isArray(textures) && textures[0]?.Value?.value;
+      if (texVal) {
+        components.push({
+          type: 'profile',
+          data: {
+            name: so.Name?.value || 'Player',
+            uuid: typeof so.Id?.value === 'string' ? so.Id.value : undefined,
+            properties: [
+              {
+                name: 'textures',
+                value: texVal,
+                signature: undefined
+              }
+            ]
+          }
+        });
+      }
+    }
+  }
+
+  return {
+    itemCount: count,
+    itemId: targetItemId,
+    addedComponentCount: components.length,
+    removedComponentCount: 0,
+    components,
+    removeComponents: []
+  };
+}

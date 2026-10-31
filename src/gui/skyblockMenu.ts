@@ -3,16 +3,18 @@
  * 54-Slot (minecraft:generic_9x6) double-chest layout, 1:1 mirror of Hypixel.
  */
 
-import { mcData1192 } from '../world/worldManager';
-import { createGuiItem } from './statsMenu';
+import { mcData1192, mcData1211 } from '../world/worldManager';
+import { formatSlotForClient } from '../items';
+import { createGuiItem, openStatsMenu } from './statsMenu';
 import { openBankMainMenu } from './bankMenu';
 import { openCraftingTableMenu } from './craftingTableMenu';
 
 export const SKYBLOCK_MENU_WINDOW_ID = 6;
 export const HOTBAR_NETHER_STAR_SLOT = 44; // Slot index 8 in hotbar (36 + 8)
 
-export function createNetherStarItem(): any {
-  const itemDef = mcData1192.itemsByName.nether_star;
+export function createNetherStarItem(is119: boolean = true): any {
+  const mcData = is119 ? mcData1192 : mcData1211;
+  const itemDef = mcData.itemsByName.nether_star;
   const loreStrings = [
     JSON.stringify({ text: '§7View all of your SkyBlock' }),
     JSON.stringify({ text: '§7progress, including your Skills,' }),
@@ -49,11 +51,13 @@ export function createNetherStarItem(): any {
 
 export function giveNetherStar(client: any): void {
   try {
+    const is119 = (client.protocolVersion === 760 || client.version === '1.19.2');
+    const netherStar = createNetherStarItem(is119);
     client.write('set_slot', {
       windowId: 0,
       stateId: 1,
       slot: HOTBAR_NETHER_STAR_SLOT,
-      item: createNetherStarItem()
+      item: formatSlotForClient(netherStar, is119)
     });
   } catch (_) {}
 }
@@ -74,6 +78,7 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
   );
 
   // Row 2 Center
+  const ff = Math.floor(pSession.stats?.farmingFortune || 0);
   items[13] = createGuiItem(
     'player_head',
     1,
@@ -81,6 +86,8 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
     [
       '§7View your equipment, stats,',
       '§7accessories, and more!',
+      ' ',
+      `§7Farming Fortune: §6☘ ${ff}`,
       ' ',
       '§eClick to view!'
     ]
@@ -297,7 +304,7 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
 }
 
 export const SKYBLOCK_MENU_FEATURE_SLOTS = new Set([
-  13, 19, 20, 21, 22, 23, 24, 25, 30, 32, 47, 48, 50, 51
+  19, 20, 21, 22, 23, 24, 25, 30, 32, 47, 48, 50, 51
 ]);
 
 export function handleSkyBlockMenuClick(
@@ -313,6 +320,12 @@ export function handleSkyBlockMenuClick(
     try {
       client.write('close_window', { windowId: SKYBLOCK_MENU_WINDOW_ID });
     } catch (_) {}
+    return;
+  }
+
+  if (clickedSlot === 13) {
+    // Your SkyBlock Profile -> opens Stats menu!
+    openStatsMenu(client, pSession);
     return;
   }
 

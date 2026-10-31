@@ -91,6 +91,12 @@ import {
   handleBankerInteraction
 } from '../npc/bankerNpc';
 import {
+  spawnCropGuardian,
+  tickCropGuardian,
+  isHarvestableHubCrop,
+  handleHubCropHarvest
+} from '../world/cropGuardian';
+import {
   handleBankClick,
   handleSignUpdate,
   restoreSignBlock,
@@ -111,7 +117,7 @@ import {
   handleAdminItemSpawnerClick,
   ADMIN_ITEM_SPAWNER_WINDOW_ID
 } from '../gui/adminItemMenu';
-import { tagVanillaItemStack, handleItemAbility, createItem, applySpeedBoost } from '../items';
+import { tagVanillaItemStack, formatSlotForClient, isSkyBlockItemStack, handleItemAbility, createItem, applySpeedBoost } from '../items';
 
 const Vec3 = require('vec3');
 
@@ -736,17 +742,16 @@ export class ZylarServer {
       }
     }, 500);
 
-    // E. Dropped Items Pickup Loop (every 100ms, islands only)
-    if (this.config.worldType === 'islands') {
-      setInterval(() => {
-        this.tickDroppedItems();
-      }, 100);
-    }
+    // E. Dropped Items Pickup Loop (every 100ms)
+    setInterval(() => {
+      this.tickDroppedItems();
+    }, 100);
 
-    // F. Hub Banker NPC Ticker (every 50ms / 20 TPS, line of sight & head tracking)
+    // F. Hub Banker NPC & Crop Guardian Ticker (every 50ms / 20 TPS)
     if (this.config.worldType === 'hub') {
       this.botTickerInterval = setInterval(() => {
         tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
+        tickCropGuardian(players, (deg: number) => this.toProtocolByte(deg));
       }, 50);
     }
   }
@@ -755,73 +760,109 @@ export class ZylarServer {
     const now = Date.now();
     for (const [entityId, item] of this.droppedItems) {
       for (const [_, p] of players) {
+        if (!p.client) continue;
         const dist = Math.hypot(p.x - item.x, p.y - item.y, p.z - item.z);
         if (dist <= 1.8 && (now - item.spawnTime > 400)) {
-          for (const [__, observer] of players) {
-            try {
-              observer.client.write('collect', {
-                collectedEntityId: entityId,
-                collectorEntityId: p.entityId,
-                pickupItemCount: item.count
-              });
-              observer.client.write('entity_destroy', {
-                entityIds: [entityId]
-              });
-            } catch (_) {}
+          // Candidate slots: hotbar 36..43 (skipping slot 44 Nether Star), then main inventory 9..35
+          const candidateSlots: number[] = [];
+          for (let s = 36; s <= 43; s++) candidateSlots.push(s);
+          for (let s = 9; s <= 35; s++) candidateSlots.push(s);
+
+          const pMcData = p.is119 ? mcData1192 : mcData1211;
+          const pItemDef = pMcData.itemsByName[item.name] || pMcData.blocksByName[item.name];
+          const pItemId = pItemDef ? pItemDef.id : item.itemId;
+          const maxStack = pItemDef?.stackSize || 64;
+
+          // 1. Calculate available space in player inventory for this item
+          let availableSpace = 0;
+          for (const slot of candidateSlots) {
+            const existing = p.inventory.get(slot);
+            if (!existing) {
+              availableSpace += maxStack;
+            } else if (!isSkyBlockItemStack(existing) && existing.name === item.name && existing.count < maxStack) {
+              availableSpace += (maxStack - existing.count);
+            }
           }
 
-          let placed = false;
-          for (let slot = 36; slot <= 44; slot++) {
-            if (slot === HOTBAR_NETHER_STAR_SLOT) continue;
+          // If inventory cannot accept any items, do NOT void or destroy the item!
+          if (availableSpace <= 0) {
+            continue;
+          }
+
+          const toTake = Math.min(item.count, availableSpace);
+          let remainingToPlace = toTake;
+
+          // 2. Pass 1: Add to existing matching stacks < maxStack (excluding custom SkyBlock items)
+          for (const slot of candidateSlots) {
+            if (remainingToPlace <= 0) break;
             const existing = p.inventory.get(slot);
-            if (existing && existing.name === item.name && existing.count < 64) {
-              existing.count += item.count;
+            if (existing && !isSkyBlockItemStack(existing) && existing.name === item.name && existing.count < maxStack) {
+              const space = maxStack - existing.count;
+              const addCount = Math.min(space, remainingToPlace);
+              existing.count += addCount;
+              remainingToPlace -= addCount;
+              existing.itemId = pItemId;
+
               const tagged = tagVanillaItemStack({
                 present: true,
-                itemId: existing.itemId,
+                itemId: pItemId,
                 itemCount: existing.count,
                 nbtData: existing.nbtData
               }, p.is119);
               existing.nbtData = tagged.nbtData;
-              p.client.write('set_slot', {
-                windowId: 0,
-                stateId: 1,
-                slot,
-                item: tagged
-              });
-              placed = true;
-              break;
-            }
-          }
 
-          if (!placed) {
-            for (let slot = 36; slot <= 44; slot++) {
-              if (slot === HOTBAR_NETHER_STAR_SLOT) continue;
-              if (!p.inventory.has(slot)) {
-                const tagged = tagVanillaItemStack({
-                  present: true,
-                  itemId: item.itemId,
-                  itemCount: item.count
-                }, p.is119);
-                p.inventory.set(slot, {
-                  slot,
-                  name: item.name,
-                  itemId: item.itemId,
-                  count: item.count,
-                  nbtData: tagged.nbtData
-                });
+              try {
                 p.client.write('set_slot', {
                   windowId: 0,
                   stateId: 1,
                   slot,
-                  item: tagged
+                  item: formatSlotForClient(tagged, p.is119)
                 });
-                placed = true;
-                break;
+              } catch (_) {}
+            }
+          }
+
+          // 3. Pass 2: Place into empty slots
+          if (remainingToPlace > 0) {
+            for (const slot of candidateSlots) {
+              if (remainingToPlace <= 0) break;
+              if (!p.inventory.has(slot)) {
+                const putCount = Math.min(maxStack, remainingToPlace);
+                remainingToPlace -= putCount;
+
+                const rawStack = {
+                  present: true,
+                  itemId: pItemId,
+                  itemCount: putCount
+                };
+                const tagged = tagVanillaItemStack(rawStack, p.is119);
+
+                p.inventory.set(slot, {
+                  slot,
+                  name: item.name,
+                  itemId: pItemId,
+                  count: putCount,
+                  nbtData: tagged.nbtData
+                });
+
+                try {
+                  p.client.write('set_slot', {
+                    windowId: 0,
+                    stateId: 1,
+                    slot,
+                    item: formatSlotForClient(tagged, p.is119)
+                  });
+                } catch (_) {}
               }
             }
           }
 
+          const actuallyTaken = toTake - remainingToPlace;
+          if (actuallyTaken <= 0) {
+            continue;
+          }
+
+          // 4. Play pickup sound
           try {
             p.client.write('named_sound_effect', {
               soundName: 'entity.item.pickup',
@@ -835,10 +876,136 @@ export class ZylarServer {
             });
           } catch (_) {}
 
-          this.droppedItems.delete(entityId);
-          break;
+          // 5. Send collect animation to all observers
+          for (const [__, observer] of players) {
+            try {
+              observer.client.write('collect', {
+                collectedEntityId: entityId,
+                collectorEntityId: p.entityId,
+                pickupItemCount: actuallyTaken
+              });
+            } catch (_) {}
+          }
+
+          // 6. Complete pickup vs partial pickup handling
+          if (actuallyTaken >= item.count) {
+            for (const [__, observer] of players) {
+              try {
+                observer.client.write('entity_destroy', {
+                  entityIds: [entityId]
+                });
+              } catch (_) {}
+            }
+            this.droppedItems.delete(entityId);
+          } else {
+            item.count -= actuallyTaken;
+            for (const [__, observer] of players) {
+              if (!observer.client) continue;
+              const obsIs119 = observer.is119;
+              const obsMcData = obsIs119 ? mcData1192 : mcData1211;
+              const obsDef = obsMcData.itemsByName[item.name] || obsMcData.blocksByName[item.name];
+              if (obsDef) {
+                try {
+                  const metaValue = obsIs119
+                    ? { present: true, itemId: obsDef.id, itemCount: item.count }
+                    : {
+                        itemCount: item.count,
+                        itemId: obsDef.id,
+                        addedComponentCount: 0,
+                        removedComponentCount: 0,
+                        components: [],
+                        removeComponents: []
+                      };
+                  observer.client.write('entity_metadata', {
+                    entityId,
+                    metadata: [{
+                      key: 8,
+                      type: obsIs119 ? 6 : 'item_stack',
+                      value: metaValue
+                    }]
+                  });
+                } catch (_) {}
+              }
+            }
+          }
+
+          break; // Item processed for this tick
         }
       }
+    }
+  }
+
+  public spawnDroppedItem(name: string, count: number, x: number, y: number, z: number): void {
+    const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
+    const itemDef121 = mcData1211.itemsByName[name] || mcData1211.blocksByName[name];
+    if (!itemDef119 && !itemDef121) return;
+
+    const baseDef = itemDef119 || itemDef121;
+    const itemEntityId = this.nextEntityId++;
+    const spawnX = x + 0.5;
+    const spawnY = y + 0.35;
+    const spawnZ = z + 0.5;
+
+    this.droppedItems.set(itemEntityId, {
+      entityId: itemEntityId,
+      itemId: baseDef.id,
+      count,
+      name,
+      x: spawnX,
+      y: spawnY,
+      z: spawnZ,
+      spawnTime: Date.now()
+    });
+
+    const velX = Math.floor((Math.random() - 0.5) * 600);
+    const velY = 1000;
+    const velZ = Math.floor((Math.random() - 0.5) * 600);
+
+    for (const [_, p] of players) {
+      if (!p.client) continue;
+      const is119 = p.is119;
+      const pItemDef = is119 ? (itemDef119 || itemDef121) : (itemDef121 || itemDef119);
+      if (!pItemDef) continue;
+
+      try {
+        p.client.write('spawn_entity', {
+          entityId: itemEntityId,
+          objectUUID: crypto.randomUUID(),
+          type: is119 ? 44 : 58,
+          x: spawnX,
+          y: spawnY,
+          z: spawnZ,
+          pitch: 0,
+          yaw: 0,
+          headPitch: 0,
+          objectData: 1,
+          data: 1,
+          velocity: { x: velX, y: velY, z: velZ },
+          velocityX: velX,
+          velocityY: velY,
+          velocityZ: velZ
+        });
+
+        const metaValue = is119
+          ? { present: true, itemId: pItemDef.id, itemCount: count }
+          : {
+              itemCount: count,
+              itemId: pItemDef.id,
+              addedComponentCount: 0,
+              removedComponentCount: 0,
+              components: [],
+              removeComponents: []
+            };
+
+        p.client.write('entity_metadata', {
+          entityId: itemEntityId,
+          metadata: [{
+            key: 8,
+            type: is119 ? 6 : 'item_stack',
+            value: metaValue
+          }]
+        });
+      } catch (_) {}
     }
   }
 
@@ -1038,7 +1205,7 @@ export class ZylarServer {
           windowId: 0,
           stateId: 1,
           slot,
-          item: tagged
+          item: formatSlotForClient(tagged, is119)
         });
       } catch (_) {}
     }
@@ -1083,9 +1250,54 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC (if Hub)
+    // 8. Server-Side Banker NPC & Crop Guardian (if Hub)
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
+      spawnCropGuardian(client, is119, (deg: number) => this.toProtocolByte(deg));
+    }
+
+    // 8b. Active Dropped Items
+    for (const [entityId, drop] of this.droppedItems) {
+      const pMcData = is119 ? mcData1192 : mcData1211;
+      const pItemDef = pMcData.itemsByName[drop.name] || pMcData.blocksByName[drop.name];
+      if (!pItemDef) continue;
+      try {
+        client.write('spawn_entity', {
+          entityId,
+          objectUUID: crypto.randomUUID(),
+          type: is119 ? 44 : 58,
+          x: drop.x,
+          y: drop.y,
+          z: drop.z,
+          pitch: 0,
+          yaw: 0,
+          headPitch: 0,
+          objectData: 1,
+          data: 1,
+          velocity: { x: 0, y: 0, z: 0 },
+          velocityX: 0,
+          velocityY: 0,
+          velocityZ: 0
+        });
+        const metaVal = is119
+          ? { present: true, itemId: pItemDef.id, itemCount: drop.count }
+          : {
+              itemCount: drop.count,
+              itemId: pItemDef.id,
+              addedComponentCount: 0,
+              removedComponentCount: 0,
+              components: [],
+              removeComponents: []
+            };
+        client.write('entity_metadata', {
+          entityId,
+          metadata: [{
+            key: 8,
+            type: is119 ? 6 : 'item_stack',
+            value: metaVal
+          }]
+        });
+      } catch (_) {}
     }
 
     // 9. Stats Sync
@@ -1705,7 +1917,7 @@ export class ZylarServer {
       const y = location.y;
       const z = location.z;
 
-      // Hub Protection: Silent reset with authentic block state from region files
+      // Hub Protection: Silent reset with authentic block state, EXCEPT 4 core Hub crops!
       if (!this.config.allowBlockBreaking || this.config.worldType === 'hub') {
         const cx = Math.floor(x / 16);
         const cz = Math.floor(z / 16);
@@ -1713,6 +1925,16 @@ export class ZylarServer {
         const rx = ((x % 16) + 16) % 16;
         const rz = ((z % 16) + 16) % 16;
         const stateId = chunk ? chunk.getBlockStateId(new Vec3(rx, y, rz)) : 1;
+        const mcData = is119 ? mcData1192 : mcData1211;
+        const blockName = mcData.blocksByStateId[stateId]?.name || '';
+
+        // Special-case the 4 core Hub crops: wheat, carrots, potatoes, nether_wart
+        if (this.config.worldType === 'hub' && isHarvestableHubCrop(blockName)) {
+          if (data.status === 0 || data.status === 2) {
+            handleHubCropHarvest(this, pData, x, y, z, blockName, sequence);
+          }
+          return;
+        }
 
         client.write('block_change', {
           location,
@@ -1766,58 +1988,9 @@ export class ZylarServer {
           try { client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
         }
 
-        // Spawn dropped item entity (Item entity ID is 44 in 1.19.2, 58 in 1.21.1)
+        // Spawn dropped item entity
         const dropName = BLOCK_DROPS[currentBlock] || currentBlock;
-        const itemDef = mcData.itemsByName[dropName] || mcData.blocksByName[dropName];
-
-        if (itemDef) {
-          const itemEntityId = this.nextEntityId++;
-          const spawnX = x + 0.5;
-          const spawnY = y + 0.35;
-          const spawnZ = z + 0.5;
-
-          this.droppedItems.set(itemEntityId, {
-            entityId: itemEntityId,
-            itemId: itemDef.id,
-            count: 1,
-            name: dropName,
-            x: spawnX,
-            y: spawnY,
-            z: spawnZ,
-            spawnTime: Date.now()
-          });
-
-          for (const [_, p] of players) {
-            try {
-              p.client.write('spawn_entity', {
-                entityId: itemEntityId,
-                objectUUID: crypto.randomUUID(),
-                type: p.is119 ? 44 : 58, // 44 = Item in 1.19.2 (41 is Husk!), 58 = Item in 1.21.1
-                x: spawnX,
-                y: spawnY,
-                z: spawnZ,
-                pitch: 0,
-                yaw: 0,
-                headPitch: 0,
-                data: 1,
-                velocity: {
-                  x: Math.floor((Math.random() - 0.5) * 600),
-                  y: 1000,
-                  z: Math.floor((Math.random() - 0.5) * 600)
-                }
-              });
-
-              p.client.write('entity_metadata', {
-                entityId: itemEntityId,
-                metadata: [{
-                  key: 8,
-                  type: p.is119 ? 6 : 7,
-                  value: { present: true, itemId: itemDef.id, itemCount: 1 }
-                }]
-              });
-            } catch (_) {}
-          }
-        }
+        this.spawnDroppedItem(dropName, 1, x, y, z);
       }
     });
 

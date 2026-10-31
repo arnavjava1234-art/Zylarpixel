@@ -38,7 +38,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: 'money', description: 'Manage player purse balance (/money <player> set/add/remove <amount>)', opOnly: true },
   { name: 'coin', description: 'Manage player purse balance (/coin <player> set/add/remove <amount>)', opOnly: true },
   { name: 'give', description: 'Give custom SkyBlock item (/give [player] <itemId> [count])', opOnly: true },
-  { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true }
+  { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true },
+  { name: 'boost', description: 'Grant temporary Farming Fortune & Speed boost (/boost [amount])' }
 ];
 
 export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boolean = false): void {

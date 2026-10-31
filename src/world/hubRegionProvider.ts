@@ -198,6 +198,28 @@ export function getHubBlockName(x: number, y: number, z: number): string {
   return mcData119.blocksByStateId[stateId]?.name || 'air';
 }
 
+export function setHubBlockStateId(x: number, y: number, z: number, stateId119: number, stateId121: number): void {
+  const cx = Math.floor(x / 16);
+  const cz = Math.floor(z / 16);
+  const key = `${cx},${cz}`;
+  hubPacketCache119.delete(key);
+  hubPacketCache121.delete(key);
+
+  const rx = ((x % 16) + 16) % 16;
+  const rz = ((z % 16) + 16) % 16;
+  const pos = new Vec3(rx, y, rz);
+
+  const chunk119 = hubChunks119.get(key) || loadHubChunk(cx, cz, true);
+  if (chunk119) {
+    chunk119.setBlockStateId(pos, stateId119);
+  }
+
+  const chunk121 = hubChunks121.get(key) || loadHubChunk(cx, cz, false);
+  if (chunk121) {
+    chunk121.setBlockStateId(pos, stateId121);
+  }
+}
+
 export function dumpHubChunkPacket(cx: number, cz: number, is119: boolean): any {
   const key = `${cx},${cz}`;
   const packetCache = is119 ? hubPacketCache119 : hubPacketCache121;

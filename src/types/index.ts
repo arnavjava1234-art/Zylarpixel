@@ -44,6 +44,7 @@ export interface PlayerStats {
   mana: number;
   maxMana: number;
   speed: number;
+  farmingFortune?: number;
 }
 
 export interface PlayerSession {

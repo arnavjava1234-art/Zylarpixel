@@ -16,7 +16,8 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
   intelligence: 0,
   mana: 100,      // Max Mana = 100 + Intelligence
   maxMana: 100,
-  speed: 100
+  speed: 100,
+  farmingFortune: 0
 };
 
 export function createDefaultStats(custom?: Partial<PlayerStats>): PlayerStats {

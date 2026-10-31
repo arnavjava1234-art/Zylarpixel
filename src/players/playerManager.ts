@@ -163,7 +163,8 @@ export function persistPlayerSession(pData: any): void {
       intelligence: pData.stats.intelligence,
       maxMana: pData.stats.maxMana,
       critChance: pData.stats.critChance,
-      critDamage: pData.stats.critDamage
+      critDamage: pData.stats.critDamage,
+      farmingFortune: pData.stats.farmingFortune || 0
     };
     if (pData.speedBoostExpiresAt && pData.speedBoostExpiresAt > Date.now()) {
       if (!prof.activeBuffs) prof.activeBuffs = {};

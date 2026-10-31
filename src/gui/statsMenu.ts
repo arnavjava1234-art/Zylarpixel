@@ -71,6 +71,7 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
       `§7Bits: §b${(pData as any).bits || 0}`,
       ' ',
       `§7Effective Health (EHP): §a${ehp.toLocaleString()}`,
+      `§7Farming Fortune: §6☘ ${Math.floor(stats.farmingFortune || 0)}`,
       ' ',
       '§eView your combat and survivability attributes below!'
     ]
@@ -199,6 +200,23 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
       `§7Mana Regen: §b+${(stats.maxMana * 0.02).toFixed(1)}/s §7(2%/s)`,
       ' ',
       '§8Regenerates continuously during combat!'
+    ]
+  );
+
+  // Slot 32: ☘ Farming Fortune (Hay Block)
+  items[32] = createGuiItem(
+    'hay_block',
+    1,
+    `§6☘ Farming Fortune §f${Math.floor(stats.farmingFortune || 0)}`,
+    [
+      '§7Farming Fortune increases your chance',
+      '§7to get multiple drops from crops.',
+      ' ',
+      `§7Current Fortune: §6+${Math.floor(stats.farmingFortune || 0)}`,
+      `§7Extra Drop Multiplier: §e+${Math.floor(stats.farmingFortune || 0)}%`,
+      ' ',
+      '§8Every 100 Fortune grants +100% chance',
+      '§8for an extra crop drop!'
     ]
   );
 

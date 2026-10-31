@@ -13,6 +13,7 @@ export interface PlayerStats {
   maxMana: number;
   critChance: number;
   critDamage: number;
+  farmingFortune?: number;
 }
 
 export interface SharedInventoryItem {
