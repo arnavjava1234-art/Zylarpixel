@@ -2,7 +2,7 @@
   "username": "ARNAVJAVA",
   "uuid": "308c3f3c-d3cd-3d54-bb19-e8cb9246c6fd",
   "rank": "owner",
-  "isOp": true,
+  "isOp": false,
   "island": {
     "originX": 0,
     "originZ": 0,
@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-10-31T13:05:59.725Z",
+  "lastLogin": "2026-10-31T13:07:07.292Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -1513,5 +1513,5 @@
       }
     }
   ],
-  "lastSeen": 1793451959726
+  "lastSeen": 1793452027292
 }
