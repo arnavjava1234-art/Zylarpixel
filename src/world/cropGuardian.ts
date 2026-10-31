@@ -848,7 +848,7 @@ export function handleHubCropHarvest(
   }
 
   // 7. Enqueue broken crop into territory Protector's FIFO queue
-  const protector = getProtectorForCrop(x, y, z);
+  const protector = getProtectorForCrop(x, y, z, cropName);
   protector.queue.push({ x, y, z, cropName });
 
   // 8. Acknowledge digging
