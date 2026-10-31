@@ -71,7 +71,6 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
       `§7Bits: §b${(pData as any).bits || 0}`,
       ' ',
       `§7Effective Health (EHP): §a${ehp.toLocaleString()}`,
-      `§7Farming Fortune: §6☘ ${Math.floor(stats.farmingFortune || 0)}`,
       ' ',
       '§eView your combat and survivability attributes below!'
     ]
