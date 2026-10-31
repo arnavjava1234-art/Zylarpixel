@@ -2,44 +2,46 @@
  * ZylarPixel Hub Crop Harvesting & Magical Regrowth Guardian System
  * 
  * Features:
- * - Special-cases the 4 core Hub crops: Wheat, Carrots, Potatoes, Nether Wart.
- * - Leaves mushrooms and all other blocks protected under general Hub protection.
- * - Authentic randomized drop tables scaled by PlayerStats.farmingFortune (+100 = guaranteed +100% extra drop).
- * - Multi-pass inventory stacking (hotbar 36..43, main inventory 9..35, skipping slot 44 Nether Star).
- * - Physical ground drop fallback via droppedItems if inventory is 100% full.
- * - Floating invisible Armor Stand Guardian Sprite overlooking the Hub farm with custom skull.
- * - Smooth head rotation (yaw += 3° per tick).
- * - High-density white particle beam (end_rod) from Guardian head to harvested block.
- * - Magical chime sound (item.bone_meal.use) and green bonemeal sparkles (happy_villager).
- * - Instant block_change restoration to 100% fully grown crop state & chunk state memory update.
+ * - 4 Harvestable Crops: Wheat, Carrots, Potatoes, Nether Wart.
+ * - 5x5 Hub Wheat Minion Exclusion Zone (X: 45..49, Y: 70, Z: -139..-135): 100% unbreakable, silent cancel with dull thud, 0 drops.
+ * - Randomized Authentic Drops:
+ *   - Wheat: 1 to 2 base Wheat (50% chance for 2) + 1 to 2 Wheat Seeds
+ *   - Carrots: 2 to 4 base Carrots
+ *   - Potatoes: 2 to 4 base Potatoes + 2% rare chance for Poisonous Potato (§b§lRARE DROP! §fPoisonous Potato with pitch 2.0 ding)
+ *   - Nether Wart: 2 to 4 base Nether Wart
+ *   - Scaled proportionally by Farming Fortune (+100 Fortune = +100% extra drops).
+ * - Physical Ground Drops (NO Auto-Pickup):
+ *   - Pop onto the ground as physical 3D bouncing items (velocityY: 0.2, spread ~0.1).
+ *   - Strictly private anti-theft (tracked by owner: pData.username).
+ *   - Vacuum radius 1.8 blocks, 300s (5-min) despawn timer.
+ *   - If inventory 100% full, displays big red screen title §c§lINVENTORY FULL (20s cooldown).
+ * - 10 Dedicated Protectors (Guardians):
+ *   - Small Invisible Marker Armor Stands wearing Golden Sun / Star Orb custom player skulls.
+ *   - Zero corny holograms or floating nametags.
+ *   - Continuous 24/7 horizontal 360° spinning (yaw += 3°/tick) and 1.5s sinusoidal vertical bobbing (Y += Math.sin(t) * 0.2).
+ *   - Independent sequential 1-by-1 FIFO queues.
+ *   - 0.8-second continuous white end_rod laser beam ray while head continues spinning.
+ *   - Green happy_villager bonemeal sparkles + item.bone_meal.use sound + instant 100% regrowth.
+ * - Hydrated Farmland (farmland[moisture=7]) & Trample Auto-Repair.
  */
 
 import { mcData1192, mcData1211 } from './worldManager';
-import { tagVanillaItemStack, formatSlotForClient, isSkyBlockItemStack } from '../items/engine/itemBuilder';
-export { formatSlotForClient };
-import { showActionBarMessage } from '../stats/statsManager';
+import { tagVanillaItemStack, formatSlotForClient } from '../items/engine/itemBuilder';
 import { setHubBlockStateId } from './hubRegionProvider';
 import { players } from '../players/playerManager';
 
-export const GUARDIAN_ENTITY_ID = 8895;
-export const GUARDIAN_HOLO_TITLE_ID = 8896;
-export const GUARDIAN_HOLO_SUB_ID = 8897;
+// Authentic Golden Sun / Star Orb custom skull texture from Minecraft-Heads (used widely across Hypixel)
+export const SUN_SKULL_TEXTURE = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmYwZWU2NDdhNjIxMWU1YzJmODE2MTZhNTk3N2E2NTg1MWU0ZGI3ODM0Y2Y0NTAxMjQ2ZGU2YjM5YWRhMzI5MSJ9fX0=';
 
-export const GUARDIAN_UUID = '7c72f1a5-8895-4b10-8877-e1a3fc82e38f';
-export const GUARDIAN_HOLO_TITLE_UUID = '7c72f1a6-8896-4b10-8877-e1a3fc82e38f';
-export const GUARDIAN_HOLO_SUB_UUID = '7c72f1a7-8897-4b10-8877-e1a3fc82e38f';
-
-// Central floating point over the Hub farm fields (X: 45.5, Y: 75.5, Z: -135.5)
-export const GUARDIAN_POS = {
-  x: 45.5,
-  y: 75.5,
-  z: -135.5,
-  yaw: 0.0,
-  pitch: 0.0
-};
-
-// Custom glowing Nature/Leaf Spirit skull texture
-export const GUARDIAN_SKULL_TEXTURE = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTdhMWI0NmQzNmRjMmFlNmI5NjZkMjJmYjYzNzJkNDZhZjZlYzg2MWE5ZGUzM2Q1NDVjOGVkMWI1Yzg4N2Q0In19fQ==';
+// 4-integer array UUID representing the Golden Sun Skull
+const SUN_SKULL_UUID = 'bf0ee647-a621-1e5c-2f81-616a5977a658';
+const uuidClean = SUN_SKULL_UUID.replace(/-/g, '');
+const SUN_SKULL_INT_UUID = [
+  parseInt(uuidClean.substring(0, 8), 16) | 0,
+  parseInt(uuidClean.substring(8, 16), 16) | 0,
+  parseInt(uuidClean.substring(16, 24), 16) | 0,
+  parseInt(uuidClean.substring(24, 32), 16) | 0
+];
 
 export const HARVESTABLE_CROPS = new Set([
   'wheat',
@@ -62,14 +64,224 @@ export const FULLY_GROWN_CROP_STATES: Record<string, { state119: number; state12
   nether_wart: { state119: 5718, state121: 7388 }  // age=3
 };
 
+// Hydrated moist farmland (moisture=7)
+export const FARMLAND_MOISTURE_7 = { state119: 3627, state121: 4293 };
+
+/**
+ * 5x5 Hub Wheat Minion Exclusion Zone (X: 45..49, Y: 70, Z: -139..-135)
+ * 100% Unbreakable; punches cancel silently with a dull thud sound and give 0 drops.
+ */
+export function isHubMinionExclusionZone(x: number, y: number, z: number): boolean {
+  return x >= 45 && x <= 49 && y === 70 && z >= -139 && z <= -135;
+}
+
+export interface CropRegrowthTask {
+  x: number;
+  y: number;
+  z: number;
+  cropName: string;
+  isTrampledFarmland?: boolean;
+}
+
+export interface CropProtector {
+  id: number;
+  uuid: string;
+  name: string;
+  bounds: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    minZ: number;
+    maxZ: number;
+  };
+  basePos: { x: number; y: number; z: number };
+  currentY: number;
+  yaw: number;
+  queue: CropRegrowthTask[];
+  currentTask: CropRegrowthTask | null;
+  taskStartTime: number;
+  taskEndTime: number;
+}
+
+/**
+ * The 10 Dedicated Protectors (Guardians) covering every crop territory in the Hub
+ */
+export const CROP_PROTECTORS: CropProtector[] = [
+  // 1. Main Lower Wheat Field
+  {
+    id: 8801,
+    uuid: '7c72f1a1-8801-4b10-8877-e1a3fc82e38f',
+    name: 'Main Lower Wheat Field',
+    bounds: { minX: 18, maxX: 71, minY: 67, maxY: 74, minZ: -154, maxZ: -119 },
+    basePos: { x: 45.5, y: 76.2, z: -136.5 },
+    currentY: 76.2,
+    yaw: 0,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 2. Upper Wheat Terrace
+  {
+    id: 8802,
+    uuid: '7c72f1a2-8802-4b10-8877-e1a3fc82e38f',
+    name: 'Upper Wheat Terrace',
+    bounds: { minX: 65, maxX: 85, minY: 70, maxY: 77, minZ: -169, maxZ: -155 },
+    basePos: { x: 74.5, y: 78.0, z: -162.5 },
+    currentY: 78.0,
+    yaw: 36,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 3. Windmill / Barn Wheat Hillside
+  {
+    id: 8803,
+    uuid: '7c72f1a3-8803-4b10-8877-e1a3fc82e38f',
+    name: 'Windmill / Barn Wheat Hillside',
+    bounds: { minX: 53, maxX: 67, minY: 70, maxY: 77, minZ: -192, maxZ: -175 },
+    basePos: { x: 60.5, y: 78.0, z: -183.5 },
+    currentY: 78.0,
+    yaw: 72,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 4. Western Wheat Strip
+  {
+    id: 8804,
+    uuid: '7c72f1a4-8804-4b10-8877-e1a3fc82e38f',
+    name: 'Western Wheat Strip',
+    bounds: { minX: 18, maxX: 31, minY: 68, maxY: 75, minZ: -186, maxZ: -171 },
+    basePos: { x: 24.5, y: 76.5, z: -178.5 },
+    currentY: 76.5,
+    yaw: 108,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 5. Village Sunken Garden (Wheat)
+  {
+    id: 8805,
+    uuid: '7c72f1a5-8805-4b10-8877-e1a3fc82e38f',
+    name: 'Village Sunken Garden',
+    bounds: { minX: 35, maxX: 44, minY: 66, maxY: 72, minZ: -91, maxZ: -81 },
+    basePos: { x: 39.5, y: 73.5, z: -86.5 },
+    currentY: 73.5,
+    yaw: 144,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 6. Village Path Garden (Wheat)
+  {
+    id: 8806,
+    uuid: '7c72f1a6-8806-4b10-8877-e1a3fc82e38f',
+    name: 'Village Path Garden',
+    bounds: { minX: 45, maxX: 53, minY: 68, maxY: 74, minZ: -103, maxZ: -93 },
+    basePos: { x: 48.5, y: 75.5, z: -97.5 },
+    currentY: 75.5,
+    yaw: 180,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 7. Carrot Garden
+  {
+    id: 8807,
+    uuid: '7c72f1a7-8807-4b10-8877-e1a3fc82e38f',
+    name: 'Carrot Garden',
+    bounds: { minX: -46, maxX: 0, minY: 68, maxY: 75, minZ: 3, maxZ: 38 },
+    basePos: { x: -23.5, y: 76.5, z: 20.5 },
+    currentY: 76.5,
+    yaw: 216,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 8. Potato Plots
+  {
+    id: 8808,
+    uuid: '7c72f1a8-8808-4b10-8877-e1a3fc82e38f',
+    name: 'Potato Plots',
+    bounds: { minX: 18, maxX: 93, minY: 68, maxY: 75, minZ: -102, maxZ: -58 },
+    basePos: { x: 55.5, y: 76.5, z: -80.5 },
+    currentY: 76.5,
+    yaw: 252,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 9. Alchemist's Lab Nether Wart Garden
+  {
+    id: 8809,
+    uuid: '7c72f1a9-8809-4b10-8877-e1a3fc82e38f',
+    name: 'Alchemist Lab Nether Wart Garden',
+    bounds: { minX: 28, maxX: 58, minY: 66, maxY: 73, minZ: -76, maxZ: -58 },
+    basePos: { x: 42.5, y: 74.5, z: -67.5 },
+    currentY: 74.5,
+    yaw: 288,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  },
+  // 10. Mountain Tower Nether Wart Plot
+  {
+    id: 8810,
+    uuid: '7c72f1aa-8810-4b10-8877-e1a3fc82e38f',
+    name: 'Mountain Tower Nether Wart Plot',
+    bounds: { minX: -45, maxX: -20, minY: 118, maxY: 130, minZ: -135, maxZ: -115 },
+    basePos: { x: -32.5, y: 128.5, z: -124.5 },
+    currentY: 128.5,
+    yaw: 324,
+    queue: [],
+    currentTask: null,
+    taskStartTime: 0,
+    taskEndTime: 0
+  }
+];
+
+/**
+ * Finds the appropriate Protector for a broken crop coordinate
+ */
+export function getProtectorForCrop(x: number, y: number, z: number): CropProtector {
+  // First check specific bounding boxes
+  for (const protector of CROP_PROTECTORS) {
+    const b = protector.bounds;
+    if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY && z >= b.minZ && z <= b.maxZ) {
+      return protector;
+    }
+  }
+
+  // Fallback: Closest protector by 2D horizontal distance
+  let closest = CROP_PROTECTORS[0];
+  let minD = Infinity;
+  for (const p of CROP_PROTECTORS) {
+    const d = Math.hypot(x - p.basePos.x, z - p.basePos.z);
+    if (d < minD) {
+      minD = d;
+      closest = p;
+    }
+  }
+  return closest;
+}
+
 // Cooldown tracker per block coordinate to prevent autoclicker / packet flood double-drops
 const recentHarvests = new Map<string, number>();
 
-let currentGuardianYaw = 0;
-
 /**
  * Calculates drop multiplier based on Farming Fortune:
- * +100 Fortune = +100% chance for an extra drop (guaranteed +1 drop multiplier)
+ * +100 Fortune = guaranteed +100% extra drop (+1 multiplier).
+ * Partial remainder is rolled as a percentage chance.
  */
 export function calculateFortuneMultiplier(fortune: number = 0): number {
   const safe = Math.max(0, fortune);
@@ -80,9 +292,9 @@ export function calculateFortuneMultiplier(fortune: number = 0): number {
 }
 
 /**
- * Creates custom head NBT data for the Guardian Armor Stand
+ * Creates authentic Golden Sun player skull item with proper 4-integer array UUID
  */
-function createGuardianHeadItem(is119: boolean): any {
+function createGoldenSunSkullItem(is119: boolean): any {
   const itemId = is119 ? 998 : 1105; // player_head item ID
   if (is119) {
     return {
@@ -96,7 +308,8 @@ function createGuardianHeadItem(is119: boolean): any {
           SkullOwner: {
             type: 'compound',
             value: {
-              Id: { type: 'string', value: GUARDIAN_UUID },
+              Id: { type: 'intArray', value: SUN_SKULL_INT_UUID },
+              Name: { type: 'string', value: 'SunGuardian' },
               Properties: {
                 type: 'compound',
                 value: {
@@ -105,7 +318,7 @@ function createGuardianHeadItem(is119: boolean): any {
                     value: {
                       type: 'compound',
                       value: [
-                        { Value: { type: 'string', value: GUARDIAN_SKULL_TEXTURE } }
+                        { Value: { type: 'string', value: SUN_SKULL_TEXTURE } }
                       ]
                     }
                   }
@@ -117,7 +330,7 @@ function createGuardianHeadItem(is119: boolean): any {
       }
     };
   } else {
-    // 1.21.1 Slot format with custom skin profile component
+    // 1.21.1 Profile Component
     return {
       itemCount: 1,
       itemId,
@@ -127,12 +340,12 @@ function createGuardianHeadItem(is119: boolean): any {
         {
           type: 'profile',
           data: {
-            name: 'CropGuardian',
-            uuid: GUARDIAN_UUID,
+            name: 'SunGuardian',
+            id: SUN_SKULL_INT_UUID,
             properties: [
               {
                 name: 'textures',
-                value: GUARDIAN_SKULL_TEXTURE,
+                value: SUN_SKULL_TEXTURE,
                 signature: undefined
               }
             ]
@@ -145,223 +358,305 @@ function createGuardianHeadItem(is119: boolean): any {
 }
 
 /**
- * Spawns the Floating Guardian Armor Stand & Holograms for a player
+ * Spawns all 10 Floating Protector Armor Stands for a newly joined Hub player.
+ * Notice: Zero corny holograms or floating nametags! Strictly clean floating heads.
  */
-export function spawnCropGuardian(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
+export function spawnCropGuardians(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
   try {
     const armorStandType = is119 ? 2 : (mcData1211.entitiesByName['armor_stand']?.id || 2);
+    const headItem = createGoldenSunSkullItem(is119);
 
-    // 1. Invisible Floating Armor Stand
-    client.write('spawn_entity', {
-      entityId: GUARDIAN_ENTITY_ID,
-      objectUUID: GUARDIAN_UUID,
-      type: armorStandType,
-      x: GUARDIAN_POS.x,
-      y: GUARDIAN_POS.y,
-      z: GUARDIAN_POS.z,
-      pitch: 0,
-      yaw: toProtocolByte(currentGuardianYaw),
-      headPitch: 0,
-      objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
-    });
+    for (const protector of CROP_PROTECTORS) {
+      // 1. Invisible Small Marker Armor Stand
+      client.write('spawn_entity', {
+        entityId: protector.id,
+        objectUUID: protector.uuid,
+        type: armorStandType,
+        x: protector.basePos.x,
+        y: protector.currentY,
+        z: protector.basePos.z,
+        pitch: 0,
+        yaw: toProtocolByte(protector.yaw),
+        headPitch: 0,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
 
-    client.write('entity_metadata', {
-      entityId: GUARDIAN_ENTITY_ID,
-      metadata: [
-        { key: 0, type: 0, value: 0x20 }, // Invisible
-        { key: 15, type: 0, value: 0x18 }  // 0x08 noBasePlate | 0x10 isMarker (no hitbox)
-      ]
-    });
+      // Metadata:
+      // Index 0: 0x20 (Invisible)
+      // Index 15: 0x01 (isSmall) | 0x08 (noBasePlate) | 0x10 (isMarker) = 0x19
+      client.write('entity_metadata', {
+        entityId: protector.id,
+        metadata: [
+          { key: 0, type: 0, value: 0x20 },
+          { key: 15, type: 0, value: 0x19 }
+        ]
+      });
 
-    // 2. Head Equipment: Custom Nature Spirit Skull
-    const headItem = createGuardianHeadItem(is119);
-    client.write('entity_equipment', {
-      entityId: GUARDIAN_ENTITY_ID,
-      equipments: [
-        {
-          slot: 5, // 5 = Helmet / Head slot in Minecraft
-          item: headItem
-        }
-      ]
-    });
-
-    // 3. Floating Hologram Line 1: §a§lREGROWTH GUARDIAN
-    client.write('spawn_entity', {
-      entityId: GUARDIAN_HOLO_TITLE_ID,
-      objectUUID: GUARDIAN_HOLO_TITLE_UUID,
-      type: armorStandType,
-      x: GUARDIAN_POS.x,
-      y: GUARDIAN_POS.y + 2.35,
-      z: GUARDIAN_POS.z,
-      pitch: 0,
-      yaw: 0,
-      headPitch: 0,
-      objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
-    });
-
-    client.write('entity_metadata', {
-      entityId: GUARDIAN_HOLO_TITLE_ID,
-      metadata: [
-        { key: 0, type: 0, value: 0x20 }, // Invisible
-        { key: 2, type: 5, value: JSON.stringify({ text: '§a§lREGROWTH GUARDIAN' }) },
-        { key: 3, type: 7, value: true }, // CustomNameVisible
-        { key: 15, type: 0, value: 0x11 } // Small & Marker
-      ]
-    });
-
-    // 4. Floating Hologram Line 2: §e§l✦ HARVEST SPIRIT ✦
-    client.write('spawn_entity', {
-      entityId: GUARDIAN_HOLO_SUB_ID,
-      objectUUID: GUARDIAN_HOLO_SUB_UUID,
-      type: armorStandType,
-      x: GUARDIAN_POS.x,
-      y: GUARDIAN_POS.y + 2.05,
-      z: GUARDIAN_POS.z,
-      pitch: 0,
-      yaw: 0,
-      headPitch: 0,
-      objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
-    });
-
-    client.write('entity_metadata', {
-      entityId: GUARDIAN_HOLO_SUB_ID,
-      metadata: [
-        { key: 0, type: 0, value: 0x20 },
-        { key: 2, type: 5, value: JSON.stringify({ text: '§e§l✦ PROTECTOR OF THE CROPS ✦' }) },
-        { key: 3, type: 7, value: true },
-        { key: 15, type: 0, value: 0x11 }
-      ]
-    });
+      // 2. Equip Golden Sun Skull on Helmet (slot 5)
+      client.write('entity_equipment', {
+        entityId: protector.id,
+        equipments: [
+          {
+            slot: 5,
+            item: headItem
+          }
+        ]
+      });
+    }
   } catch (_) {}
 }
 
 /**
- * Ticks Guardian head rotation (smoothly rotates yaw += 3° per tick)
+ * 24/7 Ticker for all 10 Crop Guardians:
+ * - Rotates yaw 360° continuously (yaw += 3° per tick).
+ * - Smooth vertical sinusoidal bobbing (Y += Math.sin(t) * 0.2) on a 1.5-second cycle.
+ * - Head continues spinning smoothly even while firing the regrowth laser beam!
+ * - Independent sequential 1-by-1 FIFO queues with 0.8s continuous laser ray.
  */
-export function tickCropGuardian(players: Map<any, any>, toProtocolByte: (deg: number) => number): void {
-  currentGuardianYaw = (currentGuardianYaw + 3) % 360;
-  const yawByte = toProtocolByte(currentGuardianYaw);
+export function tickCropGuardians(
+  server: any,
+  playerMap: Map<any, any>,
+  toProtocolByte: (deg: number) => number
+): void {
+  const now = Date.now();
+  // Fast 1.5-second sinusoidal bobbing cycle (±0.2 blocks)
+  const bobOffset = Math.sin((now / 1500) * Math.PI * 2) * 0.2;
 
-  for (const [_, p] of players) {
-    if (!p.client) continue;
-    try {
-      p.client.write('entity_head_rotation', {
-        entityId: GUARDIAN_ENTITY_ID,
-        headYaw: yawByte
-      });
-      p.client.write('entity_look', {
-        entityId: GUARDIAN_ENTITY_ID,
-        yaw: yawByte,
-        pitch: 0,
-        onGround: false
-      });
-    } catch (_) {}
+  for (const protector of CROP_PROTECTORS) {
+    // 1. Continuous 24/7 Animation
+    protector.yaw = (protector.yaw + 3) % 360;
+    protector.currentY = protector.basePos.y + bobOffset;
+    const yawByte = toProtocolByte(protector.yaw);
+
+    // Broadcast smooth head rotation and vertical hover bobbing to nearby players
+    for (const [_, p] of playerMap) {
+      if (!p.client) continue;
+      const dist = Math.hypot(p.x - protector.basePos.x, p.z - protector.basePos.z);
+      if (dist > 96.0) continue;
+
+      try {
+        p.client.write('entity_teleport', {
+          entityId: protector.id,
+          x: protector.basePos.x,
+          y: protector.currentY,
+          z: protector.basePos.z,
+          yaw: yawByte,
+          pitch: 0,
+          onGround: false
+        });
+        p.client.write('entity_head_rotation', {
+          entityId: protector.id,
+          headYaw: yawByte
+        });
+      } catch (_) {}
+    }
+
+    // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
+    if (protector.currentTask) {
+      const task = protector.currentTask;
+
+      // Check if beam cycle (0.8s = 800ms) has completed
+      if (now >= protector.taskEndTime) {
+        // Impact & Complete Regrowth!
+        completeCropRegrowth(playerMap, task);
+        protector.currentTask = null;
+      } else {
+        // While active: Render continuous solid white end_rod laser beam from head to soil
+        renderRegrowthLaserBeam(playerMap, protector, task);
+      }
+    } else if (protector.queue.length > 0) {
+      // Pop the next task in FIFO order
+      const nextTask = protector.queue.shift()!;
+      protector.currentTask = nextTask;
+      protector.taskStartTime = now;
+      protector.taskEndTime = now + 800; // 0.8-second continuous beam hold
+    }
   }
 }
 
 /**
- * Distributes items to player inventory:
- * 1. Stacks into existing inventory slots with count < 64 (hotbar 36..43, main inv 9..35, skipping slot 44 Nether Star).
- * 2. Places into empty slots (36..43, then 9..35).
- * 3. Physical ground drop fallback if all existing slots are capped and 0 empty slots remain.
+ * Renders the continuous white end_rod laser ray from Guardian head to target soil
  */
-function distributeItem(
-  pData: any,
-  server: any,
-  itemName: string,
-  totalCount: number,
-  blockPos: { x: number; y: number; z: number }
+function renderRegrowthLaserBeam(
+  playerMap: Map<any, any>,
+  protector: CropProtector,
+  task: CropRegrowthTask
 ): void {
-  if (totalCount <= 0) return;
-  const is119 = pData.is119;
-  const mcData = is119 ? mcData1192 : mcData1211;
-  const itemDef = mcData.itemsByName[itemName] || mcData.blocksByName[itemName];
-  if (!itemDef) return;
-  const maxStack = itemDef.stackSize || 64;
+  // Head origin (small armor stand head center)
+  const headX = protector.basePos.x;
+  const headY = protector.currentY + 0.7;
+  const headZ = protector.basePos.z;
 
-  let remaining = totalCount;
+  const targetX = task.x + 0.5;
+  const targetY = task.y + 0.5;
+  const targetZ = task.z + 0.5;
 
-  // Search order: Hotbar (36 to 43, skipping 44), then Main Inventory (9 to 35)
-  const slotOrder: number[] = [];
-  for (let s = 36; s <= 43; s++) slotOrder.push(s);
-  for (let s = 9; s <= 35; s++) slotOrder.push(s);
+  const dx = targetX - headX;
+  const dy = targetY - headY;
+  const dz = targetZ - headZ;
+  const dist = Math.hypot(dx, dy, dz);
 
-  // Pass 1: Add to existing matching stacks < maxStack (excluding custom SkyBlock items)
-  for (const slot of slotOrder) {
-    if (remaining <= 0) break;
-    const existing = pData.inventory.get(slot);
-    if (existing && !isSkyBlockItemStack(existing) && existing.name === itemName && existing.count < maxStack) {
-      const space = maxStack - existing.count;
-      const toAdd = Math.min(space, remaining);
-      existing.count += toAdd;
-      remaining -= toAdd;
-      existing.itemId = itemDef.id;
+  // Density: sample points every ~0.4 blocks
+  const steps = Math.min(60, Math.max(6, Math.ceil(dist / 0.4)));
+  const stepX = dx / steps;
+  const stepY = dy / steps;
+  const stepZ = dz / steps;
 
-      const tagged = tagVanillaItemStack({
-        present: true,
-        itemId: itemDef.id,
-        itemCount: existing.count,
-        nbtData: existing.nbtData
-      }, is119);
-      existing.nbtData = tagged.nbtData;
+  const beamPoints: Array<{ x: number; y: number; z: number }> = [];
+  for (let i = 0; i <= steps; i++) {
+    beamPoints.push({
+      x: headX + stepX * i,
+      y: headY + stepY * i,
+      z: headZ + stepZ * i
+    });
+  }
 
+  for (const [_, p] of playerMap) {
+    if (!p.client) continue;
+    const pDist = Math.hypot((p.x || 0) - task.x, (p.z || 0) - task.z);
+    if (pDist > 96.0) continue;
+
+    const is119 = p.is119;
+    for (const pt of beamPoints) {
       try {
-        pData.client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot,
-          item: formatSlotForClient(tagged, is119)
+        if (is119) {
+          p.client.write('world_particles', {
+            particleId: 20, // end_rod
+            longDistance: true,
+            x: pt.x,
+            y: pt.y,
+            z: pt.z,
+            offsetX: 0.02,
+            offsetY: 0.02,
+            offsetZ: 0.02,
+            particleData: 0,
+            particles: 1
+          });
+        } else {
+          p.client.write('world_particles', {
+            longDistance: true,
+            x: pt.x,
+            y: pt.y,
+            z: pt.z,
+            offsetX: 0.02,
+            offsetY: 0.02,
+            offsetZ: 0.02,
+            velocityOffset: 0,
+            amount: 1,
+            particle: { type: 'end_rod' }
+          });
+        }
+      } catch (_) {}
+    }
+  }
+}
+
+/**
+ * Completes crop regrowth on laser impact:
+ * 1. Green bonemeal sparkles (happy_villager)
+ * 2. Crisp chime sound (item.bone_meal.use)
+ * 3. Instant 100% fully grown crop block_change
+ * 4. Farmland moisture hydration
+ */
+function completeCropRegrowth(
+  playerMap: Map<any, any>,
+  task: CropRegrowthTask
+): void {
+  const { x, y, z, cropName, isTrampledFarmland } = task;
+  const fullyGrown = FULLY_GROWN_CROP_STATES[cropName];
+
+  for (const [_, p] of playerMap) {
+    if (!p.client) continue;
+    const pDist = Math.hypot((p.x || 0) - x, (p.z || 0) - z);
+    if (pDist > 96.0) continue;
+
+    const is119 = p.is119;
+
+    // 1. Green Bonemeal Sparkles (happy_villager)
+    try {
+      if (is119) {
+        p.client.write('world_particles', {
+          particleId: 35, // happy_villager
+          longDistance: true,
+          x: x + 0.5,
+          y: y + 0.35,
+          z: z + 0.5,
+          offsetX: 0.35,
+          offsetY: 0.35,
+          offsetZ: 0.35,
+          particleData: 0,
+          particles: 14
+        });
+      } else {
+        p.client.write('world_particles', {
+          longDistance: true,
+          x: x + 0.5,
+          y: y + 0.35,
+          z: z + 0.5,
+          offsetX: 0.35,
+          offsetY: 0.35,
+          offsetZ: 0.35,
+          velocityOffset: 0,
+          amount: 14,
+          particle: { type: 'happy_villager' }
+        });
+      }
+    } catch (_) {}
+
+    // 2. Crisp Fertilizer Chime Sound (item.bone_meal.use)
+    try {
+      p.client.write('named_sound_effect', {
+        soundName: 'item.bone_meal.use',
+        soundCategory: 0,
+        x: Math.floor(x * 8),
+        y: Math.floor(y * 8),
+        z: Math.floor(z * 8),
+        volume: 1.0,
+        pitch: 1.25,
+        seed: [0, 0]
+      });
+    } catch (_) {}
+
+    // 3. Hydrate farmland underneath if not nether_wart
+    if (cropName !== 'nether_wart') {
+      try {
+        p.client.write('block_change', {
+          location: { x, y: y - 1, z },
+          type: is119 ? FARMLAND_MOISTURE_7.state119 : FARMLAND_MOISTURE_7.state121
+        });
+      } catch (_) {}
+    }
+
+    // 4. Instantly restore crop to 100% fully grown state
+    if (fullyGrown) {
+      try {
+        p.client.write('block_change', {
+          location: { x, y, z },
+          type: is119 ? fullyGrown.state119 : fullyGrown.state121
         });
       } catch (_) {}
     }
   }
 
-  // Pass 2: Place into empty slots
-  if (remaining > 0) {
-    for (const slot of slotOrder) {
-      if (remaining <= 0) break;
-      if (!pData.inventory.has(slot)) {
-        const toPut = Math.min(maxStack, remaining);
-        remaining -= toPut;
-
-        const rawStack = {
-          present: true,
-          itemId: itemDef.id,
-          itemCount: toPut
-        };
-        const tagged = tagVanillaItemStack(rawStack, is119);
-
-        pData.inventory.set(slot, {
-          slot,
-          name: itemName,
-          itemId: itemDef.id,
-          count: toPut,
-          nbtData: tagged.nbtData
-        });
-
-        try {
-          pData.client.write('set_slot', {
-            windowId: 0,
-            stateId: 1,
-            slot,
-            item: formatSlotForClient(tagged, is119)
-          });
-        } catch (_) {}
-      }
-    }
+  // Update Hub chunk memory
+  if (cropName !== 'nether_wart') {
+    setHubBlockStateId(x, y - 1, z, FARMLAND_MOISTURE_7.state119, FARMLAND_MOISTURE_7.state121);
   }
-
-  // Pass 3: Ground fallback if still remaining
-  if (remaining > 0) {
-    server.spawnDroppedItem(itemName, remaining, blockPos.x, blockPos.y, blockPos.z);
+  if (fullyGrown) {
+    setHubBlockStateId(x, y, z, fullyGrown.state119, fullyGrown.state121);
   }
 }
 
 /**
- * Handles Hub crop harvesting, drop distribution, beam cast, and instant regrowth
+ * Handles Hub crop harvesting:
+ * - Checks 5x5 Minion zone (unbreakable, silent cancel, 0 drops)
+ * - Plays crisp crop break sound
+ * - Calculates drops scaled by Farming Fortune
+ * - Drops physical bouncing items on the ground with owner: pData.username (Anti-theft!)
+ * - Shows bare moist farmland temporarily
+ * - Enqueues block into territory Protector's sequential FIFO queue
+ * - Completely silent on screen (no action bar spam)
  */
 export function handleHubCropHarvest(
   server: any,
@@ -375,14 +670,26 @@ export function handleHubCropHarvest(
   const cropName = rawCropName.replace('minecraft:', '').toLowerCase();
   if (!HARVESTABLE_CROPS.has(cropName)) return;
 
-  const locKey = `${x},${y},${z}`;
-  const now = Date.now();
-  if (now - (recentHarvests.get(locKey) || 0) < 200) {
-    // Cooldown active: acknowledge and silently reset
+  // 1. Check 5x5 Hub Wheat Minion Exclusion Zone
+  if (isHubMinionExclusionZone(x, y, z)) {
+    // Cancel silently with a dull thud sound and keep wheat intact (zero drops)
+    try {
+      pData.client.write('named_sound_effect', {
+        soundName: 'block.wood.hit',
+        soundCategory: 0,
+        x: Math.floor(x * 8),
+        y: Math.floor(y * 8),
+        z: Math.floor(z * 8),
+        volume: 0.8,
+        pitch: 0.8,
+        seed: [0, 0]
+      });
+    } catch (_) {}
+
     if (typeof sequence === 'number') {
       try { pData.client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
     }
-    const fullyGrown = FULLY_GROWN_CROP_STATES[cropName];
+    const fullyGrown = FULLY_GROWN_CROP_STATES['wheat'];
     if (fullyGrown) {
       try {
         pData.client.write('block_change', {
@@ -393,228 +700,143 @@ export function handleHubCropHarvest(
     }
     return;
   }
+
+  // 2. Cooldown check per block coordinate
+  const locKey = `${x},${y},${z}`;
+  const now = Date.now();
+  if (now - (recentHarvests.get(locKey) || 0) < 150) {
+    if (typeof sequence === 'number') {
+      try { pData.client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
+    }
+    return;
+  }
   recentHarvests.set(locKey, now);
 
-  // Clean old cooldown entries periodically
   if (recentHarvests.size > 200) {
     for (const [k, ts] of recentHarvests) {
       if (now - ts > 1000) recentHarvests.delete(k);
     }
   }
 
-  // 1. Farming Fortune calculation
-  const fortune = pData.stats?.farmingFortune || 0;
-  const fortuneMult = calculateFortuneMultiplier(fortune);
-
-  // 2. Randomized Drop Tables
-  let primaryItem = '';
-  let primaryCount = 0;
-  let secondaryItem: string | null = null;
-  let secondaryCount = 0;
-  let displayCropName = '';
-
-  if (cropName === 'wheat') {
-    primaryItem = 'wheat';
-    primaryCount = 1 * fortuneMult;
-    secondaryItem = 'wheat_seeds';
-    secondaryCount = Math.floor(Math.random() * 2) + 1; // 1 to 2x wheat seeds
-    displayCropName = 'Wheat';
-  } else if (cropName === 'carrots') {
-    primaryItem = 'carrot';
-    const base = Math.floor(Math.random() * 3) + 2; // 2 to 4x carrots
-    primaryCount = base * fortuneMult;
-    displayCropName = 'Carrot';
-  } else if (cropName === 'potatoes') {
-    primaryItem = 'potato';
-    const base = Math.floor(Math.random() * 3) + 2; // 2 to 4x potatoes
-    primaryCount = base * fortuneMult;
-    displayCropName = 'Potato';
-    if (Math.random() < 0.02) {
-      secondaryItem = 'poisonous_potato';
-      secondaryCount = 1;
-    }
-  } else if (cropName === 'nether_wart') {
-    primaryItem = 'nether_wart';
-    const base = Math.floor(Math.random() * 3) + 2; // 2 to 4x nether wart
-    primaryCount = base * fortuneMult;
-    displayCropName = 'Nether Wart';
-  }
-
-  // 3. Inventory Distribution
-  const blockPos = { x, y, z };
-  distributeItem(pData, server, primaryItem, primaryCount, blockPos);
-  if (secondaryItem && secondaryCount > 0) {
-    distributeItem(pData, server, secondaryItem, secondaryCount, blockPos);
-  }
-
-  // 4. Pickup sound & Action Bar notice
+  // 3. Play crisp crop break crunch sound
   try {
     pData.client.write('named_sound_effect', {
-      soundName: 'entity.item.pickup',
+      soundName: 'block.crop.break',
       soundCategory: 0,
-      x: Math.floor(pData.x * 8),
-      y: Math.floor(pData.y * 8),
-      z: Math.floor(pData.z * 8),
-      volume: 0.8,
-      pitch: 1.2,
+      x: Math.floor(x * 8),
+      y: Math.floor(y * 8),
+      z: Math.floor(z * 8),
+      volume: 1.0,
+      pitch: 1.0,
       seed: [0, 0]
     });
   } catch (_) {}
 
-  showActionBarMessage(pData, `§a+${primaryCount} ${displayCropName} §8(Farming)`, 1500);
+  // 4. Drop table calculation scaled by Farming Fortune
+  const fortune = pData.stats?.farmingFortune || 0;
+  const fortuneMult = calculateFortuneMultiplier(fortune);
 
-  // 5. Acknowledge digging to prevent client-side ghost breaking
-  if (typeof sequence === 'number') {
-    try { pData.client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
-  }
+  let primaryItem = '';
+  let primaryCount = 0;
+  let secondaryItem: string | null = null;
+  let secondaryCount = 0;
 
-  // 6. Cast White Particle Beam & Bonemeal Chime & Instant Regrowth
-  castRegrowthBeamAndRestore(server, x, y, z, cropName);
-}
+  if (cropName === 'wheat') {
+    primaryItem = 'wheat';
+    // 1 to 2 base Wheat (50% chance for 2)
+    const base = Math.random() < 0.5 ? 2 : 1;
+    primaryCount = base * fortuneMult;
 
-/**
- * Casts a white particle beam from Guardian head to crop,
- * bursts green bonemeal particles, plays chime sound,
- * and broadcasts 100% fully grown block_change.
- */
-function castRegrowthBeamAndRestore(
-  server: any,
-  cropX: number,
-  cropY: number,
-  cropZ: number,
-  cropName: string
-): void {
-  const headPos = {
-    x: GUARDIAN_POS.x,
-    y: GUARDIAN_POS.y + 1.8,
-    z: GUARDIAN_POS.z
-  };
+    // 1 to 2 Wheat Seeds (scaled proportionally by Fortune)
+    secondaryItem = 'wheat_seeds';
+    const baseSeeds = Math.floor(Math.random() * 2) + 1;
+    secondaryCount = baseSeeds * fortuneMult;
+  } else if (cropName === 'carrots') {
+    primaryItem = 'carrot';
+    // 2 to 4 base Carrots
+    const base = Math.floor(Math.random() * 3) + 2;
+    primaryCount = base * fortuneMult;
+  } else if (cropName === 'potatoes') {
+    primaryItem = 'potato';
+    // 2 to 4 base Potatoes
+    const base = Math.floor(Math.random() * 3) + 2;
+    primaryCount = base * fortuneMult;
 
-  const targetPos = {
-    x: cropX + 0.5,
-    y: cropY + 0.5,
-    z: cropZ + 0.5
-  };
+    // 2% rare chance for Poisonous Potato
+    if (Math.random() < 0.02) {
+      secondaryItem = 'poisonous_potato';
+      secondaryCount = 1;
 
-  const dx = targetPos.x - headPos.x;
-  const dy = targetPos.y - headPos.y;
-  const dz = targetPos.z - headPos.z;
-  const dist = Math.hypot(dx, dy, dz);
-
-  // Density: sample points every ~0.5 blocks along the 3D ray (max 45 steps)
-  const steps = Math.min(45, Math.max(6, Math.ceil(dist / 0.5)));
-  const stepX = dx / steps;
-  const stepY = dy / steps;
-  const stepZ = dz / steps;
-
-  const beamPoints: Array<{ x: number; y: number; z: number }> = [];
-  for (let i = 0; i <= steps; i++) {
-    beamPoints.push({
-      x: headPos.x + stepX * i,
-      y: headPos.y + stepY * i,
-      z: headPos.z + stepZ * i
-    });
-  }
-
-  const fullyGrown = FULLY_GROWN_CROP_STATES[cropName];
-
-  for (const [_, p] of players) {
-    if (!p.client) continue;
-    const is119 = p.is119;
-    const pDist = Math.hypot((p.x || 0) - cropX, (p.z || 0) - cropZ);
-    if (pDist > 128.0) continue;
-
-    // 1. Particle Beam (end_rod)
-    for (const pt of beamPoints) {
+      // Authentic Hypixel Aqua Blue Rare Drop alert + pitch 2.0 ding
       try {
-        if (is119) {
-          p.client.write('world_particles', {
-            particleId: 20, // end_rod
-            longDistance: true,
-            x: pt.x,
-            y: pt.y,
-            z: pt.z,
-            offsetX: 0.04,
-            offsetY: 0.04,
-            offsetZ: 0.04,
-            particleData: 0,
-            particles: 1
-          });
-        } else {
-          p.client.write('world_particles', {
-            longDistance: true,
-            x: pt.x,
-            y: pt.y,
-            z: pt.z,
-            offsetX: 0.04,
-            offsetY: 0.04,
-            offsetZ: 0.04,
-            velocityOffset: 0,
-            amount: 1,
-            particle: { type: 'end_rod' }
-          });
-        }
+        pData.client.write('named_sound_effect', {
+          soundName: 'entity.player.levelup',
+          soundCategory: 0,
+          x: Math.floor(pData.x * 8),
+          y: Math.floor(pData.y * 8),
+          z: Math.floor(pData.z * 8),
+          volume: 1.0,
+          pitch: 2.0,
+          seed: [0, 0]
+        });
+      } catch (_) {}
+
+      try {
+        const { sendSystemMessage } = require('../core/chatManager');
+        sendSystemMessage(pData.client, '§b§lRARE DROP! §fPoisonous Potato', pData.is119);
       } catch (_) {}
     }
+  } else if (cropName === 'nether_wart') {
+    primaryItem = 'nether_wart';
+    // 2 to 4 base Nether Wart
+    const base = Math.floor(Math.random() * 3) + 2;
+    primaryCount = base * fortuneMult;
+  }
 
-    // 2. Green Bonemeal Sparkles (happy_villager) at crop
+  // 5. Spawn Physical Ground Drops with breaker ownership (Strict Anti-Theft!)
+  if (primaryCount > 0) {
+    server.spawnDroppedItem(primaryItem, primaryCount, x, y, z, pData.username);
+  }
+  if (secondaryItem && secondaryCount > 0) {
+    server.spawnDroppedItem(secondaryItem, secondaryCount, x, y, z, pData.username);
+  }
+
+  // 6. Set block visually to broken (bare moist Farmland underneath)
+  for (const [_, observer] of players) {
+    if (!observer.client) continue;
+    const obsDist = Math.hypot((observer.x || 0) - x, (observer.z || 0) - z);
+    if (obsDist > 96.0) continue;
+
+    const obsIs119 = observer.is119;
     try {
-      if (is119) {
-        p.client.write('world_particles', {
-          particleId: 35, // happy_villager
-          longDistance: true,
-          x: targetPos.x,
-          y: targetPos.y + 0.25,
-          z: targetPos.z,
-          offsetX: 0.35,
-          offsetY: 0.35,
-          offsetZ: 0.35,
-          particleData: 0,
-          particles: 14
-        });
-      } else {
-        p.client.write('world_particles', {
-          longDistance: true,
-          x: targetPos.x,
-          y: targetPos.y + 0.25,
-          z: targetPos.z,
-          offsetX: 0.35,
-          offsetY: 0.35,
-          offsetZ: 0.35,
-          velocityOffset: 0,
-          amount: 14,
-          particle: { type: 'happy_villager' }
+      // Clear crop block to air (0)
+      observer.client.write('block_change', {
+        location: { x, y, z },
+        type: 0
+      });
+
+      // Ensure moist farmland is visible underneath
+      if (cropName !== 'nether_wart') {
+        observer.client.write('block_change', {
+          location: { x, y: y - 1, z },
+          type: obsIs119 ? FARMLAND_MOISTURE_7.state119 : FARMLAND_MOISTURE_7.state121
         });
       }
     } catch (_) {}
-
-    // 3. Magical Chime Sound (item.bone_meal.use)
-    try {
-      p.client.write('named_sound_effect', {
-        soundName: 'item.bone_meal.use',
-        soundCategory: 0,
-        x: Math.floor(cropX * 8),
-        y: Math.floor(cropY * 8),
-        z: Math.floor(cropZ * 8),
-        volume: 1.0,
-        pitch: 1.25,
-        seed: [0, 0]
-      });
-    } catch (_) {}
-
-    // 4. Instantly restore crop to 100% fully grown state
-    if (fullyGrown) {
-      try {
-        p.client.write('block_change', {
-          location: { x: cropX, y: cropY, z: cropZ },
-          type: is119 ? fullyGrown.state119 : fullyGrown.state121
-        });
-      } catch (_) {}
-    }
   }
 
-  // Update Hub chunk memory so subsequent queries reflect 100% fully grown crop
-  if (fullyGrown) {
-    setHubBlockStateId(cropX, cropY, cropZ, fullyGrown.state119, fullyGrown.state121);
+  // Update chunk memory temporarily to air
+  setHubBlockStateId(x, y, z, 0, 0);
+  if (cropName !== 'nether_wart') {
+    setHubBlockStateId(x, y - 1, z, FARMLAND_MOISTURE_7.state119, FARMLAND_MOISTURE_7.state121);
+  }
+
+  // 7. Enqueue broken crop into territory Protector's FIFO queue
+  const protector = getProtectorForCrop(x, y, z);
+  protector.queue.push({ x, y, z, cropName });
+
+  // 8. Acknowledge digging
+  if (typeof sequence === 'number') {
+    try { pData.client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
   }
 }
