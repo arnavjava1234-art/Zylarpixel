@@ -803,8 +803,11 @@ export class ZylarServer {
             if (!existing) {
               availableSpace += maxStack;
               emptySlotCount++;
-            } else if (!isSkyBlockItemStack(existing) && existing.name === item.name && existing.count < maxStack) {
-              availableSpace += (maxStack - existing.count);
+            } else {
+              const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
+              if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
+                availableSpace += (maxStack - existing.count);
+              }
             }
           }
 
@@ -819,33 +822,36 @@ export class ZylarServer {
           const toTake = Math.min(item.count, availableSpace);
           let remainingToPlace = toTake;
 
-          // 2. Pass 1: Add to existing matching stacks < maxStack (excluding custom SkyBlock items)
+          // 2. Pass 1: Add to existing matching stacks < maxStack (commodities stack cleanly up to 64!)
           for (const slot of candidateSlots) {
             if (remainingToPlace <= 0) break;
             const existing = p.inventory.get(slot);
-            if (existing && !isSkyBlockItemStack(existing) && existing.name === item.name && existing.count < maxStack) {
-              const space = maxStack - existing.count;
-              const addCount = Math.min(space, remainingToPlace);
-              existing.count += addCount;
-              remainingToPlace -= addCount;
-              existing.itemId = pItemId;
+            if (existing) {
+              const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
+              if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
+                const space = maxStack - existing.count;
+                const addCount = Math.min(space, remainingToPlace);
+                existing.count += addCount;
+                remainingToPlace -= addCount;
+                existing.itemId = pItemId;
 
-              const tagged = tagVanillaItemStack({
-                present: true,
-                itemId: pItemId,
-                itemCount: existing.count,
-                nbtData: existing.nbtData
-              }, p.is119);
-              existing.nbtData = tagged.nbtData;
+                const tagged = tagVanillaItemStack({
+                  present: true,
+                  itemId: pItemId,
+                  itemCount: existing.count,
+                  nbtData: existing.nbtData
+                }, p.is119);
+                existing.nbtData = tagged.nbtData;
 
-              try {
-                p.client.write('set_slot', {
-                  windowId: 0,
-                  stateId: 1,
-                  slot,
-                  item: formatSlotForClient(tagged, p.is119)
-                });
-              } catch (_) {}
+                try {
+                  p.client.write('set_slot', {
+                    windowId: 0,
+                    stateId: 1,
+                    slot,
+                    item: formatSlotForClient(tagged, p.is119)
+                  });
+                } catch (_) {}
+              }
             }
           }
 
