@@ -560,6 +560,22 @@ function renderRegrowthLaserBeam(
     });
   }
 
+  // Record live telemetry for external diagnostics
+  guardianTelemetry.lastBeam = {
+    protectorId: protector.id,
+    protectorName: protector.name,
+    headOrigin: { x: Number(headX.toFixed(4)), y: Number(headY.toFixed(4)), z: Number(headZ.toFixed(4)) },
+    soilTarget: { x: targetX, y: targetY, z: targetZ },
+    delta: { dx: Number(dx.toFixed(4)), dy: Number(dy.toFixed(4)), dz: Number(dz.toFixed(4)) },
+    distance: Number(dist.toFixed(4)),
+    steps,
+    sampleNodes: beamPoints.map(p => ({ x: Number(p.x.toFixed(4)), y: Number(p.y.toFixed(4)), z: Number(p.z.toFixed(4)) })),
+    particleId: 20,
+    particleName: 'minecraft:end_rod',
+    timestamp: Date.now()
+  };
+  guardianTelemetry.stats.totalBeamsFired++;
+
   for (const [_, p] of playerMap) {
     if (!p.client) continue;
     const pDist = Math.hypot((p.x || 0) - task.x, (p.z || 0) - task.z);
