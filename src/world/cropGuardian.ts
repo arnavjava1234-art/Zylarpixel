@@ -736,6 +736,16 @@ export function handleHubCropHarvest(
 
   // 1. Check 5x5 Hub Wheat Minion Exclusion Zone
   if (isHubMinionExclusionZone(x, y, z)) {
+    // Record Minion rejection telemetry
+    guardianTelemetry.lastMinionCancel = {
+      player: pData.username,
+      coords: { x, y, z },
+      timestamp: Date.now(),
+      sound: 'block.wood.hit',
+      cancelled: true
+    };
+    guardianTelemetry.stats.totalMinionBlocksBlocked++;
+
     // Cancel silently with a dull thud sound and keep wheat intact (zero drops)
     try {
       pData.client.write('named_sound_effect', {
