@@ -417,7 +417,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
               dimension: 'minecraft:the_nether',
               worldName: 'minecraft:the_nether',
               hashedSeed: [0, 0],
-              gamemode: target === 'hub' ? 2 : 0,
+              gamemode: 0,
               previousGamemode: 255,
               isDebug: false,
               isFlat: false,
@@ -428,17 +428,17 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
               dimension: 'minecraft:overworld',
               worldName: 'minecraft:overworld',
               hashedSeed: [0, 0],
-              gamemode: target === 'hub' ? 2 : 0,
+              gamemode: 0,
               previousGamemode: 255,
               isDebug: false,
               isFlat: false,
               copyMetadata: false,
               death: undefined
             });
-            // Ensure client gamemode is immediately synced
+            // Ensure client gamemode is immediately synced to Survival (0)
             session.client.write('game_state_change', {
               reason: 3,
-              gameMode: target === 'hub' ? 2 : 0
+              gameMode: 0
             });
             log('INFO', `Successfully sent synchronous dimension reset to ${session.username} for ${target}`);
           } catch (e: any) {
