@@ -845,7 +845,7 @@ export function handleHubCropHarvest(
       secondaryItem = 'poisonous_potato';
       secondaryCount = 1;
 
-      // Authentic Hypixel Aqua Blue Rare Drop alert + pitch 2.0 ding
+      // Authentic Hypixel Blue Rare Drop alert (§9§lRARE DROP!) + pitch 2.0 ding
       try {
         pData.client.write('named_sound_effect', {
           soundName: 'entity.player.levelup',
@@ -860,7 +860,7 @@ export function handleHubCropHarvest(
       } catch (_) {}
 
       try {
-        sendSystemMessage(pData.client, '§b§lRARE DROP! §fPoisonous Potato', pData.is119);
+        sendSystemMessage(pData.client, '§9§lRARE DROP! §fPoisonous Potato', pData.is119);
       } catch (_) {}
     }
   } else if (cropName === 'nether_wart') {
