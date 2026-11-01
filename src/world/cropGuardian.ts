@@ -504,6 +504,7 @@ export function tickCropGuardians(
         // Impact & Complete Regrowth!
         completeCropRegrowth(playerMap, task);
         protector.currentTask = null;
+        protector.lastBeamRenderTime = 0;
       } else {
         // While active: Render continuous solid white end_rod laser beam from head to soil
         renderRegrowthLaserBeam(playerMap, protector, task);
