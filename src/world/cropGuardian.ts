@@ -875,6 +875,22 @@ export function handleHubCropHarvest(
     server.spawnDroppedItem(secondaryItem, secondaryCount, x, y, z, pData.username);
   }
 
+  // Record harvest telemetry
+  guardianTelemetry.lastHarvest = {
+    player: pData.username,
+    coords: { x, y, z },
+    crop: cropName,
+    minionBlocked: false,
+    fortune: pData.stats?.farmingFortune || 0,
+    multiplier: fortuneMult,
+    drops: [
+      { item: primaryItem, count: primaryCount },
+      ...(secondaryItem ? [{ item: secondaryItem, count: secondaryCount }] : [])
+    ],
+    timestamp: Date.now()
+  };
+  guardianTelemetry.stats.totalHarvests++;
+
   // 6. Set block visually to broken (bare moist Farmland underneath)
   for (const [_, observer] of players) {
     if (!observer.client) continue;
