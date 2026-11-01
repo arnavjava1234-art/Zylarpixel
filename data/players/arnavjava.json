@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-01T10:29:32.172Z",
+  "lastLogin": "2026-11-01T10:30:01.214Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -1520,7 +1520,7 @@
       "slot": 36,
       "name": "wheat",
       "itemId": 772,
-      "count": 6,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1580,7 +1580,7 @@
       "slot": 21,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 6,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1640,7 +1640,7 @@
       "slot": 23,
       "name": "wheat",
       "itemId": 772,
-      "count": 6,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1700,7 +1700,7 @@
       "slot": 24,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 3,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1760,7 +1760,7 @@
       "slot": 25,
       "name": "wheat",
       "itemId": 772,
-      "count": 3,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1820,7 +1820,7 @@
       "slot": 26,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 3,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1880,7 +1880,7 @@
       "slot": 27,
       "name": "wheat",
       "itemId": 772,
-      "count": 6,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -1940,7 +1940,7 @@
       "slot": 28,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 3,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2000,7 +2000,7 @@
       "slot": 29,
       "name": "wheat",
       "itemId": 772,
-      "count": 3,
+      "count": 56,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2060,7 +2060,7 @@
       "slot": 30,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 6,
+      "count": 51,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2417,5 +2417,5 @@
       }
     }
   ],
-  "lastSeen": 1793528972172
+  "lastSeen": 1793529001214
 }
