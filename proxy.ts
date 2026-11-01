@@ -108,9 +108,9 @@ function broadcastGlobalProxyTablist(): void {
           action: 'add_player',
           data: [{
             uuid: target.client.uuid,
-            name: target.username,
+            name: target.username.substring(0, 16),
             properties: [],
-            gamemode: target.currentServer === 'hub' ? 2 : 0,
+            gamemode: 0,
             ping: 1,
             displayName: JSON.stringify({ text: formatted }),
             crypto: undefined
