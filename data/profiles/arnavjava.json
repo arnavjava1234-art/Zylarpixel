@@ -1889,6 +1889,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -2015,7 +2019,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793529181425,
+  "lastSeen": 1793529200971,
   "bankTransactions": [
     {
       "type": "deposit",
