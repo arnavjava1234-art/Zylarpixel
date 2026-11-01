@@ -102,6 +102,7 @@ export interface CropProtector {
   currentTask: CropRegrowthTask | null;
   taskStartTime: number;
   taskEndTime: number;
+  lastBeamRenderTime?: number;
 }
 
 /**
