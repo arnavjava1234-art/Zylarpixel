@@ -860,7 +860,6 @@ export function handleHubCropHarvest(
       } catch (_) {}
 
       try {
-        const { sendSystemMessage } = require('../core/chatManager');
         sendSystemMessage(pData.client, '§b§lRARE DROP! §fPoisonous Potato', pData.is119);
       } catch (_) {}
     }
