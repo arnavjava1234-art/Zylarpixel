@@ -1841,7 +1841,7 @@
       "slot": 28,
       "name": "poisonous_potato",
       "itemId": 993,
-      "count": 1,
+      "count": 2,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2319,7 +2319,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793529571342,
+  "lastSeen": 1793529595275,
   "bankTransactions": [
     {
       "type": "deposit",

@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-01T10:39:31.337Z",
+  "lastLogin": "2026-11-01T10:39:55.265Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -1940,7 +1940,7 @@
       "slot": 28,
       "name": "poisonous_potato",
       "itemId": 993,
-      "count": 1,
+      "count": 2,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2417,5 +2417,5 @@
       }
     }
   ],
-  "lastSeen": 1793529571337
+  "lastSeen": 1793529595265
 }
