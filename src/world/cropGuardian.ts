@@ -7,7 +7,7 @@
  * - Randomized Authentic Drops:
  *   - Wheat: 1 to 2 base Wheat (50% chance for 2) + 1 to 2 Wheat Seeds
  *   - Carrots: 2 to 4 base Carrots
- *   - Potatoes: 2 to 4 base Potatoes + 2% rare chance for Poisonous Potato (§b§lRARE DROP! §fPoisonous Potato with pitch 2.0 ding)
+ *   - Potatoes: 2 to 4 base Potatoes + 2% rare chance for Poisonous Potato (§9§lRARE DROP! §fPoisonous Potato with pitch 2.0 ding)
  *   - Nether Wart: 2 to 4 base Nether Wart
  *   - Scaled proportionally by Farming Fortune (+100 Fortune = +100% extra drops).
  * - Physical Ground Drops (NO Auto-Pickup):
