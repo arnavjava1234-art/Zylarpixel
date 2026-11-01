@@ -1168,10 +1168,310 @@
           }
         }
       }
+    },
+    {
+      "slot": 39,
+      "name": "potato",
+      "itemId": 991,
+      "count": 64,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fPotato\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "POTATO"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
+    },
+    {
+      "slot": 40,
+      "name": "potato",
+      "itemId": 991,
+      "count": 64,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fPotato\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "POTATO"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
+    },
+    {
+      "slot": 41,
+      "name": "potato",
+      "itemId": 991,
+      "count": 64,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fPotato\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "POTATO"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
+    },
+    {
+      "slot": 42,
+      "name": "potato",
+      "itemId": 991,
+      "count": 64,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fPotato\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "POTATO"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
+    },
+    {
+      "slot": 43,
+      "name": "potato",
+      "itemId": 991,
+      "count": 39,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fPotato\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "POTATO"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793529951578,
+  "lastSeen": 1793530397253,
   "bankTransactions": [
     {
       "type": "deposit",
