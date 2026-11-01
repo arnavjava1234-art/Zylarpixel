@@ -981,7 +981,7 @@ export function computeRayTraceTelemetry(
   const dz = tz - headZ;
   const dist = Math.hypot(dx, dy, dz);
 
-  const steps = Math.min(60, Math.max(6, Math.ceil(dist / 0.4)));
+  const steps = Math.min(30, Math.max(4, Math.ceil(dist / 0.6)));
   const stepX = dx / steps;
   const stepY = dy / steps;
   const stepZ = dz / steps;
