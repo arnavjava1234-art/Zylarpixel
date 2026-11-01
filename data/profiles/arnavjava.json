@@ -2021,7 +2021,7 @@
       "slot": 31,
       "name": "wheat",
       "itemId": 772,
-      "count": 4,
+      "count": 7,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2069,6 +2069,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -2077,7 +2081,7 @@
       "slot": 32,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 4,
+      "count": 10,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -2125,13 +2129,17 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793529258885,
+  "lastSeen": 1793529268094,
   "bankTransactions": [
     {
       "type": "deposit",
