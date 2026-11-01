@@ -28,7 +28,7 @@
 import { mcData1192, mcData1211 } from './worldManager';
 import { tagVanillaItemStack, formatSlotForClient } from '../items/engine/itemBuilder';
 import { setHubBlockStateId } from './hubRegionProvider';
-import { players } from '../players/playerManager';
+import { players, sendSystemMessage } from '../players/playerManager';
 
 // Authentic Golden Sun / Star Orb custom skull texture from Minecraft-Heads (used widely across Hypixel)
 export const SUN_SKULL_TEXTURE = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmYwZWU2NDdhNjIxMWU1YzJmODE2MTZhNTk3N2E2NTg1MWU0ZGI3ODM0Y2Y0NTAxMjQ2ZGU2YjM5YWRhMzI5MSJ9fX0=';
