@@ -930,3 +930,80 @@ export function handleHubCropHarvest(
     try { pData.client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
   }
 }
+
+/**
+ * Live In-Memory Telemetry Recorder for External Diagnostics
+ */
+export const guardianTelemetry = {
+  lastBeam: null as any,
+  lastHarvest: null as any,
+  lastMinionCancel: null as any,
+  stats: {
+    totalHarvests: 0,
+    totalBeamsFired: 0,
+    totalMinionBlocksBlocked: 0
+  }
+};
+
+/**
+ * Computes exact mathematical 3D ray-traced laser beam nodes between a Guardian and target soil
+ */
+export function computeRayTraceTelemetry(
+  protector: CropProtector,
+  targetX: number,
+  targetY: number,
+  targetZ: number
+): {
+  headOrigin: { x: number; y: number; z: number };
+  soilTarget: { x: number; y: number; z: number };
+  delta: { dx: number; dy: number; dz: number };
+  distance: number;
+  unitDirection: { ux: number; uy: number; uz: number };
+  steps: number;
+  sampleNodes: Array<{ x: number; y: number; z: number }>;
+  particleId: number;
+  particleName: string;
+} {
+  const headX = protector.basePos.x;
+  const headY = protector.currentY + 0.7;
+  const headZ = protector.basePos.z;
+
+  const tx = targetX + 0.5;
+  const ty = targetY + 0.5;
+  const tz = targetZ + 0.5;
+
+  const dx = tx - headX;
+  const dy = ty - headY;
+  const dz = tz - headZ;
+  const dist = Math.hypot(dx, dy, dz);
+
+  const steps = Math.min(60, Math.max(6, Math.ceil(dist / 0.4)));
+  const stepX = dx / steps;
+  const stepY = dy / steps;
+  const stepZ = dz / steps;
+
+  const sampleNodes: Array<{ x: number; y: number; z: number }> = [];
+  for (let i = 0; i <= steps; i++) {
+    sampleNodes.push({
+      x: Number((headX + stepX * i).toFixed(4)),
+      y: Number((headY + stepY * i).toFixed(4)),
+      z: Number((headZ + stepZ * i).toFixed(4))
+    });
+  }
+
+  const ux = dist > 0 ? Number((dx / dist).toFixed(4)) : 0;
+  const uy = dist > 0 ? Number((dy / dist).toFixed(4)) : 0;
+  const uz = dist > 0 ? Number((dz / dist).toFixed(4)) : 0;
+
+  return {
+    headOrigin: { x: Number(headX.toFixed(4)), y: Number(headY.toFixed(4)), z: Number(headZ.toFixed(4)) },
+    soilTarget: { x: tx, y: ty, z: tz },
+    delta: { dx: Number(dx.toFixed(4)), dy: Number(dy.toFixed(4)), dz: Number(dz.toFixed(4)) },
+    distance: Number(dist.toFixed(4)),
+    unitDirection: { ux, uy, uz },
+    steps,
+    sampleNodes,
+    particleId: 20,
+    particleName: 'minecraft:end_rod'
+  };
+}
