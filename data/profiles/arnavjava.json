@@ -757,7 +757,7 @@
       "slot": 36,
       "name": "nether_wart",
       "itemId": 901,
-      "count": 9,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -805,6 +805,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -2131,7 +2135,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793530554479,
+  "lastSeen": 1793530586429,
   "bankTransactions": [
     {
       "type": "deposit",

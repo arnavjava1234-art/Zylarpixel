@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-01T10:55:54.475Z",
+  "lastLogin": "2026-11-01T10:56:26.424Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -856,7 +856,7 @@
       "slot": 36,
       "name": "nether_wart",
       "itemId": 901,
-      "count": 9,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -904,6 +904,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -2229,5 +2233,5 @@
       }
     }
   ],
-  "lastSeen": 1793530554475
+  "lastSeen": 1793530586424
 }
