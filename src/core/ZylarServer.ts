@@ -921,6 +921,7 @@ export class ZylarServer {
           }
 
           // 6. Complete pickup vs partial pickup handling
+          persistPlayerSession(p);
           if (actuallyTaken >= item.count) {
             for (const [__, observer] of players) {
               try {
