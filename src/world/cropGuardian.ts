@@ -249,12 +249,6 @@ export const CROP_PROTECTORS: CropProtector[] = [
     taskEndTime: 0
   }
 ];
-    queue: [],
-    currentTask: null,
-    taskStartTime: 0,
-    taskEndTime: 0
-  }
-];
 
 /**
  * Finds the appropriate Protector for a broken crop coordinate
