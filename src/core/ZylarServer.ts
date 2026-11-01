@@ -1305,10 +1305,9 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC & 10 Crop Guardians (if Hub)
+    // 8. Server-Side Banker NPC (if Hub) - Crop Guardians are dynamically spawned via proximity ticker
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
-      spawnCropGuardians(client, is119, (deg: number) => this.toProtocolByte(deg));
     }
 
     // 8b. Active Dropped Items
