@@ -82,7 +82,7 @@ for (const sample of sampleTargets) {
   console.log(`    ├─ Delta Vector:         ΔX: ${ray.delta.dx.toFixed(4)}, ΔY: ${ray.delta.dy.toFixed(4)}, ΔZ: ${ray.delta.dz.toFixed(4)}`);
   console.log(`    ├─ Euclidean Distance:   ${ray.distance.toFixed(4)} blocks`);
   console.log(`    ├─ Unit Vector (û):      [ ${ray.unitDirection.ux.toFixed(4)}, ${ray.unitDirection.uy.toFixed(4)}, ${ray.unitDirection.uz.toFixed(4)} ]`);
-  console.log(`    ├─ Sample Point Density: ${ray.steps} discrete ray nodes (interval ~0.4 blocks)`);
+  console.log(`    ├─ Sample Point Density: ${ray.steps} discrete ray nodes (interval ~0.6 blocks, razor-thin needle beam)`);
   console.log(`    ├─ Particle Protocol:    ID ${ray.particleId} (${ray.particleName}), longDistance: true`);
   console.log(`    └─ Sample Ray Nodes:`);
   
