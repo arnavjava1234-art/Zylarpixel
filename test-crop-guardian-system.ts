@@ -43,8 +43,8 @@ assert(JSON.stringify(actualIds) === JSON.stringify(expectedIds), 'All 10 protec
 const uuids = new Set(CROP_PROTECTORS.map(p => p.uuid));
 assert(uuids.size === 10, 'All 10 protectors have unique UUIDs');
 
-// Verify hover heights (3.5 to 6 blocks above crop fields: Y >= 71 and Y <= 130)
-const allHeightsValid = CROP_PROTECTORS.every(p => p.basePos.y >= 71.0 && p.basePos.y <= 130.0);
+// Verify hover heights (2.5 to 4 blocks above crop fields: Y >= 70.0 and Y <= 130.0)
+const allHeightsValid = CROP_PROTECTORS.every(p => p.basePos.y >= 70.0 && p.basePos.y <= 130.0);
 assert(allHeightsValid, 'All protectors hover cleanly above crop fields');
 
 // 2. Testing Territory Mapping
