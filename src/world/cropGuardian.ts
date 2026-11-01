@@ -526,6 +526,8 @@ function renderRegrowthLaserBeam(
   protector: CropProtector,
   task: CropRegrowthTask
 ): void {
+  const now = Date.now();
+
   // Head origin (small armor stand head center)
   const headX = protector.basePos.x;
   const headY = protector.currentY + 0.7;
@@ -540,8 +542,8 @@ function renderRegrowthLaserBeam(
   const dz = targetZ - headZ;
   const dist = Math.hypot(dx, dy, dz);
 
-  // Density: sample points every ~0.4 blocks
-  const steps = Math.min(60, Math.max(6, Math.ceil(dist / 0.4)));
+  // Elegant laser density: sample points every ~0.6 blocks for a razor-thin beam
+  const steps = Math.min(30, Math.max(4, Math.ceil(dist / 0.6)));
   const stepX = dx / steps;
   const stepY = dy / steps;
   const stepZ = dz / steps;
@@ -567,9 +569,15 @@ function renderRegrowthLaserBeam(
     sampleNodes: beamPoints.map(p => ({ x: Number(p.x.toFixed(4)), y: Number(p.y.toFixed(4)), z: Number(p.z.toFixed(4)) })),
     particleId: 20,
     particleName: 'minecraft:end_rod',
-    timestamp: Date.now()
+    timestamp: now
   };
   guardianTelemetry.stats.totalBeamsFired++;
+
+  // Throttle particle emission to every 120ms (prevents lingering end_rod buildup into thick clouds)
+  if (protector.lastBeamRenderTime && now - protector.lastBeamRenderTime < 120) {
+    return;
+  }
+  protector.lastBeamRenderTime = now;
 
   for (const [_, p] of playerMap) {
     if (!p.client) continue;
@@ -586,9 +594,9 @@ function renderRegrowthLaserBeam(
             x: pt.x,
             y: pt.y,
             z: pt.z,
-            offsetX: 0.02,
-            offsetY: 0.02,
-            offsetZ: 0.02,
+            offsetX: 0.0, // Zero jitter: razor-thin needle line!
+            offsetY: 0.0,
+            offsetZ: 0.0,
             particleData: 0,
             particles: 1
           });
@@ -598,9 +606,9 @@ function renderRegrowthLaserBeam(
             x: pt.x,
             y: pt.y,
             z: pt.z,
-            offsetX: 0.02,
-            offsetY: 0.02,
-            offsetZ: 0.02,
+            offsetX: 0.0, // Zero jitter
+            offsetY: 0.0,
+            offsetZ: 0.0,
             velocityOffset: 0,
             amount: 1,
             particle: { type: 'end_rod' }
