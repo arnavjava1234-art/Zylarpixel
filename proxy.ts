@@ -551,12 +551,12 @@ proxyServer.on('playerJoin', (client: any) => {
   };
   sessions.set(username.toLowerCase(), session);
 
-  // Transition client to PLAY state with a valid login packet
+  // Transition client to PLAY state with a valid login packet (Survival Mode 0)
   try {
     client.write('login', {
       entityId: 99999,
       isHardcore: false,
-      gameMode: 2,
+      gameMode: 0,
       previousGameMode: -1,
       worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
       dimensionCodec: mcData1192.loginPacket.dimensionCodec,
