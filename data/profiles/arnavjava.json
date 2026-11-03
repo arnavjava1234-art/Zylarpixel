@@ -87,7 +87,7 @@
       "slot": 36,
       "name": "wheat",
       "itemId": 772,
-      "count": 47,
+      "count": 60,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -147,7 +147,7 @@
       "slot": 38,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 6,
+      "count": 21,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -205,7 +205,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793715760378,
+  "lastSeen": 1793715768738,
   "bankTransactions": [
     {
       "type": "deposit",
