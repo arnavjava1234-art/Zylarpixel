@@ -135,6 +135,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -191,12 +195,16 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793721586002,
+  "lastSeen": 1793721605869,
   "bankTransactions": []
 }
