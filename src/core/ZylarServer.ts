@@ -2066,10 +2066,52 @@ export class ZylarServer {
 
     // D. Block Digging (Breaking) with Hardness & Dig Status Handling
     client.on('block_dig', (data: any) => {
-      // Drop item key (Q) while holding Nether Star
-      if ((data.status === 3 || data.status === 4) && pData.selectedSlot === 8) {
-        giveNetherStar(client);
-        openSkyBlockMenu(client, pData);
+      // Drop item key (Q) or Ctrl+Q
+      if (data.status === 3 || data.status === 4) {
+        if (pData.selectedSlot === 8) {
+          giveNetherStar(client);
+          openSkyBlockMenu(client, pData);
+          return;
+        }
+
+        const activeSlot = 36 + pData.selectedSlot;
+        const held = pData.inventory.get(activeSlot);
+        if (held && held.count > 0) {
+          const dropCount = (data.status === 4) ? 1 : held.count;
+          const itemName = held.name;
+          held.count -= dropCount;
+
+          if (held.count <= 0) {
+            pData.inventory.delete(activeSlot);
+            try {
+              client.write('set_slot', {
+                windowId: 0,
+                stateId: 1,
+                slot: activeSlot,
+                item: { present: false }
+              });
+            } catch (_) {}
+          } else {
+            const tagged = tagVanillaItemStack({
+              present: true,
+              itemId: held.itemId,
+              itemCount: held.count,
+              nbtData: held.nbtData
+            }, is119);
+            held.nbtData = tagged.nbtData;
+            try {
+              client.write('set_slot', {
+                windowId: 0,
+                stateId: 1,
+                slot: activeSlot,
+                item: formatSlotForClient(tagged, is119)
+              });
+            } catch (_) {}
+          }
+
+          this.tossPlayerDroppedItem(pData, itemName, dropCount);
+          persistPlayerSession(pData);
+        }
         return;
       }
 
