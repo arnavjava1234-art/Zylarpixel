@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-03T15:56:34.602Z",
+  "lastLogin": "2026-11-03T15:56:59.305Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -32,6 +32,63 @@
   "bank": 0,
   "bankTransactions": [],
   "bits": 0,
-  "inventory": [],
-  "lastSeen": 1793721394602
+  "inventory": [
+    {
+      "slot": 36,
+      "name": "oak_log",
+      "itemId": 104,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fOak Log\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "OAK_LOG"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "lastSeen": 1793721419305
 }
