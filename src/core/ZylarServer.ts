@@ -785,7 +785,8 @@ export class ZylarServer {
         }
 
         const dist = Math.hypot(p.x - item.x, p.y - item.y, p.z - item.z);
-        if (dist <= 1.8 && (now - item.spawnTime > 300)) {
+        const requiredDelay = item.pickupDelay || 300;
+        if (dist <= 1.8 && (now - item.spawnTime > requiredDelay)) {
           // Candidate slots: hotbar 36..43 (skipping slot 44 Nether Star), then main inventory 9..35
           const candidateSlots: number[] = [];
           for (let s = 36; s <= 43; s++) candidateSlots.push(s);
