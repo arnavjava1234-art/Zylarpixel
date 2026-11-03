@@ -998,7 +998,16 @@ export class ZylarServer {
     }
   }
 
-  public spawnDroppedItem(name: string, count: number, x: number, y: number, z: number, owner?: string): void {
+  public spawnDroppedItem(
+    name: string,
+    count: number,
+    x: number,
+    y: number,
+    z: number,
+    owner?: string,
+    velocity?: { x: number; y: number; z: number },
+    pickupDelay?: number
+  ): void {
     const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
     const itemDef121 = mcData1211.itemsByName[name] || mcData1211.blocksByName[name];
     if (!itemDef119 && !itemDef121) return;
@@ -1018,12 +1027,13 @@ export class ZylarServer {
       y: spawnY,
       z: spawnZ,
       spawnTime: Date.now(),
-      owner
+      owner,
+      pickupDelay
     });
 
-    const velX = Math.floor((Math.random() - 0.5) * 400);
-    const velY = 1600; // Natural upward pop (~0.2 blocks/tick)
-    const velZ = Math.floor((Math.random() - 0.5) * 400);
+    const velX = velocity ? velocity.x : Math.floor((Math.random() - 0.5) * 400);
+    const velY = velocity ? velocity.y : 1600; // Natural upward pop (~0.2 blocks/tick)
+    const velZ = velocity ? velocity.z : Math.floor((Math.random() - 0.5) * 400);
 
     for (const [_, p] of players) {
       if (!p.client) continue;
