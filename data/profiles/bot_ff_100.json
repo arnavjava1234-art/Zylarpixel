@@ -1,0 +1,17 @@
+{
+  "username": "Bot_FF_100",
+  "rank": "DEFAULT",
+  "isOp": false,
+  "purse": 100,
+  "bank": 0,
+  "bits": 0,
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "speed": 100,
+    "farmingFortune": 100
+  },
+  "inventory": []
+}
