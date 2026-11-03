@@ -1083,6 +1083,28 @@ export class ZylarServer {
     }
   }
 
+  public tossPlayerDroppedItem(pData: any, itemName: string, count: number): void {
+    if (!itemName || count <= 0) return;
+    const yaw = pData.yaw || 0;
+    const pitch = pData.pitch || 0;
+    const yawRad = (yaw * Math.PI) / 180;
+    const pitchRad = (pitch * Math.PI) / 180;
+
+    const dirX = -Math.sin(yawRad) * Math.cos(pitchRad);
+    const dirY = -Math.sin(pitchRad);
+    const dirZ = Math.cos(yawRad) * Math.cos(pitchRad);
+
+    const velX = Math.floor(dirX * 3000 + (Math.random() - 0.5) * 400);
+    const velY = Math.floor(dirY * 2000 + 1500);
+    const velZ = Math.floor(dirZ * 3000 + (Math.random() - 0.5) * 400);
+
+    const spawnX = pData.x - 0.5 + dirX * 0.4;
+    const spawnY = pData.y + 1.2;
+    const spawnZ = pData.z - 0.5 + dirZ * 0.4;
+
+    this.spawnDroppedItem(itemName, count, spawnX, spawnY, spawnZ, undefined, { x: velX, y: velY, z: velZ }, 1500);
+  }
+
   private handlePlayerJoin(client: any): void {
     const is119 = (client.protocolVersion === 760 || client.version === '1.19.2');
     const verLabel = is119 ? '1.19.2 (Protocol 760)' : '1.21.1 (Protocol 767)';
