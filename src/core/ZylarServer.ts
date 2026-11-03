@@ -1786,6 +1786,72 @@ export class ZylarServer {
           return;
         }
 
+        // 1. Dropping items via Q key inside inventory (data.mode === 4)
+        if (data.mode === 4 && clickedSlot >= 0 && clickedSlot !== HOTBAR_NETHER_STAR_SLOT) {
+          const prevItem = pData.inventory.get(clickedSlot);
+          if (prevItem && prevItem.count > 0) {
+            const dropCount = (data.button === 0) ? 1 : prevItem.count;
+            const itemName = prevItem.name;
+            prevItem.count -= dropCount;
+
+            if (prevItem.count <= 0) {
+              pData.inventory.delete(clickedSlot);
+              try {
+                client.write('set_slot', {
+                  windowId: 0,
+                  stateId: data.stateId,
+                  slot: clickedSlot,
+                  item: { present: false }
+                });
+              } catch (_) {}
+            } else {
+              const tagged = tagVanillaItemStack({
+                present: true,
+                itemId: prevItem.itemId,
+                itemCount: prevItem.count,
+                nbtData: prevItem.nbtData
+              }, is119);
+              prevItem.nbtData = tagged.nbtData;
+              try {
+                client.write('set_slot', {
+                  windowId: 0,
+                  stateId: data.stateId,
+                  slot: clickedSlot,
+                  item: formatSlotForClient(tagged, is119)
+                });
+              } catch (_) {}
+            }
+
+            this.tossPlayerDroppedItem(pData, itemName, dropCount);
+            persistPlayerSession(pData);
+            giveNetherStar(client);
+            return;
+          }
+        }
+
+        // 2. Dropping item held on cursor outside window (clickedSlot === -999)
+        if (clickedSlot === -999) {
+          const mcData = is119 ? mcData1192 : mcData1211;
+          const cursor = data.cursorItem || data.item;
+          if (cursor && (cursor.present || cursor.itemId)) {
+            const itemDef = mcData.items[cursor.itemId];
+            if (itemDef) {
+              const dropCount = (data.button === 1) ? 1 : (cursor.itemCount || cursor.count || 1);
+              this.tossPlayerDroppedItem(pData, itemDef.name, dropCount);
+              try {
+                client.write('set_slot', {
+                  windowId: -1,
+                  stateId: data.stateId,
+                  slot: -1,
+                  item: { present: false }
+                });
+              } catch (_) {}
+            }
+          }
+          giveNetherStar(client);
+          return;
+        }
+
         if (Array.isArray(data.changedSlots)) {
           const mcData = is119 ? mcData1192 : mcData1211;
           for (const change of data.changedSlots) {
