@@ -14,7 +14,7 @@
     "maxMana": 100,
     "critChance": 30,
     "critDamage": 50,
-    "farmingFortune": 231
+    "farmingFortune": 0
   },
   "skills": {
     "combat": 1,

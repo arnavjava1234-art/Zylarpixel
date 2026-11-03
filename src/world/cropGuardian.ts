@@ -295,16 +295,20 @@ export function getProtectorForCrop(x: number, y: number, z: number, rawCropName
 const recentHarvests = new Map<string, number>();
 
 /**
- * Calculates drop multiplier based on Farming Fortune:
- * +100 Fortune = guaranteed +100% extra drop (+1 multiplier).
+ * Calculates extra crop bonus based on Farming Fortune:
+ * +100 Fortune = guaranteed +1 extra crop.
  * Partial remainder is rolled as a percentage chance.
  */
-export function calculateFortuneMultiplier(fortune: number = 0): number {
+export function calculateFortuneBonus(fortune: number = 0): number {
   const safe = Math.max(0, fortune);
-  const guaranteed = 1 + Math.floor(safe / 100);
+  const guaranteed = Math.floor(safe / 100);
   const remainder = safe % 100;
   const extra = (Math.random() * 100 < remainder) ? 1 : 0;
   return guaranteed + extra;
+}
+
+export function calculateFortuneMultiplier(fortune: number = 0): number {
+  return 1 + calculateFortuneBonus(fortune);
 }
 
 /**
@@ -810,9 +814,9 @@ export function handleHubCropHarvest(
     });
   } catch (_) {}
 
-  // 4. Drop table calculation scaled by Farming Fortune
+  // 4. Drop table calculation scaled by Farming Fortune (Authentic Hypixel Additive Formula)
   const fortune = pData.stats?.farmingFortune || 0;
-  const fortuneMult = calculateFortuneMultiplier(fortune);
+  const fortuneBonus = calculateFortuneBonus(fortune);
 
   let primaryItem = '';
   let primaryCount = 0;
@@ -821,24 +825,17 @@ export function handleHubCropHarvest(
 
   if (cropName === 'wheat') {
     primaryItem = 'wheat';
-    // 1 to 2 base Wheat (50% chance for 2)
-    const base = Math.random() < 0.5 ? 2 : 1;
-    primaryCount = base * fortuneMult;
+    primaryCount = 1 + fortuneBonus;
 
-    // 1 to 2 Wheat Seeds (scaled proportionally by Fortune)
+    // 1 to 2 Wheat Seeds (flat, not bloated by fortune)
     secondaryItem = 'wheat_seeds';
-    const baseSeeds = Math.floor(Math.random() * 2) + 1;
-    secondaryCount = baseSeeds * fortuneMult;
+    secondaryCount = 1 + (Math.random() < 0.5 ? 1 : 0);
   } else if (cropName === 'carrots') {
     primaryItem = 'carrot';
-    // 2 to 4 base Carrots
-    const base = Math.floor(Math.random() * 3) + 2;
-    primaryCount = base * fortuneMult;
+    primaryCount = 1 + fortuneBonus;
   } else if (cropName === 'potatoes') {
     primaryItem = 'potato';
-    // 2 to 4 base Potatoes
-    const base = Math.floor(Math.random() * 3) + 2;
-    primaryCount = base * fortuneMult;
+    primaryCount = 1 + fortuneBonus;
 
     // 2% rare chance for Poisonous Potato
     if (Math.random() < 0.02) {
@@ -865,9 +862,7 @@ export function handleHubCropHarvest(
     }
   } else if (cropName === 'nether_wart') {
     primaryItem = 'nether_wart';
-    // 2 to 4 base Nether Wart
-    const base = Math.floor(Math.random() * 3) + 2;
-    primaryCount = base * fortuneMult;
+    primaryCount = 2 + fortuneBonus;
   }
 
   // 5. Spawn Physical Ground Drops with breaker ownership (Strict Anti-Theft!)
@@ -885,7 +880,7 @@ export function handleHubCropHarvest(
     crop: cropName,
     minionBlocked: false,
     fortune: pData.stats?.farmingFortune || 0,
-    multiplier: fortuneMult,
+    fortuneBonus,
     drops: [
       { item: primaryItem, count: primaryCount },
       ...(secondaryItem ? [{ item: secondaryItem, count: secondaryCount }] : [])
