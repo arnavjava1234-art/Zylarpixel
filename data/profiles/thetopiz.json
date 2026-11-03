@@ -27,7 +27,7 @@
       "slot": 36,
       "name": "oak_log",
       "itemId": 104,
-      "count": 1,
+      "count": 2,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -75,12 +75,16 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793721419313,
+  "lastSeen": 1793721446739,
   "bankTransactions": []
 }

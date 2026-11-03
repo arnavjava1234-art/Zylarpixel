@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-03T15:56:59.305Z",
+  "lastLogin": "2026-11-03T15:57:26.735Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -37,7 +37,7 @@
       "slot": 36,
       "name": "oak_log",
       "itemId": 104,
-      "count": 1,
+      "count": 2,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -85,10 +85,14 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
     }
   ],
-  "lastSeen": 1793721419305
+  "lastSeen": 1793721446735
 }
