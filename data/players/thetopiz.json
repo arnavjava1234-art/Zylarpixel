@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-03T15:55:05.463Z",
+  "lastLogin": "2026-11-03T15:56:34.602Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -33,5 +33,5 @@
   "bankTransactions": [],
   "bits": 0,
   "inventory": [],
-  "lastSeen": 1793721305463
+  "lastSeen": 1793721394602
 }
