@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-03T14:22:18.560Z",
+  "lastLogin": "2026-11-03T14:22:40.371Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -126,7 +126,7 @@
       "slot": 37,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 56,
+      "count": 64,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -186,7 +186,7 @@
       "slot": 36,
       "name": "wheat",
       "itemId": 772,
-      "count": 38,
+      "count": 47,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -241,7 +241,67 @@
           }
         }
       }
+    },
+    {
+      "slot": 38,
+      "name": "wheat_seeds",
+      "itemId": 771,
+      "count": 6,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fWheat Seeds\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "WHEAT_SEEDS"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
     }
   ],
-  "lastSeen": 1793715738560
+  "lastSeen": 1793715760371
 }
