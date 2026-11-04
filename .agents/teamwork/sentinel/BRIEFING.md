@@ -1,25 +1,28 @@
-# BRIEFING — 2026-11-04T13:28:00Z
+# BRIEFING — 2026-11-04T13:46:00Z
 
 ## Mission
-Coordinate task interview and route Farm Merchant planning session to specialized agents.
+Supervise orchestrator executing multi-agent architectural discussion and plan for authentic Hypixel SkyBlock Farm Merchant NPC & Shop GUI with Click-to-Sell mechanics (strict NCC).
 
 ## 🔒 My Identity
 - Archetype: sentinel
 - Working directory: C:\Users\Wing\.gemini\antigravity\scratch\arena-server\.agents\teamwork\sentinel
-- Orchestrator: [TBD]
+- Orchestrator: [to be spawned]
 - Victory Auditor: [to be spawned on victory claim]
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
+- Strict No Code Changes (NCC): Under no circumstances may any code files be modified, added, or deleted in the codebase (no changes to src/, dist/, or server entry points).
+- Deliverable is strictly limited to multi-agent architectural discussion and planning documentation.
+- Authentic Hypixel SkyBlock mechanics, verified coordinates (63.5, 71.0, -114.5), pricing, limits, and protocols.
 
 ## User Context
-- **Last user request**: Discussion and architectural planning of Hypixel SkyBlock Farm Merchant NPC & Shop GUI with Click-to-Sell (NCC - No Code Changes).
-- **Pending clarifications**: Task prompt interview in progress via teamwork_interviewer.
+- **Last user request**: Approved task prompt received. Routing to teamwork_orchestrator on General path.
+- **Pending clarifications**: None.
 - **Delivered results**: None yet.
 
 ## Project Status
-- **Phase**: not started (interview in progress)
+- **Phase**: in progress (routing and spawning orchestrator)
 
 ## Victory Audit Status
 - **Triggered**: no
@@ -27,4 +30,4 @@ Coordinate task interview and route Farm Merchant planning session to specialize
 - **Retry count**: 0
 
 ## Artifact Index
-- [TBD]
+- C:\Users\Wing\.gemini\antigravity\scratch\arena-server\.agents\teamwork\ORIGINAL_REQUEST.md — Authoritative user intent record
