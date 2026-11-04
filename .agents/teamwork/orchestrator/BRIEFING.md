@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-04T13:46:30Z
+# BRIEFING — 2026-11-04T13:48:30Z
 
 ## Mission
 Formulate a comprehensive architectural plan and technical discussion for the authentic Hypixel SkyBlock Farm Merchant NPC and Shop GUI with Click-to-Sell mechanics in the Hub World, strictly making no code changes (NCC).
@@ -25,7 +25,7 @@ Formulate a comprehensive architectural plan and technical discussion for the au
 3. **On failure**: Retry / Replace / Redistribute / Degrade.
 4. **Succession**: At 16 spawns, write handoff.md, spawn successor.
 - **Work items**:
-  1. Multi-agent technical exploration & investigation [pending]
+  1. Multi-agent technical exploration & investigation [in-progress]
   2. Architectural draft specification compilation [pending]
   3. Multi-agent adversarial review & edge-case stress testing [pending]
   4. Final technical consensus specification and reporting [pending]
@@ -49,16 +49,19 @@ Formulate a comprehensive architectural plan and technical discussion for the au
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
+| explorer_protocol | teamwork_explorer | NPC lifecycle & protocol packet flow | in-progress | 2ccf10ba-a451-4655-849f-278d9e511bd9 |
+| explorer_economy_gui | teamwork_explorer | Shop GUI layout, 13 commodities pricing, daily limits | in-progress | 293e0750-1b9a-4773-92f3-7a484a3cf414 |
+| explorer_architecture | teamwork_explorer | Window click interception, Click-to-Sell, desync prevention | in-progress | 009c25a0-6c03-45cc-b4c0-b7f6ae62c3b5 |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 0 / 16
-- Pending subagents: none
+- Spawn count: 3 / 16
+- Pending subagents: 2ccf10ba-a451-4655-849f-278d9e511bd9, 293e0750-1b9a-4773-92f3-7a484a3cf414, 009c25a0-6c03-45cc-b4c0-b7f6ae62c3b5
 - Predecessor: none
 - Successor: not yet spawned
 
 ## Active Timers
-- Heartbeat cron: not started
+- Heartbeat cron: 99561df3-f966-4222-9228-8bd9c0a14bd7/task-28
 - Safety timer: none
 
 ## Artifact Index
