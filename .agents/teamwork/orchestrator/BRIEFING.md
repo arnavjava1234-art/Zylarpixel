@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-04T13:48:30Z
+# BRIEFING — 2026-11-04T13:58:00Z
 
 ## Mission
 Formulate a comprehensive architectural plan and technical discussion for the authentic Hypixel SkyBlock Farm Merchant NPC and Shop GUI with Click-to-Sell mechanics in the Hub World, strictly making no code changes (NCC).
@@ -30,7 +30,7 @@ Formulate a comprehensive architectural plan and technical discussion for the au
   3. Multi-agent adversarial review & edge-case stress testing [pending]
   4. Final technical consensus specification and reporting [pending]
 - **Current phase**: 1
-- **Current focus**: Multi-agent technical exploration
+- **Current focus**: Awaiting economy/gui and architecture explorer reports
 
 ## 🔒 Key Constraints
 - Strict NCC (No Code Changes): NO files outside `.agents/teamwork/` may be created or modified.
@@ -45,18 +45,19 @@ Formulate a comprehensive architectural plan and technical discussion for the au
 ## Key Decisions Made
 - Executing under strict NCC (development integrity mode, pure planning).
 - Using multi-agent parallel exploration across Protocol/NPC, Economy/Inventory, and Network/Architecture perspectives.
+- Protocol Explorer completed: verified coordinates X: 63.5, Y: 71.0, Z: -114.5; entity IDs 8870-8872; dual holograms at Y+2.05 & Y+1.75; 20 TPS voxel raycast ticker.
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
-| explorer_protocol | teamwork_explorer | NPC lifecycle & protocol packet flow | in-progress | 2ccf10ba-a451-4655-849f-278d9e511bd9 |
+| explorer_protocol | teamwork_explorer | NPC lifecycle & protocol packet flow | completed | 2ccf10ba-a451-4655-849f-278d9e511bd9 |
 | explorer_economy_gui | teamwork_explorer | Shop GUI layout, 13 commodities pricing, daily limits | in-progress | 293e0750-1b9a-4773-92f3-7a484a3cf414 |
 | explorer_architecture | teamwork_explorer | Window click interception, Click-to-Sell, desync prevention | in-progress | 009c25a0-6c03-45cc-b4c0-b7f6ae62c3b5 |
 
 ## Succession Status
 - Succession required: no
 - Spawn count: 3 / 16
-- Pending subagents: 2ccf10ba-a451-4655-849f-278d9e511bd9, 293e0750-1b9a-4773-92f3-7a484a3cf414, 009c25a0-6c03-45cc-b4c0-b7f6ae62c3b5
+- Pending subagents: 293e0750-1b9a-4773-92f3-7a484a3cf414, 009c25a0-6c03-45cc-b4c0-b7f6ae62c3b5
 - Predecessor: none
 - Successor: not yet spawned
 
@@ -69,4 +70,5 @@ Formulate a comprehensive architectural plan and technical discussion for the au
 - `.agents/teamwork/orchestrator/DISPATCH.md` — Dispatch record
 - `.agents/teamwork/orchestrator/BRIEFING.md` — Working memory and identity
 - `.agents/teamwork/orchestrator/progress.md` — Liveness & status tracking
+- `.agents/teamwork/explorer_protocol/handoff.md` — Protocol explorer technical report
 - `.agents/teamwork/orchestrator/PLAN.md` — Master architectural plan & consensus specification
