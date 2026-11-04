@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-04T14:13:00Z
+# BRIEFING — 2026-11-04T14:26:00Z
 
 ## Mission
 Adversarial stress-test and vulnerability audit of the Farm Merchant NPC & Shop GUI architectural plan (PLAN.md), finding edge cases, race conditions, macro exploits, inventory desyncs, daily cap bypasses, and performance bottlenecks.
@@ -32,26 +32,33 @@ Adversarial stress-test and vulnerability audit of the Farm Merchant NPC & Shop 
   - src/inventory/
   - src/npc/
   - src/player/
-- **Audit Focus Areas**:
-  1. Macro Auto-Clickers & Rapid Clicking (race conditions, double crediting, lock granularity)
-  2. Inventory Desync Scenarios (clicking empty/moved slots, cursor sync, 3-way set_slot sync)
-  3. Daily Limit Roll-Over & Proxy Transfers (midnight UTC, cross-server persistence, partial buys)
-  4. Item Forgery & Unsellable Items (Slot 89 Nether Star, weapons/armor, server-authoritative checks)
-  5. NPC Head-Tracking Performance (20 TPS raycasting, occlusion, boundary limits)
 
 ## Attack Surface
-- **Hypotheses tested**: [TBD]
-- **Vulnerabilities found**: [TBD]
-- **Untested angles**: [TBD]
-
-## Loaded Skills
-- None specified by orchestrator dispatch.
+- **Hypotheses tested**:
+  1. Macro auto-clickers (50 CPS) cause 1.8.9 client deadlocks if packets are silently dropped without ACK/NACK. (CONFIRMED)
+  2. Missing `try...finally` on `isTransactionLocked` causes permanent lockout on unhandled exceptions. (CONFIRMED)
+  3. Clicking empty slots or unsellable items leaves ghost items on cursor unless 3-way synchronization is applied on rejection paths. (CONFIRMED)
+  4. Pumpkin pricing table creates infinite money arbitrage (Buy 8c, Sell 10c). (CONFIRMED)
+  5. Enchanted crops (Enchanted Pumpkin) and upgraded tools (Rookie Hoe) are liquidated at base crop/tool prices under naive name lookup. (CONFIRMED)
+  6. 20 TPS raycasting with unthrottled packets emits 2,000 to 4,000 packets/sec for stationary players. (CONFIRMED)
+  7. Synchronous `fs.writeFileSync` in `persistPlayerSession` on every click stalls the event loop under rapid clicks. (CONFIRMED)
+- **Vulnerabilities found**:
+  - 1 Critical (Pumpkin infinite money arbitrage exploit: +1,280c/day/player)
+  - 3 High (1.8.9 client deadlock from silent packet drops, Ghost items on empty/unsellable item clicks, Enchanted crop & upgraded tool accidental liquidation)
+  - 3 Medium (Permanent lock freeze on unhandled exception, 2,000 pkt/sec unthrottled head tracking, synchronous disk I/O on every click)
+- **Untested angles**:
+  - Multi-profile sub-account switching during open GUI.
 
 ## Key Decisions Made
-- Initializing audit plan and analyzing PLAN.md against existing codebase mechanics.
+- Final Verdict: **REQUEST_CHANGES** due to 1 Critical Arbitrage exploit and 3 High severity inventory/client stability bugs.
 
 ## Artifact Index
 - DISPATCH.md — Task instructions from orchestrator
 - BRIEFING.md — Persistent memory and identity
 - progress.md — Liveness heartbeat and milestone tracking
-- handoff.md — Final adversarial vulnerability report and verdict
+- test_head_tracking_perf.ts — Empirical benchmark for NPC raycasting load
+- test_macro_clicking.ts — Empirical simulation of macro clicking & 1.8.9 packet dropping
+- test_pricing_and_daily_cap.ts — Empirical audit of pricing arbitrage & partial buy caps
+- test_item_identification.ts — Empirical audit of enchanted crop & tool liquidation
+- test_desync_cursor.ts — Empirical test of ghost item cursor desyncs
+- handoff.md — Comprehensive adversarial vulnerability report & verdict
