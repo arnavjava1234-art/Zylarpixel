@@ -141,7 +141,8 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
           name: 'FARM_MERCHANT',
           properties: [{
             name: 'textures',
-            value: FARM_MERCHANT_SKIN_TEXTURE
+            value: FARM_MERCHANT_SKIN_TEXTURE,
+            signature: FARM_MERCHANT_SKIN_SIGNATURE
           }],
           gamemode: 2,
           ping: 1,
