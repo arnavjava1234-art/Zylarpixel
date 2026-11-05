@@ -44,6 +44,8 @@ export interface PlayerProfile {
     speedBoostUntil?: number;
   };
   cooldowns?: Record<string, number>;
+  merchantDailyPurchases?: Record<string, number>;
+  merchantLastResetDay?: number;
 }
 
 const PROFILES_DIR = path.join(__dirname, '..', '..', 'data', 'profiles');

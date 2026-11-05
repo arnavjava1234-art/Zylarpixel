@@ -31,6 +31,8 @@ export function createPlayerSession(client: any, is119: boolean): any {
   let bits = 0;
   let island: IslandData;
   let stats = createDefaultStats();
+  let merchantDailyPurchases: Record<string, number> = {};
+  let merchantLastResetDay = 0;
 
   const sharedProf = loadPlayerProfile(username);
 
@@ -42,6 +44,8 @@ export function createPlayerSession(client: any, is119: boolean): any {
     bankTransactions = Array.isArray((saved as any).bankTransactions) ? (saved as any).bankTransactions : (Array.isArray(sharedProf.bankTransactions) ? sharedProf.bankTransactions : []);
     bits = (saved as any).bits || 0;
     island = saved.island || allocateIslandForPlayer(username);
+    merchantDailyPurchases = (saved as any).merchantDailyPurchases || sharedProf.merchantDailyPurchases || {};
+    merchantLastResetDay = (saved as any).merchantLastResetDay || sharedProf.merchantLastResetDay || 0;
     if ((saved as any).stats) {
       stats = createDefaultStats((saved as any).stats);
     }
@@ -98,7 +102,9 @@ export function createPlayerSession(client: any, is119: boolean): any {
     lastBroadcastZ: undefined,
     stats,
     baseSpeed: 100,
-    activeBuffs: sharedProf.activeBuffs || {}
+    activeBuffs: sharedProf.activeBuffs || {},
+    merchantDailyPurchases,
+    merchantLastResetDay
   };
 
   players.set(client.id, pData);
@@ -143,6 +149,8 @@ export function persistPlayerSession(pData: any): void {
       bankTransactions: pData.bankTransactions,
       bits: pData.bits,
       inventory: invArray,
+      merchantDailyPurchases: pData.merchantDailyPurchases,
+      merchantLastResetDay: pData.merchantLastResetDay,
       lastSeen: Date.now()
     } as any)
   });
@@ -154,6 +162,8 @@ export function persistPlayerSession(pData: any): void {
     prof.bank = pData.bank;
     prof.bankTransactions = pData.bankTransactions;
     prof.inventory = invArray;
+    prof.merchantDailyPurchases = pData.merchantDailyPurchases;
+    prof.merchantLastResetDay = pData.merchantLastResetDay;
     prof.stats = {
       health: pData.stats.health,
       maxHealth: pData.stats.maxHealth,

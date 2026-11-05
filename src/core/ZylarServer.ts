@@ -92,6 +92,15 @@ import {
   handleBankerInteraction
 } from '../npc/bankerNpc';
 import {
+  spawnFarmMerchantNpc,
+  tickFarmMerchantNpc,
+  handleFarmMerchantInteraction
+} from '../npc/farmMerchantNpc';
+import {
+  FARM_MERCHANT_WINDOW_ID,
+  handleFarmMerchantClick
+} from '../gui/farmMerchantMenu';
+import {
   spawnCropGuardians,
   tickCropGuardians,
   isHarvestableHubCrop,
@@ -751,10 +760,11 @@ export class ZylarServer {
       this.tickDroppedItems();
     }, 100);
 
-    // F. Hub Banker NPC & Crop Guardians Ticker (every 50ms / 20 TPS)
+    // F. Hub Banker NPC, Farm Merchant NPC & Crop Guardians Ticker (every 50ms / 20 TPS)
     if (this.config.worldType === 'hub') {
       this.botTickerInterval = setInterval(() => {
         tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
+        tickFarmMerchantNpc(players, (deg: number) => this.toProtocolByte(deg));
         tickCropGuardians(this, players, (deg: number) => this.toProtocolByte(deg));
       }, 50);
     }
@@ -1346,9 +1356,10 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC (if Hub) - Crop Guardians are dynamically spawned via proximity ticker
+    // 8. Server-Side Banker NPC & Farm Merchant NPC (if Hub) - Crop Guardians are dynamically spawned via proximity ticker
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
+      spawnFarmMerchantNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
     }
 
     // 8b. Active Dropped Items
@@ -2011,6 +2022,12 @@ export class ZylarServer {
           handleAdminItemSpawnerClick(client, pData, clickedSlot, is119);
           return;
         }
+
+        // 9. Farm Merchant Menu (WindowId = 16)
+        if (pData.openWindowId === FARM_MERCHANT_WINDOW_ID) {
+          handleFarmMerchantClick(client, pData, data, sendSystemMessage, is119);
+          return;
+        }
       }
     });
 
@@ -2377,7 +2394,7 @@ export class ZylarServer {
 
       // 1. Hub Banker NPC Interaction Check
       if (this.config.worldType === 'hub') {
-        const handled = handleBankerInteraction(
+        const bankerHandled = handleBankerInteraction(
           client,
           data.target,
           data.mouse,
@@ -2385,7 +2402,18 @@ export class ZylarServer {
           (c, msg, v) => sendSystemMessage(c, msg, v),
           pData
         );
-        if (handled) return;
+        if (bankerHandled) return;
+
+        // 2. Hub Farm Merchant NPC Interaction Check
+        const farmMerchantHandled = handleFarmMerchantInteraction(
+          client,
+          data.target,
+          data.mouse,
+          is119,
+          (c, msg, v) => sendSystemMessage(c, msg, v),
+          pData
+        );
+        if (farmMerchantHandled) return;
       }
 
       if (data.mouse !== 1) return; // 1 = Attack

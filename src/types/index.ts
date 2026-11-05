@@ -70,6 +70,8 @@ export interface PlayerSession {
   stats: PlayerStats;
   openWindowId?: number;
   currentGuiItems?: any[];
+  merchantDailyPurchases?: Record<string, number>;
+  merchantLastResetDay?: number;
 }
 
 export interface StoredPlayerData {
@@ -80,6 +82,8 @@ export interface StoredPlayerData {
   island: IslandData;
   lastLogin: string;
   stats?: Partial<PlayerStats>;
+  merchantDailyPurchases?: Record<string, number>;
+  merchantLastResetDay?: number;
 }
 
 export interface BlockModification {
