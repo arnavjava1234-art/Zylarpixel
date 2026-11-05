@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-05T13:32:49.575Z",
+  "lastLogin": "2026-11-05T13:33:04.558Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -26,7 +26,7 @@
     "farmingFortune": 0
   },
   "rankId": "owner",
-  "purse": 100000000000,
+  "purse": 99999999915,
   "bank": 50000000,
   "bankTransactions": [
     {
@@ -423,7 +423,10 @@
       }
     }
   ],
-  "merchantDailyPurchases": {},
+  "merchantDailyPurchases": {
+    "pumpkin": 1,
+    "brown_mushroom": 35
+  },
   "merchantLastResetDay": 20762,
-  "lastSeen": 1793885569575
+  "lastSeen": 1793885584558
 }
