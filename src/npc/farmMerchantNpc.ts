@@ -260,7 +260,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
           gamemode: 2,
           listed: 0,
           latency: 1,
-          displayName: JSON.stringify({ text: '§eFarm Merchant' })
+          displayName: JSON.stringify({ text: '§fFarm Merchant' })
         }]
       });
 
@@ -328,7 +328,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
         entityId: FARM_MERCHANT_HOLO_TITLE_ID,
         metadata: [
           { key: 0, type: 0, value: 0x20 },
-          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lFARM MERCHANT' }) },
+          { key: 2, type: 5, value: JSON.stringify({ text: '§fFarm Merchant' }) },
           { key: 3, type: 7, value: true },
           { key: 15, type: 0, value: 0x11 }
         ]
