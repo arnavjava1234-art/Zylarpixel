@@ -144,7 +144,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
           }],
           gamemode: 2,
           ping: 1,
-          displayName: JSON.stringify({ text: '§eFarm Merchant' }),
+          displayName: JSON.stringify({ text: '§fFarm Merchant' }),
           crypto: undefined
         }]
       });
@@ -197,7 +197,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
         } catch (_) {}
       }, 2000);
 
-      // 7. Spawn Floating Hologram Line 1: §e§lFARM MERCHANT (Y + 2.05)
+      // 7. Spawn Floating Hologram Line 1: §fFarm Merchant (Y + 2.05)
       client.write('spawn_entity', {
         entityId: FARM_MERCHANT_HOLO_TITLE_ID,
         objectUUID: FARM_MERCHANT_HOLO_TITLE_UUID,
@@ -215,7 +215,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
         entityId: FARM_MERCHANT_HOLO_TITLE_ID,
         metadata: [
           { key: 0, type: 0, value: 0x20 }, // Invisible
-          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lFARM MERCHANT' }) },
+          { key: 2, type: 5, value: JSON.stringify({ text: '§fFarm Merchant' }) },
           { key: 3, type: 7, value: true }, // CustomNameVisible
           { key: 15, type: 0, value: 0x11 } // Small & Marker
         ]
