@@ -457,7 +457,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793888012630,
+  "lastSeen": 1793888055777,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -551,9 +551,11 @@
     }
   ],
   "cooldowns": {
-    "Speed Boost": 1793887987611
+    "Speed Boost": 1793888060767
   },
-  "activeBuffs": {},
+  "activeBuffs": {
+    "speedBoostUntil": 1793888085773
+  },
   "merchantDailyPurchases": {
     "pumpkin": 1,
     "brown_mushroom": 36
