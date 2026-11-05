@@ -2,7 +2,7 @@
   "username": "arnavjava",
   "rank": "owner",
   "isOp": true,
-  "coins": 99999999915,
+  "coins": 99999999913,
   "bank": 50000000,
   "stats": {
     "health": 100,
@@ -325,7 +325,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793885584562,
+  "lastSeen": 1793885592160,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -424,7 +424,7 @@
   "activeBuffs": {},
   "merchantDailyPurchases": {
     "pumpkin": 1,
-    "brown_mushroom": 35
+    "brown_mushroom": 36
   },
   "merchantLastResetDay": 20762
 }
