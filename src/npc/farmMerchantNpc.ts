@@ -28,10 +28,10 @@ export const FARM_MERCHANT_HOLO_CLICK_UUID = 'b2b2b2b2-8872-4c10-9977-e1a3fc82e3
 export const FARM_MERCHANT_SKIN_TEXTURE = 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI2M2QyZTk2N2I1MzcxNjE5YWI5OGQ1NThkMTg0OTkyN2ZkYjE2NDI1OTk3OGEyY2ZlNDFiZGVmNTJkIn19fQ==';
 
 export const FARM_MERCHANT_POS = {
-  x: 63.5,
-  y: 71.0,
-  z: -114.5,
-  yaw: 180.0, // Default facing: South toward the village cobblestone path approach
+  x: 16.5,
+  y: 70.0,
+  z: -71.5,
+  yaw: -90.0, // Default facing: West toward the village marketplace path
   pitch: 0.0
 };
 
