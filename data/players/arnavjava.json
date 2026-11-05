@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-05T13:39:05.878Z",
+  "lastLogin": "2026-11-05T13:40:39.108Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -428,5 +428,5 @@
     "brown_mushroom": 36
   },
   "merchantLastResetDay": 20762,
-  "lastSeen": 1793885945878
+  "lastSeen": 1793886039108
 }
