@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-05T13:31:39.510Z",
+  "lastLogin": "2026-11-05T13:31:46.789Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -425,5 +425,5 @@
   ],
   "merchantDailyPurchases": {},
   "merchantLastResetDay": 0,
-  "lastSeen": 1793885499510
+  "lastSeen": 1793885506789
 }
