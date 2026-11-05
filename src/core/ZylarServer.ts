@@ -2604,9 +2604,8 @@ export class ZylarServer {
     if (now - (pData.lastPortalNotice || 0) < 3500) return;
 
     if (this.config.worldType === 'hub') {
-      // Portal in Hub leading to Islands (portal near spawn and portal arch)
-      const inHubPortal = (x >= -5.0 && x <= 0.0 && y >= 69.0 && y <= 73.0 && z >= -65.0 && z <= -61.0) ||
-                          (Math.abs(x - 10.5) <= 2.5 && Math.abs(z - (-78.5)) <= 2.5 && y >= 69 && y <= 74);
+      // Portal in Hub leading to Islands (authentic Hub portal frame at spawn)
+      const inHubPortal = (x >= -5.0 && x <= 0.0 && y >= 69.0 && y <= 73.0 && z >= -65.0 && z <= -61.0);
       if (inHubPortal) {
         pData.lastPortalNotice = now;
         sendSystemMessage(pData.client, '§a[Portal] Warping you to your Private Island...', pData.is119);
