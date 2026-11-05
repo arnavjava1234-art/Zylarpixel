@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-05T14:11:35.117Z",
+  "lastLogin": "2026-11-05T14:12:13.350Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -306,7 +306,7 @@
       "slot": 39,
       "name": "wheat",
       "itemId": 772,
-      "count": 34,
+      "count": 49,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -366,7 +366,7 @@
       "slot": 40,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 12,
+      "count": 38,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -481,6 +481,76 @@
           }
         }
       }
+    },
+    {
+      "slot": 42,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 254
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRogue Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\"§7Damage: §c+20\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
+                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
+                    "{\"text\":\"§8Mana Cost: §350\"}",
+                    "{\"text\":\"§8Cooldown: §a5s\"}",
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROGUE_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "uuid": {
+                "type": "string",
+                "value": "b50d609e-7046-419a-8576-8dddf46cb4d5"
+              },
+              "origin": {
+                "type": "string",
+                "value": "ZYLARPIXEL"
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "merchantDailyPurchases": {
@@ -488,5 +558,5 @@
     "brown_mushroom": 36
   },
   "merchantLastResetDay": 20762,
-  "lastSeen": 1793887895117
+  "lastSeen": 1793887933350
 }
