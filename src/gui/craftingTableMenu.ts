@@ -483,16 +483,7 @@ export function openCraftingTableMenu(client: any, pData: any): void {
   items[CLOSE_SLOT] = createCloseItem();
 
   pData.currentGuiItems = items;
-
-  // 7. Write all container items
-  try {
-    client.write('window_items', {
-      windowId: CRAFTING_TABLE_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  sendWindow(client, CRAFTING_TABLE_WINDOW_ID, 5, '§8Crafting Table', items);
 }
 
 /**
