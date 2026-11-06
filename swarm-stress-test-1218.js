@@ -11,8 +11,8 @@
 const mc = require('minecraft-protocol');
 
 const PROXY_PORT = 25565;
-const BOT_COUNT = 50; // Fleet size: 50 concurrent bots
-const SWARM_DURATION_SEC = 25;
+const BOT_COUNT = 100; // Fleet size: 100 concurrent bots
+const SWARM_DURATION_SEC = 30;
 
 console.log(`\n=============================================================`);
 console.log(`🤖 ZYLARPIXEL 1.21.8 SWARM STRESS SUITE (Protocol 772)`);
