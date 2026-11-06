@@ -86,8 +86,12 @@ export function spawnDamageIndicator(
           x: posX,
           y: posY,
           z: posZ,
+          dx: 0,
+          dy: 0,
+          dz: 0,
           yaw: 0,
           pitch: 0,
+          flags: { _value: 0 },
           onGround: false
         });
       } catch (_) {}
