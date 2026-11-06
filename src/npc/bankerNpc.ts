@@ -208,14 +208,7 @@ export function spawnBankerNpc(client: any, is119: boolean, toProtocolByte: (deg
       players: ['BANKER']
     });
 
-    // 6. Remove from tablist after 2 seconds
-    setTimeout(() => {
-      try {
-        client.write('player_remove', {
-          players: [BANKER_UUID]
-        });
-      } catch (_) {}
-    }, 2000);
+    // 6. Note: Modern 1.21.8 keeps player profile cached with listed: 0 so custom skin renders permanently
 
     // 7. Modern 1.21.8 Text Display Hologram (Billboard Mode, 0 Hitbox, Crisp Rendering)
     client.write('spawn_entity', {
