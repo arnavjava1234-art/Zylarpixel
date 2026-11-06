@@ -1055,9 +1055,7 @@ export class ZylarServer {
           yaw: 0,
           headPitch: 0,
           objectData: 1,
-          velocityX: velX,
-          velocityY: velY,
-          velocityZ: velZ
+          velocity: { x: velX, y: velY, z: velZ }
         });
 
         p.client.write('entity_metadata', {
