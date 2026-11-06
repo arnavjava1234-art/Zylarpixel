@@ -389,7 +389,7 @@ export class ZylarServer {
           client.write('spawn_entity', {
             entityId: bot.entityId,
             objectUUID: bot.uuid,
-            type: 128,
+            type: 149,
             x: bot.pos.x,
             y: bot.pos.y,
             z: bot.pos.z,
@@ -397,7 +397,9 @@ export class ZylarServer {
             yaw: this.toProtocolByte(bot.pos.yaw),
             headPitch: this.toProtocolByte(bot.pos.pitch),
             objectData: 0,
-            velocity: { x: 0, y: 0, z: 0 }
+            velocityX: 0,
+            velocityY: 0,
+            velocityZ: 0
           });
           client.write('entity_head_rotation', {
             entityId: bot.entityId,
