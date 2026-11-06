@@ -66,14 +66,7 @@ export function giveNetherStar(client: any): void {
 export function openSkyBlockMenu(client: any, pSession: any): void {
   pSession.openWindowId = SKYBLOCK_MENU_WINDOW_ID;
 
-  // 1. Open 54-slot chest container (inventoryType 5 = 9x6)
-  client.write('open_window', {
-    windowId: SKYBLOCK_MENU_WINDOW_ID,
-    inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8SkyBlock Menu' })
-  });
-
-  // 2. Base fillers: dark gray / black glass pane
+  // Base fillers: dark gray / black glass pane
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
