@@ -154,14 +154,7 @@ export function openCoinPlayerSelector(
     slotPlayerMap
   };
 
-  try {
-    client.write('window_items', {
-      windowId: ADMIN_COIN_SELECTOR_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  sendWindow(client, ADMIN_COIN_SELECTOR_WINDOW_ID, 5, '§8Manage Coins: Select Player', items);
 }
 
 export function openCoinActionMenu(
