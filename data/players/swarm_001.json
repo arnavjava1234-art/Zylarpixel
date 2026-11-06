@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-06T11:39:42.984Z",
+  "lastLogin": "2026-11-06T11:40:48.287Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -28,12 +28,12 @@
     "farmingFortune": 0
   },
   "rankId": "default",
-  "purse": 0,
+  "purse": 1,
   "bank": 0,
   "bankTransactions": [],
   "bits": 0,
   "inventory": [],
   "merchantDailyPurchases": {},
   "merchantLastResetDay": 0,
-  "lastSeen": 1793965182984
+  "lastSeen": 1793965248287
 }
