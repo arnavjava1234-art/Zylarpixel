@@ -218,7 +218,7 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
       dz: 0,
       yaw: 0,
       pitch: 0,
-      flags: {}
+      flags: { _value: 0 }
     });
 
     // 3. Invulnerable flying abilities in void
