@@ -680,7 +680,7 @@ export class ZylarServer {
       host: '0.0.0.0',
       port: this.config.port,
       version: '1.21.8',
-      maxPlayers: 50,
+      maxPlayers: 250,
       motd: this.config.motd || `§d§lZYLARPIXEL §7[${this.config.serverName}]`,
       registryCodec: mcData1218.loginPacket.dimensionCodec
     } as any);
