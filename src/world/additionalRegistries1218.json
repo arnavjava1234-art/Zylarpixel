@@ -2,392 +2,159 @@
     "minecraft:frog_variant":  [
                                    {
                                        "key":  "minecraft:cold",
-                                       "data":  {
-                                                    "asset_id":  "minecraft:entity/frog/cold_frog",
-                                                    "spawn_conditions":  [
-                                                                             {
-                                                                                 "condition":  {
-                                                                                                   "type":  "minecraft:biome",
-                                                                                                   "biomes":  "#minecraft:spawns_cold_variant_frogs"
-                                                                                               },
-                                                                                 "priority":  1
-                                                                             }
-                                                                         ]
-                                                }
+                                       "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/frog/cold_frog\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_cold_variant_frogs\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                    },
                                    {
                                        "key":  "minecraft:temperate",
-                                       "data":  {
-                                                    "asset_id":  "minecraft:entity/frog/temperate_frog",
-                                                    "spawn_conditions":  [
-                                                                             {
-                                                                                 "priority":  0
-                                                                             }
-                                                                         ]
-                                                }
+                                       "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/frog/temperate_frog\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                    },
                                    {
                                        "key":  "minecraft:warm",
-                                       "data":  {
-                                                    "asset_id":  "minecraft:entity/frog/warm_frog",
-                                                    "spawn_conditions":  [
-                                                                             {
-                                                                                 "condition":  {
-                                                                                                   "type":  "minecraft:biome",
-                                                                                                   "biomes":  "#minecraft:spawns_warm_variant_frogs"
-                                                                                               },
-                                                                                 "priority":  1
-                                                                             }
-                                                                         ]
-                                                }
+                                       "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/frog/warm_frog\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_warm_variant_frogs\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                    }
                                ],
     "minecraft:cow_variant":  [
                                   {
                                       "key":  "minecraft:cold",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cow/cold_cow",
-                                                   "model":  "cold",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:biome",
-                                                                                                  "biomes":  "#minecraft:spawns_cold_variant_farm_animals"
-                                                                                              },
-                                                                                "priority":  1
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cow/cold_cow\",\n  \"model\": \"cold\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_cold_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:temperate",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cow/temperate_cow",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cow/temperate_cow\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:warm",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cow/warm_cow",
-                                                   "model":  "warm",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:biome",
-                                                                                                  "biomes":  "#minecraft:spawns_warm_variant_farm_animals"
-                                                                                              },
-                                                                                "priority":  1
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cow/warm_cow\",\n  \"model\": \"warm\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_warm_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                   }
                               ],
     "minecraft:cat_variant":  [
                                   {
                                       "key":  "minecraft:all_black",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/all_black",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:structure",
-                                                                                                  "structures":  "#minecraft:cats_spawn_as_black"
-                                                                                              },
-                                                                                "priority":  1
-                                                                            },
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:moon_brightness",
-                                                                                                  "range":  {
-                                                                                                                "min":  0.9
-                                                                                                            }
-                                                                                              },
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/all_black\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:structure\",\n        \"structures\": \"#minecraft:cats_spawn_as_black\"\n      },\n      \"priority\": 1\n    },\n    {\n      \"condition\": {\n        \"type\": \"minecraft:moon_brightness\",\n        \"range\": {\n          \"min\": 0.9\n        }\n      },\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:black",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/black",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/black\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:british_shorthair",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/british_shorthair",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/british_shorthair\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:calico",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/calico",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/calico\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:jellie",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/jellie",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/jellie\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:persian",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/persian",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/persian\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:ragdoll",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/ragdoll",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/ragdoll\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:red",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/red",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/red\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:siamese",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/siamese",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/siamese\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:tabby",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/tabby",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/tabby\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:white",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/cat/white",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/cat/white\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   }
                               ],
+    "minecraft:test_environment":  [
+                                       {
+                                           "key":  "minecraft:default",
+                                           "jsonText":  "{\n  \"type\": \"minecraft:all_of\",\n  \"definitions\": []\n}"
+                                       }
+                                   ],
     "minecraft:chicken_variant":  [
                                       {
                                           "key":  "minecraft:cold",
-                                          "data":  {
-                                                       "asset_id":  "minecraft:entity/chicken/cold_chicken",
-                                                       "model":  "cold",
-                                                       "spawn_conditions":  [
-                                                                                {
-                                                                                    "condition":  {
-                                                                                                      "type":  "minecraft:biome",
-                                                                                                      "biomes":  "#minecraft:spawns_cold_variant_farm_animals"
-                                                                                                  },
-                                                                                    "priority":  1
-                                                                                }
-                                                                            ]
-                                                   }
+                                          "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/chicken/cold_chicken\",\n  \"model\": \"cold\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_cold_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                       },
                                       {
                                           "key":  "minecraft:temperate",
-                                          "data":  {
-                                                       "asset_id":  "minecraft:entity/chicken/temperate_chicken",
-                                                       "spawn_conditions":  [
-                                                                                {
-                                                                                    "priority":  0
-                                                                                }
-                                                                            ]
-                                                   }
+                                          "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/chicken/temperate_chicken\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                       },
                                       {
                                           "key":  "minecraft:warm",
-                                          "data":  {
-                                                       "asset_id":  "minecraft:entity/chicken/warm_chicken",
-                                                       "spawn_conditions":  [
-                                                                                {
-                                                                                    "condition":  {
-                                                                                                      "type":  "minecraft:biome",
-                                                                                                      "biomes":  "#minecraft:spawns_warm_variant_farm_animals"
-                                                                                                  },
-                                                                                    "priority":  1
-                                                                                }
-                                                                            ]
-                                                   }
+                                          "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/chicken/warm_chicken\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_warm_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                       }
                                   ],
+    "minecraft:test_instance":  [
+                                    {
+                                        "key":  "minecraft:always_pass",
+                                        "jsonText":  "{\n  \"type\": \"minecraft:function\",\n  \"environment\": \"minecraft:default\",\n  \"function\": \"minecraft:always_pass\",\n  \"max_ticks\": 1,\n  \"required\": false,\n  \"setup_ticks\": 1,\n  \"structure\": \"minecraft:empty\"\n}"
+                                    }
+                                ],
+    "minecraft:dialog":  [
+                             {
+                                 "key":  "minecraft:custom_options",
+                                 "jsonText":  "{\n  \"type\": \"minecraft:dialog_list\",\n  \"button_width\": 310,\n  \"columns\": 1,\n  \"dialogs\": \"#minecraft:pause_screen_additions\",\n  \"exit_action\": {\n    \"label\": {\n      \"translate\": \"gui.back\"\n    },\n    \"width\": 200\n  },\n  \"external_title\": {\n    \"translate\": \"menu.custom_options\"\n  },\n  \"title\": {\n    \"translate\": \"menu.custom_options.title\"\n  }\n}"
+                             },
+                             {
+                                 "key":  "minecraft:quick_actions",
+                                 "jsonText":  "{\n  \"type\": \"minecraft:dialog_list\",\n  \"button_width\": 310,\n  \"columns\": 1,\n  \"dialogs\": \"#minecraft:quick_actions\",\n  \"exit_action\": {\n    \"label\": {\n      \"translate\": \"gui.back\"\n    },\n    \"width\": 200\n  },\n  \"external_title\": {\n    \"translate\": \"menu.quick_actions\"\n  },\n  \"title\": {\n    \"translate\": \"menu.quick_actions.title\"\n  }\n}"
+                             },
+                             {
+                                 "key":  "minecraft:server_links",
+                                 "jsonText":  "{\n  \"type\": \"minecraft:server_links\",\n  \"button_width\": 310,\n  \"columns\": 1,\n  \"exit_action\": {\n    \"label\": {\n      \"translate\": \"gui.back\"\n    },\n    \"width\": 200\n  },\n  \"external_title\": {\n    \"translate\": \"menu.server_links\"\n  },\n  \"title\": {\n    \"translate\": \"menu.server_links.title\"\n  }\n}"
+                             }
+                         ],
     "minecraft:pig_variant":  [
                                   {
                                       "key":  "minecraft:cold",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/pig/cold_pig",
-                                                   "model":  "cold",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:biome",
-                                                                                                  "biomes":  "#minecraft:spawns_cold_variant_farm_animals"
-                                                                                              },
-                                                                                "priority":  1
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/pig/cold_pig\",\n  \"model\": \"cold\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_cold_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:temperate",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/pig/temperate_pig",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "priority":  0
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/pig/temperate_pig\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
                                   },
                                   {
                                       "key":  "minecraft:warm",
-                                      "data":  {
-                                                   "asset_id":  "minecraft:entity/pig/warm_pig",
-                                                   "spawn_conditions":  [
-                                                                            {
-                                                                                "condition":  {
-                                                                                                  "type":  "minecraft:biome",
-                                                                                                  "biomes":  "#minecraft:spawns_warm_variant_farm_animals"
-                                                                                              },
-                                                                                "priority":  1
-                                                                            }
-                                                                        ]
-                                               }
+                                      "jsonText":  "{\n  \"asset_id\": \"minecraft:entity/pig/warm_pig\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_warm_variant_farm_animals\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
                                   }
                               ],
     "minecraft:wolf_sound_variant":  [
                                          {
                                              "key":  "minecraft:angry",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_angry.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_angry.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_angry.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_angry.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_angry.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_angry.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_angry.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_angry.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_angry.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_angry.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_angry.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_angry.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:big",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_big.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_big.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_big.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_big.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_big.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_big.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_big.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_big.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_big.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_big.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_big.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_big.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:classic",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf.death",
-                                                          "growl_sound":  "minecraft:entity.wolf.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf.death\",\n  \"growl_sound\": \"minecraft:entity.wolf.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:cute",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_cute.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_cute.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_cute.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_cute.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_cute.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_cute.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_cute.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_cute.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_cute.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_cute.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_cute.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_cute.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:grumpy",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_grumpy.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_grumpy.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_grumpy.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_grumpy.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_grumpy.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_grumpy.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_grumpy.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_grumpy.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_grumpy.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_grumpy.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_grumpy.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_grumpy.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:puglin",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_puglin.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_puglin.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_puglin.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_puglin.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_puglin.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_puglin.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_puglin.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_puglin.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_puglin.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_puglin.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_puglin.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_puglin.whine\"\n}"
                                          },
                                          {
                                              "key":  "minecraft:sad",
-                                             "data":  {
-                                                          "ambient_sound":  "minecraft:entity.wolf_sad.ambient",
-                                                          "death_sound":  "minecraft:entity.wolf_sad.death",
-                                                          "growl_sound":  "minecraft:entity.wolf_sad.growl",
-                                                          "hurt_sound":  "minecraft:entity.wolf_sad.hurt",
-                                                          "pant_sound":  "minecraft:entity.wolf_sad.pant",
-                                                          "whine_sound":  "minecraft:entity.wolf_sad.whine"
-                                                      }
+                                             "jsonText":  "{\n  \"ambient_sound\": \"minecraft:entity.wolf_sad.ambient\",\n  \"death_sound\": \"minecraft:entity.wolf_sad.death\",\n  \"growl_sound\": \"minecraft:entity.wolf_sad.growl\",\n  \"hurt_sound\": \"minecraft:entity.wolf_sad.hurt\",\n  \"pant_sound\": \"minecraft:entity.wolf_sad.pant\",\n  \"whine_sound\": \"minecraft:entity.wolf_sad.whine\"\n}"
                                          }
                                      ]
 }
