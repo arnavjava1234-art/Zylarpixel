@@ -247,14 +247,7 @@ export function openCoinActionMenu(
     targetPData: onlineTarget
   };
 
-  try {
-    client.write('window_items', {
-      windowId: ADMIN_COIN_ACTION_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  sendWindow(client, ADMIN_COIN_ACTION_WINDOW_ID, 3, `§8Purse: ${targetUsername}`, items);
 }
 
 export function promptAdminOakSignGui(
