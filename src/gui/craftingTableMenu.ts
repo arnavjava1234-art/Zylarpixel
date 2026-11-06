@@ -284,22 +284,10 @@ export function dropItemAtPlayerFeet(pData: any, itemId: number, count: number, 
 /**
  * Synchronizes player survival inventory (windowId 0)
  */
-export function syncPlayerInventory(client: any, pData: any, is119: boolean = true): void {
+export function syncPlayerInventory(client: any, pData: any, is119: boolean = false): void {
   for (let s = 9; s < 44; s++) {
     const item = pData.inventory.get(s);
-    try {
-      client.write('set_slot', {
-        windowId: 0,
-        stateId: 1,
-        slot: s,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, 0, s, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
   giveNetherStar(client);
 }
@@ -307,74 +295,31 @@ export function syncPlayerInventory(client: any, pData: any, is119: boolean = tr
 /**
  * Synchronizes player inventory portion in the open 54-slot chest window (slots 54..89)
  */
-export function syncChestPlayerInventory(client: any, pData: any, is119: boolean = true): void {
+export function syncChestPlayerInventory(client: any, pData: any, is119: boolean = false): void {
   // Main inventory: slots 9..35 mapped to chest 54..80
   for (let s = 9; s < 36; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 9 + 54;
-    try {
-      client.write('set_slot', {
-        windowId: CRAFTING_TABLE_WINDOW_ID,
-        stateId: 1,
-        slot: chestSlot,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
   // Hotbar: slots 36..43 mapped to chest 81..88
   for (let s = 36; s < 44; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 36 + 81;
-    try {
-      client.write('set_slot', {
-        windowId: CRAFTING_TABLE_WINDOW_ID,
-        stateId: 1,
-        slot: chestSlot,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
   // Slot 89: Nether Star (hotbar slot 44)
-  try {
-    client.write('set_slot', {
-      windowId: CRAFTING_TABLE_WINDOW_ID,
-      stateId: 1,
-      slot: 89,
-      item: createNetherStarItem()
-    });
-  } catch (_) {}
+  sendSlot(client, CRAFTING_TABLE_WINDOW_ID, 89, createNetherStarItem(is119));
 }
 
 /**
  * Synchronizes the 3x3 crafting grid slots (10, 11, 12, 19, 20, 21, 28, 29, 30)
  */
-export function syncCraftingGridSlots(client: any, pData: any, is119: boolean = true): void {
+export function syncCraftingGridSlots(client: any, pData: any, is119: boolean = false): void {
   for (let i = 0; i < 9; i++) {
     const slot = CRAFT_GRID_SLOTS[i];
     const item = pData.craftingGrid ? pData.craftingGrid[i] : null;
-    try {
-      client.write('set_slot', {
-        windowId: CRAFTING_TABLE_WINDOW_ID,
-        stateId: 1,
-        slot,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, slot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
 }
 
