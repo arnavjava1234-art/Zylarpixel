@@ -283,19 +283,12 @@ export function setOfflinePlayerRank(username: string, newRank: RankDefinition):
   return data;
 }
 
-export function sendSystemMessage(client: any, text: string, is119: boolean): void {
+export function sendSystemMessage(client: any, text: string, _is119?: boolean): void {
   try {
-    if (is119) {
-      client.write('system_chat', {
-        content: JSON.stringify({ text }),
-        isActionBar: false
-      });
-    } else {
-      client.write('system_chat', {
-        content: nbt.comp({ text: nbt.string(text) }),
-        isActionBar: false
-      });
-    }
+    client.write('system_chat', {
+      content: nbt.comp({ text: nbt.string(text) }),
+      isActionBar: false
+    });
   } catch (e) {}
 }
 

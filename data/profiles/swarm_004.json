@@ -1,0 +1,31 @@
+{
+  "username": "Swarm_004",
+  "rank": "default",
+  "isOp": false,
+  "coins": 0,
+  "bank": 0,
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "speed": 100,
+    "intelligence": 0,
+    "maxMana": 100,
+    "critChance": 30,
+    "critDamage": 50,
+    "farmingFortune": 0
+  },
+  "skills": {
+    "combat": 1,
+    "mining": 1,
+    "foraging": 1,
+    "farming": 1
+  },
+  "inventory": [],
+  "currentServer": "hub",
+  "lastSeen": 1793959739279,
+  "bankTransactions": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0
+}

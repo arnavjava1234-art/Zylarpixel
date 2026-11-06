@@ -112,22 +112,19 @@ export function formatActionBar(stats: PlayerStats | any): string {
 }
 
 /**
- * Sends non-flickering action bar to client
+ * Sends non-flickering action bar to client in 1.21.8
  */
-export function sendActionBar(client: any, is119: boolean, text: string): void {
+export function sendActionBar(client: any, _is119?: boolean, text?: string): void {
   try {
-    if (is119) {
-      client.write('system_chat', {
-        content: JSON.stringify({ text }),
-        isActionBar: true
-      });
-    } else {
-      // 1.21.1
-      client.write('system_chat', {
-        content: JSON.stringify({ text }),
-        isActionBar: true
-      });
-    }
+    const msg = text || '';
+    client.write('system_chat', {
+      content: {
+        type: 'compound',
+        name: '',
+        value: { text: { type: 'string', value: msg } }
+      },
+      isActionBar: true
+    });
   } catch (e) {}
 }
 
@@ -167,14 +164,11 @@ export function syncVanillaHealthAndHunger(client: any, stats: PlayerStats): voi
  * Syncs vanilla player movement speed attribute from SkyBlock speed stat
  * vanilla movement_speed = 0.1 * (SkyBlockSpeed / 100)
  */
-export function syncPlayerAttributes(client: any, entityId: number, speedStat: number, is119: boolean = true): void {
+export function syncPlayerAttributes(client: any, entityId: number, speedStat: number, _is119?: boolean): void {
   try {
     const effectiveSpeed = Math.max(20, Math.min(500, speedStat || 100));
     const vanillaSpeedAttr = 0.1 * (effectiveSpeed / 100.0);
 
-    // Keep FOV locked (FOV never changes for the player, only their movement speed changes!)
-    // In Minecraft client: FOV = (movement_speed / walkingSpeed + 1.0) / 2.0
-    // By keeping walkingSpeed dynamically matched to vanillaSpeedAttr, the FOV multiplier is locked to 1.0!
     try {
       const currentFlags = client._abilitiesFlags !== undefined ? client._abilitiesFlags : (client._isHub ? 0x01 : 0x00);
       client.write('abilities', {
@@ -189,39 +183,21 @@ export function syncPlayerAttributes(client: any, entityId: number, speedStat: n
     if (!targetIds.includes(99999)) targetIds.push(99999);
 
     for (const eid of targetIds) {
-      if (is119) {
-        client.write('entity_update_attributes', {
-          entityId: eid,
-          properties: [
-            {
-              name: 'minecraft:generic.movement_speed',
-              value: vanillaSpeedAttr,
-              modifiers: []
-            },
-            {
-              name: 'minecraft:generic.attack_speed',
-              value: 1024.0, // Removes 1.9+ attack cooldown delay
-              modifiers: []
-            }
-          ]
-        });
-      } else {
-        client.write('entity_update_attributes', {
-          entityId: eid,
-          properties: [
-            {
-              key: 'generic.movement_speed',
-              value: vanillaSpeedAttr,
-              modifiers: []
-            },
-            {
-              key: 'generic.attack_speed',
-              value: 1024.0,
-              modifiers: []
-            }
-          ]
-        });
-      }
+      client.write('entity_update_attributes', {
+        entityId: eid,
+        properties: [
+          {
+            key: 'generic.movement_speed',
+            value: vanillaSpeedAttr,
+            modifiers: []
+          },
+          {
+            key: 'generic.attack_speed',
+            value: 1024.0, // Removes 1.9+ attack cooldown delay
+            modifiers: []
+          }
+        ]
+      });
     }
   } catch (e) {}
 }

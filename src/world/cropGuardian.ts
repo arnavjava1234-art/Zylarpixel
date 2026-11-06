@@ -314,67 +314,30 @@ export function calculateFortuneMultiplier(fortune: number = 0): number {
 /**
  * Creates authentic Golden Sun player skull item with proper 4-integer array UUID
  */
-function createGoldenSunSkullItem(is119: boolean): any {
-  const itemId = is119 ? 998 : 1105; // player_head item ID
-  if (is119) {
-    return {
-      present: true,
-      itemId,
-      itemCount: 1,
-      nbtData: {
-        type: 'compound',
-        name: '',
-        value: {
-          SkullOwner: {
-            type: 'compound',
-            value: {
-              Id: { type: 'intArray', value: SUN_SKULL_INT_UUID },
-              Name: { type: 'string', value: 'SunGuardian' },
-              Properties: {
-                type: 'compound',
-                value: {
-                  textures: {
-                    type: 'list',
-                    value: {
-                      type: 'compound',
-                      value: [
-                        { Value: { type: 'string', value: SUN_SKULL_TEXTURE } }
-                      ]
-                    }
-                  }
-                }
-              }
+function createGoldenSunSkullItem(_is119?: boolean): any {
+  const itemId = mcData1211.itemsByName['player_head']?.id || 1185;
+  return {
+    itemCount: 1,
+    itemId,
+    addedComponentCount: 1,
+    removedComponentCount: 0,
+    components: [
+      {
+        type: 'profile',
+        data: {
+          name: 'SunGuardian',
+          properties: [
+            {
+              name: 'textures',
+              value: SUN_SKULL_TEXTURE,
+              signature: undefined
             }
-          }
+          ]
         }
       }
-    };
-  } else {
-    // 1.21.1 Profile Component
-    return {
-      itemCount: 1,
-      itemId,
-      addedComponentCount: 1,
-      removedComponentCount: 0,
-      components: [
-        {
-          type: 'profile',
-          data: {
-            name: 'SunGuardian',
-            id: SUN_SKULL_INT_UUID,
-            properties: [
-              {
-                name: 'textures',
-                value: SUN_SKULL_TEXTURE,
-                signature: undefined
-              }
-            ]
-          }
-        }
-      ],
-      removeComponents: []
-    };
-  }
+    ],
+    removeComponents: []
+  };
 }
 
 /**
@@ -382,13 +345,13 @@ function createGoldenSunSkullItem(is119: boolean): any {
  */
 export function spawnSingleProtector(
   client: any,
-  is119: boolean,
+  _is119: boolean,
   protector: CropProtector,
   toProtocolByte: (deg: number) => number
 ): void {
   try {
-    const armorStandType = is119 ? 2 : (mcData1211.entitiesByName['armor_stand']?.id || 2);
-    const headItem = createGoldenSunSkullItem(is119);
+    const armorStandType = 5; // armor_stand in 1.21.8
+    const headItem = createGoldenSunSkullItem();
 
     // 1. Invisible Small Marker Armor Stand
     client.write('spawn_entity', {
@@ -402,15 +365,17 @@ export function spawnSingleProtector(
       yaw: toProtocolByte(protector.yaw),
       headPitch: 0,
       objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
+      velocityX: 0,
+      velocityY: 0,
+      velocityZ: 0
     });
 
     // Metadata: 0x20 Invisible, 0x19 Small + Marker + NoBasePlate
     client.write('entity_metadata', {
       entityId: protector.id,
       metadata: [
-        { key: 0, type: 0, value: 0x20 },
-        { key: 15, type: 0, value: 0x19 }
+        { key: 0, type: 'byte', value: 0x20 },
+        { key: 15, type: 'byte', value: 0x19 }
       ]
     });
 

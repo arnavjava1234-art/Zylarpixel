@@ -6,50 +6,32 @@
 const Vec3: any = require('vec3');
 import { savePlayerIslandBlock } from '../storage/diskStorage';
 
-const Chunk1192 = require('prismarine-chunk')('1.19.2');
-const Chunk1211 = require('prismarine-chunk')('1.21.1');
-export const mcData1192 = require('minecraft-data')('1.19.2');
-export const mcData1211 = require('minecraft-data')('1.21.1');
+const Chunk1218 = require('prismarine-chunk')('1.21.8');
+export const mcData1218 = require('minecraft-data')('1.21.8');
+export const mcData = mcData1218;
+export const mcData1192 = mcData1218;
+export const mcData1211 = mcData1218;
 
-// 1. Pre-Baked Heightmaps for Y = 105 Surface
-const surfaceHeight = 175n; // y = 111 in 384-height world (-64..320)
-const heightmapLongs: bigint[] = [];
-let currentLong = 0n;
-let countInLong = 0;
-
-for (let i = 0; i < 256; i++) {
-  currentLong |= (surfaceHeight << BigInt(countInLong * 9));
-  countInLong++;
-  if (countInLong === 7 || i === 255) {
-    heightmapLongs.push(currentLong);
-    currentLong = 0n;
-    countInLong = 0;
-  }
-}
-
-const motionBlockingData = heightmapLongs.map(l => [Number(l >> 32n), Number(l & 0xFFFFFFFFn)]);
+// 1. Pre-Baked Heightmaps
 const heightmapNbt = {
   type: 'compound',
   name: '',
-  value: {
-    MOTION_BLOCKING: { type: 'longArray', value: motionBlockingData },
-    WORLD_SURFACE: { type: 'longArray', value: motionBlockingData }
-  }
+  value: {}
 };
 
-// 2. Multi-Version Chunk Storage
-const worldChunks119 = new Map<string, any>();
-const worldChunks121 = new Map<string, any>();
+// 2. High-Performance 1.21.8 Chunk Storage
+const worldChunks = new Map<string, any>();
+const chunkPacketCache = new Map<string, any>();
 
-// Memoized packet cache: 'cx,cz' -> map_chunk packet payload (0ms streaming!)
-const chunkPacketCache119 = new Map<string, any>();
-const chunkPacketCache121 = new Map<string, any>();
+// Backwards-compatible references
+const worldChunks119 = worldChunks;
+const worldChunks121 = worldChunks;
+const chunkPacketCache119 = chunkPacketCache;
+const chunkPacketCache121 = chunkPacketCache;
 
 export function clearWorldChunks(): void {
-  worldChunks119.clear();
-  worldChunks121.clear();
-  chunkPacketCache119.clear();
-  chunkPacketCache121.clear();
+  worldChunks.clear();
+  chunkPacketCache.clear();
 }
 
 export function clearIslandChunks(originX: number, originZ: number): void {
@@ -58,45 +40,35 @@ export function clearIslandChunks(originX: number, originZ: number): void {
   for (let cx = baseChunkX - 3; cx <= baseChunkX + 3; cx++) {
     for (let cz = baseChunkZ - 2; cz <= baseChunkZ + 4; cz++) {
       const key = `${cx},${cz}`;
-      worldChunks119.delete(key);
-      worldChunks121.delete(key);
-      chunkPacketCache119.delete(key);
-      chunkPacketCache121.delete(key);
+      worldChunks.delete(key);
+      chunkPacketCache.delete(key);
     }
   }
 }
 
-export function getOrCreateChunk(cx: number, cz: number, is119: boolean): any {
+export function getOrCreateChunk(cx: number, cz: number, _is119?: boolean): any {
   const key = `${cx},${cz}`;
-  const store = is119 ? worldChunks119 : worldChunks121;
-  if (!store.has(key)) {
-    const chunk = is119 ? new Chunk1192() : new Chunk1211();
-    store.set(key, chunk);
+  if (!worldChunks.has(key)) {
+    const chunk = new Chunk1218();
+    worldChunks.set(key, chunk);
   }
-  return store.get(key);
+  return worldChunks.get(key);
 }
 
 export function setWorldBlock(x: number, y: number, z: number, blockName: string, persist: boolean = false, username?: string): void {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache119.delete(key);
-  chunkPacketCache121.delete(key);
+  chunkPacketCache.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const block119 = mcData1192.blocksByName[blockName];
-  if (block119) {
-    const chunk = getOrCreateChunk(cx, cz, true);
-    chunk.setBlockStateId(pos, block119.defaultState);
-  }
-
-  const block121 = mcData1211.blocksByName[blockName];
-  if (block121) {
-    const chunk = getOrCreateChunk(cx, cz, false);
-    chunk.setBlockStateId(pos, block121.defaultState);
+  const block = mcData1218.blocksByName[blockName];
+  if (block) {
+    const chunk = getOrCreateChunk(cx, cz);
+    chunk.setBlockStateId(pos, block.defaultState);
   }
 
   if (persist && username) {
@@ -108,29 +80,25 @@ export function setWorldBlockStateId(x: number, y: number, z: number, stateId119
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache119.delete(key);
-  chunkPacketCache121.delete(key);
+  chunkPacketCache.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const chunk119 = getOrCreateChunk(cx, cz, true);
-  chunk119.setBlockStateId(pos, stateId119);
-
-  const chunk121 = getOrCreateChunk(cx, cz, false);
-  chunk121.setBlockStateId(pos, stateId121 || stateId119);
+  const targetState = stateId121 || stateId119;
+  const chunk = getOrCreateChunk(cx, cz);
+  chunk.setBlockStateId(pos, targetState);
 }
 
-export function getWorldBlockName(x: number, y: number, z: number, is119: boolean): string {
+export function getWorldBlockName(x: number, y: number, z: number, _is119?: boolean): string {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const key = `${cx},${cz}`;
-  const store = is119 ? worldChunks119 : worldChunks121;
-  if (!store.has(key)) return 'air';
-  const block = store.get(key).getBlock(new Vec3(rx, y, rz));
+  if (!worldChunks.has(key)) return 'air';
+  const block = worldChunks.get(key).getBlock(new Vec3(rx, y, rz));
   return block ? block.name : 'air';
 }
 
@@ -138,21 +106,15 @@ export function setWorldBlockLight(x: number, y: number, z: number, lightLevel: 
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache119.delete(key);
-  chunkPacketCache121.delete(key);
+  chunkPacketCache.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const chunk119 = getOrCreateChunk(cx, cz, true);
-  if (lightLevel > chunk119.getBlockLight(pos)) {
-    chunk119.setBlockLight(pos, lightLevel);
-  }
-
-  const chunk121 = getOrCreateChunk(cx, cz, false);
-  if (lightLevel > chunk121.getBlockLight(pos)) {
-    chunk121.setBlockLight(pos, lightLevel);
+  const chunk = getOrCreateChunk(cx, cz);
+  if (lightLevel > chunk.getBlockLight(pos)) {
+    chunk.setBlockLight(pos, lightLevel);
   }
 }
 
@@ -170,32 +132,22 @@ export function emitLightSource(lx: number, ly: number, lz: number, maxLevel: nu
   }
 }
 
-export function dumpChunkPacket(cx: number, cz: number, is119: boolean): any {
+export function dumpChunkPacket(cx: number, cz: number, _is119?: boolean): any {
   const key = `${cx},${cz}`;
-  const packetCache = is119 ? chunkPacketCache119 : chunkPacketCache121;
-  const cached = packetCache.get(key);
+  const cached = chunkPacketCache.get(key);
   if (cached) return cached;
 
-  const chunk = getOrCreateChunk(cx, cz, is119);
-  const packet = is119 ? {
+  const chunk = getOrCreateChunk(cx, cz);
+  const packet = {
     x: cx,
     z: cz,
-    heightmaps: heightmapNbt,
-    biomes: chunk.dumpBiomes(),
-    chunkData: chunk.dump(),
-    blockEntities: [],
-    trustEdges: true,
-    ...chunk.dumpLight()
-  } : {
-    x: cx,
-    z: cz,
-    heightmaps: heightmapNbt,
+    heightmaps: [],
     chunkData: chunk.dump(),
     blockEntities: [],
     ...chunk.dumpLight()
   };
 
-  packetCache.set(key, packet);
+  chunkPacketCache.set(key, packet);
   return packet;
 }
 

@@ -12,12 +12,13 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as net from 'net';
-import { mcData1192 } from './src/world/worldManager';
+import * as nbt from 'prismarine-nbt';
+import { mcData1218 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
 
 const Vec3 = require('vec3');
-const Chunk1192 = require('prismarine-chunk')('1.19.2');
+const Chunk1218 = require('prismarine-chunk')('1.21.8');
 
 const PROXY_PORT = 25565;
 const HUB_PORT = 25566;
@@ -47,11 +48,10 @@ const proxyServer = (mc as any).createServer({
   encryption: false,
   host: '0.0.0.0',
   port: PROXY_PORT,
-  version: false,
-  fallbackVersion: '1.19.2',
+  version: '1.21.8',
   maxPlayers: 100,
   motd: '§d§lZYLARPIXEL §7[Proxy Network] ⚡ Hypixel SkyBlock',
-  registryCodec: mcData1192.loginPacket.dimensionCodec
+  registryCodec: mcData1218.loginPacket.dimensionCodec
 } as any);
 
 // Limbo Void coordinates (deep space, zero chunk collisions, zero chunk streaming)
@@ -105,25 +105,43 @@ function broadcastGlobalProxyTablist(): void {
 
       try {
         observer.client.write('player_info', {
-          action: 'add_player',
+          action: {
+            add_player: true,
+            initialize_chat: false,
+            update_game_mode: true,
+            update_listed: true,
+            update_latency: true,
+            update_display_name: true,
+            update_hat: true,
+            update_list_order: false
+          },
           data: [{
             uuid: target.client.uuid,
-            name: target.username.substring(0, 16),
-            properties: [],
+            player: { name: target.username.substring(0, 16), properties: [] },
             gamemode: 0,
-            ping: 1,
-            displayName: JSON.stringify({ text: formatted }),
-            crypto: undefined
+            listed: 1,
+            latency: 1,
+            displayName: nbt.comp({ text: nbt.string(formatted) }),
+            showHat: true
           }]
         });
       } catch (_) {}
 
       try {
         observer.client.write('player_info', {
-          action: 'update_display_name',
+          action: {
+            add_player: false,
+            initialize_chat: false,
+            update_game_mode: false,
+            update_listed: false,
+            update_latency: false,
+            update_display_name: true,
+            update_hat: false,
+            update_list_order: false
+          },
           data: [{
             uuid: target.client.uuid,
-            displayName: JSON.stringify({ text: formatted })
+            displayName: nbt.comp({ text: nbt.string(formatted) })
           }]
         });
       } catch (_) {}
@@ -131,15 +149,14 @@ function broadcastGlobalProxyTablist(): void {
 
     // Purge any lingering dummy bots or NPC player entries from Tablist
     try {
-      observer.client.write('player_info', {
-        action: 'remove_player',
-        data: [
-          { uuid: generateOfflineUuid('Village_Alex') },
-          { uuid: generateOfflineUuid('Village_Kai') },
-          { uuid: generateOfflineUuid('Village_Sam') },
-          { uuid: generateOfflineUuid('Village_Leo') },
-          { uuid: generateOfflineUuid('Village_Mia') },
-          { uuid: '8b61a1a6-a2a2-4c10-9977-e1a3fc82e38f' } // Banker UUID
+      observer.client.write('player_remove', {
+        players: [
+          generateOfflineUuid('Village_Alex'),
+          generateOfflineUuid('Village_Kai'),
+          generateOfflineUuid('Village_Sam'),
+          generateOfflineUuid('Village_Leo'),
+          generateOfflineUuid('Village_Mia'),
+          '8b61a1a6-a2a2-4c10-9977-e1a3fc82e38f' // Banker UUID
         ]
       });
     } catch (_) {}
@@ -147,9 +164,9 @@ function broadcastGlobalProxyTablist(): void {
     try {
       const currentLoc = observer.isInLimbo ? '§dTemporary Limbo (Proxy Host)' : (observer.currentServer === 'hub' ? '§6Village Hub' : '§aPrivate Island');
       observer.client.write('playerlist_header', {
-        header: JSON.stringify({ text: '\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n' }),
-        footer: JSON.stringify({
-          text: `\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n`
+        header: nbt.comp({ text: nbt.string('\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n') }),
+        footer: nbt.comp({
+          text: nbt.string(`\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n`)
         })
       });
     } catch (_) {}
@@ -192,13 +209,16 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
     const limboChunkCoord = Math.floor(LIMBO_X / 16);
     session.client.write('update_view_position', { chunkX: limboChunkCoord, chunkZ: limboChunkCoord });
     session.client.write('position', {
+      teleportId: 99999,
       x: LIMBO_X,
       y: LIMBO_Y,
       z: LIMBO_Z,
+      dx: 0,
+      dy: 0,
+      dz: 0,
       yaw: 0,
       pitch: 0,
-      flags: 0x00,
-      teleportId: 99999
+      flags: {}
     });
 
     // 3. Invulnerable flying abilities in void
@@ -210,10 +230,10 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
 
     // 5. Notify player: clear title, subtitle, and informative chat
     session.client.write('set_title_text', {
-      text: JSON.stringify({ text: '§d§lZYLARPIXEL LIMBO' })
+      text: nbt.comp({ text: nbt.string('§d§lZYLARPIXEL LIMBO') })
     });
     session.client.write('set_title_subtitle', {
-      text: JSON.stringify({ text: '§eServer is restarting... Reconnecting soon!' })
+      text: nbt.comp({ text: nbt.string('§eServer is restarting... Reconnecting soon!') })
     });
     session.client.write('set_title_time', {
       fadeIn: 10,
@@ -222,10 +242,10 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
     });
 
     session.client.write('system_chat', {
-      content: JSON.stringify({
-        text: '\n§8-----------------------------------------------------\n§c§l[ZylarPixel Network] §eGame server is restarting for an update!\n§7You have been temporarily transferred to the §dProxy Limbo Host§7.\n§aHolding your connection safe... Reconnecting in a few seconds!\n§8-----------------------------------------------------\n'
+      content: nbt.comp({
+        text: nbt.string('\n§8-----------------------------------------------------\n§c§l[ZylarPixel Network] §eGame server is restarting for an update!\n§7You have been temporarily transferred to the §dProxy Limbo Host§7.\n§aHolding your connection safe... Reconnecting in a few seconds!\n§8-----------------------------------------------------\n')
       }),
-      isOverlay: false
+      isActionBar: false
     });
 
     session.client.write('named_sound_effect', {
@@ -271,8 +291,8 @@ function startLimboPoller(session: ProxySession) {
     try {
       const dots = '.'.repeat((attempts % 3) + 1);
       session.client.write('action_bar', {
-        text: JSON.stringify({
-          text: `§e⚡ Holding in Proxy Limbo... Checking ${targetServer === 'hub' ? 'Village Hub' : 'Private Island'}${dots}`
+        text: nbt.comp({
+          text: nbt.string(`§e⚡ Holding in Proxy Limbo... Checking ${targetServer === 'hub' ? 'Village Hub' : 'Private Island'}${dots}`)
         })
       });
     } catch (_) {}
@@ -288,8 +308,8 @@ function startLimboPoller(session: ProxySession) {
 
       try {
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: `§a✔ Backend server is back online! Reconnecting you now...` }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string(`§a✔ Backend server is back online! Reconnecting you now...`) }),
+          isActionBar: false
         });
       } catch (_) {}
 
@@ -345,7 +365,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
     host: '127.0.0.1',
     port: targetPort,
     username: session.username,
-    version: session.client.version || '1.19.2',
+    version: '1.21.8',
     auth: 'offline',
     checkTimeoutInterval: 120000
   });
@@ -414,26 +434,34 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
           // completely clears chunk cache BEFORE backend sends new chunks and position!
           try {
             session.client.write('respawn', {
-              dimension: 'minecraft:the_nether',
-              worldName: 'minecraft:the_nether',
-              hashedSeed: [0, 0],
-              gamemode: 0,
-              previousGamemode: 255,
-              isDebug: false,
-              isFlat: false,
-              copyMetadata: false,
-              death: undefined
+              worldState: {
+                dimension: 0,
+                name: 'minecraft:the_nether',
+                hashedSeed: [0, 0],
+                gamemode: 'survival',
+                previousGamemode: 255,
+                isDebug: false,
+                isFlat: false,
+                death: undefined,
+                portalCooldown: 0,
+                seaLevel: 63
+              },
+              copyMetadata: 0
             });
             session.client.write('respawn', {
-              dimension: 'minecraft:overworld',
-              worldName: 'minecraft:overworld',
-              hashedSeed: [0, 0],
-              gamemode: 0,
-              previousGamemode: 255,
-              isDebug: false,
-              isFlat: false,
-              copyMetadata: false,
-              death: undefined
+              worldState: {
+                dimension: 0,
+                name: 'minecraft:overworld',
+                hashedSeed: [0, 0],
+                gamemode: 'survival',
+                previousGamemode: 255,
+                isDebug: false,
+                isFlat: false,
+                death: undefined,
+                portalCooldown: 0,
+                seaLevel: 63
+              },
+              copyMetadata: 0
             });
             // Ensure client gamemode is immediately synced to Survival (0)
             session.client.write('game_state_change', {
@@ -451,25 +479,15 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
         if (wasInLimbo) {
           try {
             session.client.write('set_title_text', {
-              text: JSON.stringify({ text: '§a§lRECONNECTED!' })
+              text: nbt.comp({ text: nbt.string('§a§lRECONNECTED!') })
             });
             session.client.write('set_title_subtitle', {
-              text: JSON.stringify({ text: `§7Welcome back to ${target === 'hub' ? 'Village Hub' : 'Private Island'}` })
+              text: nbt.comp({ text: nbt.string(`§7Welcome back to ${target === 'hub' ? 'Village Hub' : 'Private Island'}`) })
             });
             session.client.write('set_title_time', {
               fadeIn: 5,
               stay: 40,
               fadeOut: 15
-            });
-            session.client.write('named_sound_effect', {
-              soundName: 'entity.player.levelup',
-              soundCategory: 0,
-              x: 0,
-              y: 70 * 8,
-              z: 0,
-              volume: 0.8,
-              pitch: 1.2,
-              seed: [0, 0]
             });
           } catch (_) {}
         }
@@ -481,12 +499,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
             try {
               const cleanCmd = cmdToExec.startsWith('/') ? cmdToExec.slice(1) : cmdToExec;
               backendClient.write('chat_command', {
-                command: cleanCmd,
-                timestamp: BigInt(Date.now()),
-                salt: 0n,
-                argumentSignatures: [],
-                signedPreview: false,
-                previousMessages: []
+                command: cleanCmd
               });
               log('INFO', `Dispatched pending command for ${session.username}: ${cleanCmd}`);
             } catch (cmdErr: any) {
@@ -504,12 +517,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
             try {
               const cleanCmd = cmdToExec.startsWith('/') ? cmdToExec.slice(1) : cmdToExec;
               backendClient.write('chat_command', {
-                command: cleanCmd,
-                timestamp: BigInt(Date.now()),
-                salt: 0n,
-                argumentSignatures: [],
-                signedPreview: false,
-                previousMessages: []
+                command: cleanCmd
               });
               log('INFO', `Dispatched pending command for ${session.username}: ${cleanCmd}`);
             } catch (cmdErr: any) {
@@ -556,21 +564,26 @@ proxyServer.on('playerJoin', (client: any) => {
     client.write('login', {
       entityId: 99999,
       isHardcore: false,
-      gameMode: 0,
-      previousGameMode: -1,
-      worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
-      dimensionCodec: mcData1192.loginPacket.dimensionCodec,
-      worldType: 'minecraft:overworld',
-      worldName: 'minecraft:overworld',
-      hashedSeed: [0, 0],
+      worldNames: ['minecraft:overworld'],
       maxPlayers: 100,
       viewDistance: 12,
       simulationDistance: 12,
       reducedDebugInfo: false,
       enableRespawnScreen: true,
-      isDebug: false,
-      isFlat: false,
-      death: undefined
+      doLimitedCrafting: false,
+      worldState: {
+        dimension: 0,
+        name: 'minecraft:overworld',
+        hashedSeed: [0, 0],
+        gamemode: 'survival',
+        previousGamemode: 255,
+        isDebug: false,
+        isFlat: false,
+        death: undefined,
+        portalCooldown: 0,
+        seaLevel: 63
+      },
+      enforcesSecureChat: false
     });
   } catch (err: any) {
     log('WARN', `Error sending proxy login packet:`, err.message);
@@ -580,8 +593,8 @@ proxyServer.on('playerJoin', (client: any) => {
   const handleProxyCommand = (rawText: string) => {
     if (session.isInLimbo) {
       session.client.write('system_chat', {
-        content: JSON.stringify({ text: '§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!' }),
-        isOverlay: false
+        content: nbt.comp({ text: nbt.string('§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!') }),
+        isActionBar: false
       });
       return true;
     }
@@ -593,8 +606,8 @@ proxyServer.on('playerJoin', (client: any) => {
     if (cmdBase === 'hub' || cmdBase === 'warphub' || cmdBase === 'spawn' || (cmdBase === 'warp' && cmdParts[1] === 'hub')) {
       if (session.currentServer !== 'hub') {
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: '§a[Proxy] Connecting you to the Hub Server...' }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string('§a[Proxy] Connecting you to the Hub Server...') }),
+          isActionBar: false
         });
         connectToBackend(session, 'hub');
         return true;
@@ -606,8 +619,8 @@ proxyServer.on('playerJoin', (client: any) => {
     if (cmdBase === 'is' || cmdBase === 'island') {
       if (session.currentServer !== 'islands') {
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: '§a[Proxy] Connecting you to your Private Island...' }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string('§a[Proxy] Connecting you to your Private Island...') }),
+          isActionBar: false
         });
         connectToBackend(session, 'islands');
         return true;
@@ -620,15 +633,15 @@ proxyServer.on('playerJoin', (client: any) => {
       const targetPlayer = cmdParts[1];
       if (!targetPlayer) {
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: '§eUsage: §f/visit <player>' }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string('§eUsage: §f/visit <player>') }),
+          isActionBar: false
         });
         return true;
       }
       if (session.currentServer !== 'islands') {
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: `§a[Proxy] Connecting you to the Islands Server to visit §f${targetPlayer}§a...` }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string(`§a[Proxy] Connecting you to the Islands Server to visit §f${targetPlayer}§a...`) }),
+          isActionBar: false
         });
         connectToBackend(session, 'islands', `/visit ${targetPlayer}`);
         return true;
@@ -669,8 +682,8 @@ proxyServer.on('playerJoin', (client: any) => {
       if (inPortalX && inPortalY && inPortalZ) {
         session.lastPortalWarp = now + 4000;
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: '§a[Portal] Warping you to the Village Hub...' }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string('§a[Portal] Warping you to the Village Hub...') }),
+          isActionBar: false
         });
         connectToBackend(session, 'hub');
       }
@@ -679,8 +692,8 @@ proxyServer.on('playerJoin', (client: any) => {
       if (inHubPortal) {
         session.lastPortalWarp = now + 4000;
         session.client.write('system_chat', {
-          content: JSON.stringify({ text: '§a[Portal] Warping you to your Private Island...' }),
-          isOverlay: false
+          content: nbt.comp({ text: nbt.string('§a[Portal] Warping you to your Private Island...') }),
+          isActionBar: false
         });
         connectToBackend(session, 'islands');
       }
@@ -691,13 +704,16 @@ proxyServer.on('playerJoin', (client: any) => {
     if (session.isInLimbo && packet && typeof packet.y === 'number' && packet.y < 100) {
       try {
         session.client.write('position', {
+          teleportId: Math.floor(Math.random() * 10000),
           x: LIMBO_X,
           y: LIMBO_Y,
           z: LIMBO_Z,
+          dx: 0,
+          dy: 0,
+          dz: 0,
           yaw: 0,
           pitch: 0,
-          flags: 0x00,
-          teleportId: Math.floor(Math.random() * 10000)
+          flags: {}
         });
       } catch (_) {}
     }
@@ -754,9 +770,8 @@ proxyServer.on('playerJoin', (client: any) => {
     for (const remaining of sessions.values()) {
       if (remaining.client && remaining.client.state === mc.states.PLAY) {
         try {
-          remaining.client.write('player_info', {
-            action: 'remove_player',
-            data: [{ uuid: client.uuid }]
+          remaining.client.write('player_remove', {
+            players: [client.uuid]
           });
         } catch (_) {}
       }

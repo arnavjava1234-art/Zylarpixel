@@ -132,234 +132,113 @@ export function hasLineOfSight(
  */
 export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
   try {
-    if (is119) {
-      // 1. Add Farm Merchant to PlayerInfo with Mojang Farmer skin
-      client.write('player_info', {
-        action: 'add_player',
-        data: [{
-          uuid: FARM_MERCHANT_UUID,
+    // 1.21.8 Player Info Update
+    client.write('player_info', {
+      action: {
+        add_player: true,
+        initialize_chat: false,
+        update_game_mode: true,
+        update_listed: true,
+        update_latency: true,
+        update_display_name: true,
+        update_hat: true,
+        update_list_order: false
+      },
+      data: [{
+        uuid: FARM_MERCHANT_UUID,
+        player: {
           name: 'FARM_MERCHANT',
           properties: [{
             name: 'textures',
             value: FARM_MERCHANT_SKIN_TEXTURE,
             signature: FARM_MERCHANT_SKIN_SIGNATURE
-          }],
-          gamemode: 2,
-          ping: 1,
-          displayName: JSON.stringify({ text: '§fFarm Merchant' }),
-          crypto: undefined
-        }]
-      });
+          }]
+        },
+        gamemode: 2,
+        listed: 0,
+        latency: 1,
+        displayName: nbt.comp({ text: nbt.string('§fFarm Merchant') }),
+        showHat: true
+      }]
+    });
 
-      // 2. Spawn Human Entity
-      client.write('named_entity_spawn', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        playerUUID: FARM_MERCHANT_UUID,
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y,
-        z: FARM_MERCHANT_POS.z,
-        yaw: toProtocolByte(FARM_MERCHANT_POS.yaw),
-        pitch: toProtocolByte(FARM_MERCHANT_POS.pitch)
-      });
+    // 2. Spawn Farm Merchant Entity (1.21.8 player type = 149)
+    client.write('spawn_entity', {
+      entityId: FARM_MERCHANT_ENTITY_ID,
+      objectUUID: FARM_MERCHANT_UUID,
+      type: 149,
+      x: FARM_MERCHANT_POS.x,
+      y: FARM_MERCHANT_POS.y,
+      z: FARM_MERCHANT_POS.z,
+      pitch: toProtocolByte(FARM_MERCHANT_POS.pitch),
+      yaw: toProtocolByte(FARM_MERCHANT_POS.yaw),
+      headPitch: toProtocolByte(FARM_MERCHANT_POS.pitch),
+      objectData: 0,
+      velocityX: 0,
+      velocityY: 0,
+      velocityZ: 0
+    });
 
-      // 3. Set Initial Head Rotation
-      client.write('entity_head_rotation', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        headYaw: toProtocolByte(FARM_MERCHANT_POS.yaw)
-      });
+    // 3. Set Initial Head Rotation
+    client.write('entity_head_rotation', {
+      entityId: FARM_MERCHANT_ENTITY_ID,
+      headYaw: toProtocolByte(FARM_MERCHANT_POS.yaw)
+    });
 
-      // 4. Entity Metadata: Show all skin layers (straw hat 3D brim, jacket, sleeves, pants = 127 / 0x7F)
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        metadata: [{ key: 17, type: 0, value: 127 }]
-      });
+    // 4. Entity Metadata: Show all skin layers
+    client.write('entity_metadata', {
+      entityId: FARM_MERCHANT_ENTITY_ID,
+      metadata: [{ key: 17, type: 'byte', value: 127 }]
+    });
 
-      // 5. Hide Vanilla Nametag & Health Indicator using Scoreboard Team (nameTagVisibility: 'never')
-      try { client.write('teams', { team: 'npc_farm_merch', mode: 1 }); } catch (_) {}
-      client.write('teams', {
-        team: 'npc_farm_merch',
-        mode: 0,
-        name: JSON.stringify({ text: 'npc_farm_merch' }),
-        friendlyFire: 0,
-        nameTagVisibility: 'never',
-        collisionRule: 'never',
-        formatting: 14,
-        prefix: JSON.stringify({ text: '' }),
-        suffix: JSON.stringify({ text: '' }),
-        players: ['FARM_MERCHANT']
-      });
+    // 5. Hide Vanilla Nametag & Health Indicator
+    try { client.write('teams', { team: 'npc_farm_merch', mode: 'remove' }); } catch (_) {}
+    client.write('teams', {
+      team: 'npc_farm_merch',
+      mode: 'add',
+      name: nbt.comp({ text: nbt.string('npc_farm_merch') }),
+      flags: { friendly_fire: true, see_friendly_invisible: true },
+      nameTagVisibility: 'never',
+      collisionRule: 'always',
+      formatting: 14,
+      prefix: nbt.comp({ text: nbt.string('') }),
+      suffix: nbt.comp({ text: nbt.string('') }),
+      players: ['FARM_MERCHANT']
+    });
 
-      // 6. Remove Farm Merchant from Tablist after 2 seconds
-      setTimeout(() => {
-        try {
-          client.write('player_info', {
-            action: 'remove_player',
-            data: [{ uuid: FARM_MERCHANT_UUID }]
-          });
-        } catch (_) {}
-      }, 2000);
+    // 6. Remove Farm Merchant from Tablist after 2 seconds
+    setTimeout(() => {
+      try {
+        client.write('player_remove', {
+          players: [FARM_MERCHANT_UUID]
+        });
+      } catch (_) {}
+    }, 2000);
 
-      // 7. Spawn Floating Hologram Line 1: §fFarm Merchant (Y + 2.05)
-      client.write('spawn_entity', {
-        entityId: FARM_MERCHANT_HOLO_TITLE_ID,
-        objectUUID: FARM_MERCHANT_HOLO_TITLE_UUID,
-        type: 2, // armor_stand in 1.19.2
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y + 2.05,
-        z: FARM_MERCHANT_POS.z,
-        pitch: 0,
-        yaw: 0,
-        headPitch: 0,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_HOLO_TITLE_ID,
-        metadata: [
-          { key: 0, type: 0, value: 0x20 }, // Invisible
-          { key: 2, type: 5, value: JSON.stringify({ text: '§fFarm Merchant' }) },
-          { key: 3, type: 7, value: true }, // CustomNameVisible
-          { key: 15, type: 0, value: 0x11 } // Small & Marker
-        ]
-      });
-
-      // 8. Spawn Floating Hologram Line 2: §e§lCLICK (Y + 1.75)
-      client.write('spawn_entity', {
-        entityId: FARM_MERCHANT_HOLO_CLICK_ID,
-        objectUUID: FARM_MERCHANT_HOLO_CLICK_UUID,
-        type: 2,
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y + 1.75,
-        z: FARM_MERCHANT_POS.z,
-        pitch: 0,
-        yaw: 0,
-        headPitch: 0,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_HOLO_CLICK_ID,
-        metadata: [
-          { key: 0, type: 0, value: 0x20 },
-          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lCLICK' }) },
-          { key: 3, type: 7, value: true },
-          { key: 15, type: 0, value: 0x11 }
-        ]
-      });
-    } else {
-      // 1.21.1 Player Info Update
-      client.write('player_info', {
-        action: 1 | 4 | 8 | 16,
-        data: [{
-          uuid: FARM_MERCHANT_UUID,
-          player: {
-            name: 'FARM_MERCHANT',
-            properties: [{
-              name: 'textures',
-              value: FARM_MERCHANT_SKIN_TEXTURE,
-              signature: FARM_MERCHANT_SKIN_SIGNATURE
-            }]
-          },
-          gamemode: 2,
-          listed: 0,
-          latency: 1,
-          displayName: JSON.stringify({ text: '§fFarm Merchant' })
-        }]
-      });
-
-      client.write('spawn_entity', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        objectUUID: FARM_MERCHANT_UUID,
-        type: 128, // player in 1.21.1
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y,
-        z: FARM_MERCHANT_POS.z,
-        pitch: toProtocolByte(FARM_MERCHANT_POS.pitch),
-        yaw: toProtocolByte(FARM_MERCHANT_POS.yaw),
-        headPitch: toProtocolByte(FARM_MERCHANT_POS.pitch),
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
-
-      client.write('entity_head_rotation', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        headYaw: toProtocolByte(FARM_MERCHANT_POS.yaw)
-      });
-
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        metadata: [{ key: 17, type: 0, value: 127 }]
-      });
-
-      try { client.write('teams', { team: 'npc_farm_merch', mode: 1 }); } catch (_) {}
-      client.write('teams', {
-        team: 'npc_farm_merch',
-        mode: 0,
-        name: nbt.comp({ text: nbt.string('npc_farm_merch') }),
-        friendlyFire: 0,
-        nameTagVisibility: 'never',
-        collisionRule: 'never',
-        formatting: 14,
-        prefix: nbt.comp({ text: nbt.string('') }),
-        suffix: nbt.comp({ text: nbt.string('') }),
-        players: ['FARM_MERCHANT']
-      });
-
-      setTimeout(() => {
-        try {
-          client.write('player_remove', {
-            players: [FARM_MERCHANT_UUID]
-          });
-        } catch (_) {}
-      }, 2000);
-
-      const armorStandType121 = mcData1211.entitiesByName['armor_stand']?.id || 2;
-      client.write('spawn_entity', {
-        entityId: FARM_MERCHANT_HOLO_TITLE_ID,
-        objectUUID: FARM_MERCHANT_HOLO_TITLE_UUID,
-        type: armorStandType121,
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y + 2.05,
-        z: FARM_MERCHANT_POS.z,
-        pitch: 0,
-        yaw: 0,
-        headPitch: 0,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_HOLO_TITLE_ID,
-        metadata: [
-          { key: 0, type: 0, value: 0x20 },
-          { key: 2, type: 5, value: JSON.stringify({ text: '§fFarm Merchant' }) },
-          { key: 3, type: 7, value: true },
-          { key: 15, type: 0, value: 0x11 }
-        ]
-      });
-
-      client.write('spawn_entity', {
-        entityId: FARM_MERCHANT_HOLO_CLICK_ID,
-        objectUUID: FARM_MERCHANT_HOLO_CLICK_UUID,
-        type: armorStandType121,
-        x: FARM_MERCHANT_POS.x,
-        y: FARM_MERCHANT_POS.y + 1.75,
-        z: FARM_MERCHANT_POS.z,
-        pitch: 0,
-        yaw: 0,
-        headPitch: 0,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
-      });
-      client.write('entity_metadata', {
-        entityId: FARM_MERCHANT_HOLO_CLICK_ID,
-        metadata: [
-          { key: 0, type: 0, value: 0x20 },
-          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lCLICK' }) },
-          { key: 3, type: 7, value: true },
-          { key: 15, type: 0, value: 0x11 }
-        ]
-      });
-    }
+    // 7. Modern 1.21.8 Text Display Hologram (Billboard Mode, 0 Hitbox, Crisp Rendering)
+    client.write('spawn_entity', {
+      entityId: FARM_MERCHANT_HOLO_TITLE_ID,
+      objectUUID: FARM_MERCHANT_HOLO_TITLE_UUID,
+      type: 126, // text_display in 1.21.8
+      x: FARM_MERCHANT_POS.x,
+      y: FARM_MERCHANT_POS.y + 2.15,
+      z: FARM_MERCHANT_POS.z,
+      pitch: 0,
+      yaw: 0,
+      headPitch: 0,
+      objectData: 0,
+      velocityX: 0,
+      velocityY: 0,
+      velocityZ: 0
+    });
+    client.write('entity_metadata', {
+      entityId: FARM_MERCHANT_HOLO_TITLE_ID,
+      metadata: [
+        { key: 23, type: 'byte', value: 3 }, // Center billboard mode
+        { key: 27, type: 'component', value: nbt.comp({ text: nbt.string('§fFarm Merchant\n§e§lCLICK') }) },
+        { key: 31, type: 'byte', value: 1 } // Shadow
+      ]
+    });
   } catch (_) {}
 }
 

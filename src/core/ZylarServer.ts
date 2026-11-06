@@ -11,8 +11,7 @@ import * as crypto from 'crypto';
 import * as nbt from 'prismarine-nbt';
 
 import {
-  mcData1192,
-  mcData1211,
+  mcData1218,
   setWorldBlock,
   getWorldBlockName,
   dumpChunkPacket,
@@ -129,6 +128,12 @@ import {
   ADMIN_ITEM_SPAWNER_WINDOW_ID
 } from '../gui/adminItemMenu';
 import { tagVanillaItemStack, formatSlotForClient, isSkyBlockItemStack, handleItemAbility, createItem, applySpeedBoost } from '../items';
+import {
+  initMobManager,
+  sendMobsToPlayer,
+  handleMobAttack,
+  destroyAllMobsFromClient
+} from '../entities/mobManager';
 
 const Vec3 = require('vec3');
 
@@ -211,6 +216,10 @@ export class ZylarServer {
     }
   }
 
+  public getPlayers(): Map<any, any> {
+    return players;
+  }
+
   private toProtocolByte(deg: number): number {
     let b = Math.floor((deg || 0) * 256 / 360) % 256;
     if (b < 0) b += 256;
@@ -218,29 +227,19 @@ export class ZylarServer {
     return b;
   }
 
-  private sendPositionPacket(client: any, x: number, y: number, z: number, yaw: number, pitch: number, teleportId: number, is119: boolean): void {
-    if (is119) {
-      client.write('position', {
-        x,
-        y,
-        z,
-        yaw,
-        pitch,
-        flags: 0x00,
-        teleportId,
-        dismountVehicle: false
-      });
-    } else {
-      client.write('player_position', {
-        teleportId,
-        x,
-        y,
-        z,
-        yaw,
-        pitch,
-        flags: 0x00
-      });
-    }
+  private sendPositionPacket(client: any, x: number, y: number, z: number, yaw: number, pitch: number, teleportId: number, _is119?: boolean): void {
+    client.write('position', {
+      teleportId,
+      x,
+      y,
+      z,
+      dx: 0,
+      dy: 0,
+      dz: 0,
+      yaw,
+      pitch,
+      flags: {}
+    });
   }
 
   private getIslandOwnerForCoords(x: number, z: number, fallbackUser: string): string {
@@ -659,6 +658,7 @@ export class ZylarServer {
     if (this.config.worldType === 'hub') {
       this.log('INFO', '⚡ Loading Authentic Hypixel SkyBlock Hub Chunks from Region Files...');
       preWarmHubSpawn();
+      initMobManager(this);
     } else {
       generateStarterIslands();
     }
@@ -669,18 +669,16 @@ export class ZylarServer {
     // 3. Start Core Gameplay Loops
     this.initLoops();
 
-    // 4. Create Network Listener
-    const isHub = this.config.worldType === 'hub';
+    // 4. Create Network Listener (1.21.8)
     this.serverInstance = (mc as any).createServer({
       'online-mode': false,
       encryption: false,
       host: '0.0.0.0',
       port: this.config.port,
-      version: isHub ? '1.19.2' : false,
-      fallbackVersion: isHub ? '1.19.2' : '1.21.1',
+      version: '1.21.8',
       maxPlayers: 50,
       motd: this.config.motd || `§d§lZYLARPIXEL §7[${this.config.serverName}]`,
-      registryCodec: isHub ? mcData1192.loginPacket.dimensionCodec : mcData1211.loginPacket.dimensionCodec
+      registryCodec: mcData1218.loginPacket.dimensionCodec
     } as any);
 
     this.serverInstance.on('error', (err: any) => {
@@ -802,7 +800,7 @@ export class ZylarServer {
           for (let s = 36; s <= 43; s++) candidateSlots.push(s);
           for (let s = 9; s <= 35; s++) candidateSlots.push(s);
 
-          const pMcData = p.is119 ? mcData1192 : mcData1211;
+          const pMcData = mcData1218;
           const pItemDef = pMcData.itemsByName[item.name] || pMcData.blocksByName[item.name];
           const pItemId = pItemDef ? pItemDef.id : item.itemId;
           const maxStack = pItemDef?.stackSize || 64;
@@ -947,27 +945,22 @@ export class ZylarServer {
             item.count -= actuallyTaken;
             for (const [__, observer] of players) {
               if (!observer.client) continue;
-              const obsIs119 = observer.is119;
-              const obsMcData = obsIs119 ? mcData1192 : mcData1211;
-              const obsDef = obsMcData.itemsByName[item.name] || obsMcData.blocksByName[item.name];
+              const obsDef = mcData1218.itemsByName[item.name] || mcData1218.blocksByName[item.name];
               if (obsDef) {
                 try {
-                  const metaValue = obsIs119
-                    ? { present: true, itemId: obsDef.id, itemCount: item.count }
-                    : {
+                  observer.client.write('entity_metadata', {
+                    entityId,
+                    metadata: [{
+                      key: 8,
+                      type: 'item_stack',
+                      value: {
                         itemCount: item.count,
                         itemId: obsDef.id,
                         addedComponentCount: 0,
                         removedComponentCount: 0,
                         components: [],
                         removeComponents: []
-                      };
-                  observer.client.write('entity_metadata', {
-                    entityId,
-                    metadata: [{
-                      key: 8,
-                      type: obsIs119 ? 6 : 'item_stack',
-                      value: metaValue
+                      }
                     }]
                   });
                 } catch (_) {}
@@ -1018,11 +1011,9 @@ export class ZylarServer {
     velocity?: { x: number; y: number; z: number },
     pickupDelay?: number
   ): void {
-    const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
-    const itemDef121 = mcData1211.itemsByName[name] || mcData1211.blocksByName[name];
-    if (!itemDef119 && !itemDef121) return;
+    const itemDef = mcData1218.itemsByName[name] || mcData1218.blocksByName[name];
+    if (!itemDef) return;
 
-    const baseDef = itemDef119 || itemDef121;
     const itemEntityId = this.nextEntityId++;
     const spawnX = x + 0.5 + (Math.random() - 0.5) * 0.2;
     const spawnY = y + 0.2;
@@ -1030,7 +1021,7 @@ export class ZylarServer {
 
     this.droppedItems.set(itemEntityId, {
       entityId: itemEntityId,
-      itemId: baseDef.id,
+      itemId: itemDef.id,
       count,
       name,
       x: spawnX,
@@ -1047,15 +1038,12 @@ export class ZylarServer {
 
     for (const [_, p] of players) {
       if (!p.client) continue;
-      const is119 = p.is119;
-      const pItemDef = is119 ? (itemDef119 || itemDef121) : (itemDef121 || itemDef119);
-      if (!pItemDef) continue;
 
       try {
         p.client.write('spawn_entity', {
           entityId: itemEntityId,
           objectUUID: crypto.randomUUID(),
-          type: is119 ? 44 : 58,
+          type: 69, // item in 1.21.8
           x: spawnX,
           y: spawnY,
           z: spawnZ,
@@ -1063,30 +1051,24 @@ export class ZylarServer {
           yaw: 0,
           headPitch: 0,
           objectData: 1,
-          data: 1,
-          velocity: { x: velX, y: velY, z: velZ },
           velocityX: velX,
           velocityY: velY,
           velocityZ: velZ
         });
 
-        const metaValue = is119
-          ? { present: true, itemId: pItemDef.id, itemCount: count }
-          : {
-              itemCount: count,
-              itemId: pItemDef.id,
-              addedComponentCount: 0,
-              removedComponentCount: 0,
-              components: [],
-              removeComponents: []
-            };
-
         p.client.write('entity_metadata', {
           entityId: itemEntityId,
           metadata: [{
             key: 8,
-            type: is119 ? 6 : 'item_stack',
-            value: metaValue
+            type: 'item_stack',
+            value: {
+              itemCount: count,
+              itemId: itemDef.id,
+              addedComponentCount: 0,
+              removedComponentCount: 0,
+              components: [],
+              removeComponents: []
+            }
           }]
         });
       } catch (_) {}
@@ -1116,8 +1098,8 @@ export class ZylarServer {
   }
 
   private handlePlayerJoin(client: any): void {
-    const is119 = (client.protocolVersion === 760 || client.version === '1.19.2');
-    const verLabel = is119 ? '1.19.2 (Protocol 760)' : '1.21.1 (Protocol 767)';
+    const is119 = false;
+    const verLabel = '1.21.8 (Protocol 772)';
 
     this.log('INFO', `[+] Player joined ${this.config.serverName}: ${client.username} [${verLabel}]`);
 
@@ -1144,76 +1126,54 @@ export class ZylarServer {
     pData.pitch = spawnPitch;
     pData.currentWorld = this.config.worldType === 'hub' ? 'zylarpixel:hub' : 'zylarpixel:islands';
 
-    // 1. Handshake & Login Packet
-    if (is119) {
-      client.write('login', {
-        entityId: client.id,
-        isHardcore: false,
-        gameMode: this.config.gamemode,
-        previousGameMode: -1,
-        worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
-        dimensionCodec: mcData1192.loginPacket.dimensionCodec,
-        worldType: 'minecraft:overworld',
-        worldName: 'minecraft:overworld',
+    // 1. Handshake & Login Packet (1.21.8)
+    client.write('login', {
+      entityId: client.id,
+      isHardcore: false,
+      worldNames: ['minecraft:overworld'],
+      maxPlayers: 50,
+      viewDistance: 12,
+      simulationDistance: 12,
+      reducedDebugInfo: false,
+      enableRespawnScreen: true,
+      doLimitedCrafting: false,
+      worldState: {
+        dimension: 0,
+        name: 'minecraft:overworld',
         hashedSeed: [0, 0],
-        maxPlayers: 50,
-        viewDistance: 12,
-        simulationDistance: 12,
-        reducedDebugInfo: false,
-        enableRespawnScreen: true,
+        gamemode: this.config.gamemode === 0 ? 'survival' : (this.config.gamemode === 1 ? 'creative' : (this.config.gamemode === 2 ? 'adventure' : 'spectator')),
+        previousGamemode: 255,
         isDebug: false,
         isFlat: false,
-        death: undefined
-      });
-    } else {
-      client.write('login', {
-        entityId: client.id,
-        isHardcore: false,
-        dimensionNames: ['minecraft:overworld'],
-        maxPlayers: 50,
-        viewDistance: 12,
-        simulationDistance: 12,
-        reducedDebugInfo: false,
-        enableRespawnScreen: true,
-        doLimitedCrafting: false,
-        dimensionType: 'minecraft:overworld',
-        dimensionName: 'minecraft:overworld',
-        hashedSeed: [0, 0],
-        gameMode: this.config.gamemode,
-        previousGameMode: 255,
-        isDebug: false,
-        isFlat: false,
-        enforcesSecureChat: false
-      });
-    }
+        death: undefined,
+        portalCooldown: 0,
+        seaLevel: 63
+      },
+      enforcesSecureChat: false
+    });
 
-    // 1b. Add Player to Self Tablist
-    if (is119) {
-      client.write('player_info', {
-        action: 'add_player',
-        data: [{
-          uuid: client.uuid || generateOfflineUuid(pData.username),
-          name: client.username,
-          properties: [],
-          gamemode: this.config.gamemode,
-          ping: 1,
-          displayName: JSON.stringify({ text: `§8[§6${this.config.scoreboardLocation}§8] ${formatPlayerName(pData.rank, client.username)}` }),
-          crypto: undefined
-        }]
-      });
-    } else {
-      client.write('player_info', {
-        action: 1 | 4 | 8 | 16,
-        data: [{
-          uuid: client.uuid || generateOfflineUuid(pData.username),
-          player: { name: client.username, properties: [] },
-          gamemode: this.config.gamemode,
-          listed: 1,
-          latency: 1,
-          displayName: JSON.stringify({ text: `§8[§6${this.config.scoreboardLocation}§8] ${formatPlayerName(pData.rank, client.username)}` })
-        }]
-      });
-    }
+    // 1b. Add Player to Self Tablist (1.21.8)
+    client.write('player_info', {
+      action: {
+        add_player: true,
+        initialize_chat: false,
+        update_game_mode: true,
+        update_listed: true,
+        update_latency: true,
+        update_display_name: true,
+        update_hat: true,
+        update_list_order: false
+      },
+      data: [{
+        uuid: client.uuid || generateOfflineUuid(pData.username),
+        player: { name: client.username, properties: [] },
+        gamemode: this.config.gamemode,
+        listed: 1,
+        latency: 1,
+        displayName: nbt.comp({ text: nbt.string(`§8[§6${this.config.scoreboardLocation}§8] ${formatPlayerName(pData.rank, client.username)}`) }),
+        showHat: true
+      }]
+    });
 
     // 2. Abilities
     const initialAbilitiesFlags = (this.config.worldType === 'hub') ? 0x01 : (pData.isOp ? 0x07 : 0x00);
@@ -1356,22 +1316,22 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC & Farm Merchant NPC (if Hub) - Crop Guardians are dynamically spawned via proximity ticker
+    // 8. Server-Side Banker NPC, Farm Merchant NPC, and Mobs (if Hub)
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
       spawnFarmMerchantNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
+      sendMobsToPlayer(client);
     }
 
     // 8b. Active Dropped Items
     for (const [entityId, drop] of this.droppedItems) {
-      const pMcData = is119 ? mcData1192 : mcData1211;
-      const pItemDef = pMcData.itemsByName[drop.name] || pMcData.blocksByName[drop.name];
+      const pItemDef = mcData1218.itemsByName[drop.name] || mcData1218.blocksByName[drop.name];
       if (!pItemDef) continue;
       try {
         client.write('spawn_entity', {
           entityId,
           objectUUID: crypto.randomUUID(),
-          type: is119 ? 44 : 58,
+          type: 69, // item in 1.21.8
           x: drop.x,
           y: drop.y,
           z: drop.z,
@@ -1379,28 +1339,23 @@ export class ZylarServer {
           yaw: 0,
           headPitch: 0,
           objectData: 1,
-          data: 1,
-          velocity: { x: 0, y: 0, z: 0 },
           velocityX: 0,
           velocityY: 0,
           velocityZ: 0
         });
-        const metaVal = is119
-          ? { present: true, itemId: pItemDef.id, itemCount: drop.count }
-          : {
+        client.write('entity_metadata', {
+          entityId,
+          metadata: [{
+            key: 8,
+            type: 'item_stack',
+            value: {
               itemCount: drop.count,
               itemId: pItemDef.id,
               addedComponentCount: 0,
               removedComponentCount: 0,
               components: [],
               removeComponents: []
-            };
-        client.write('entity_metadata', {
-          entityId,
-          metadata: [{
-            key: 8,
-            type: is119 ? 6 : 'item_stack',
-            value: metaVal
+            }
           }]
         });
       } catch (_) {}
@@ -1842,7 +1797,7 @@ export class ZylarServer {
 
         // 2. Dropping item held on cursor outside window (clickedSlot === -999)
         if (clickedSlot === -999) {
-          const mcData = is119 ? mcData1192 : mcData1211;
+          const mcData = mcData1218;
           const cursor = data.cursorItem || data.item;
           if (cursor && (cursor.present || cursor.itemId)) {
             const itemDef = mcData.items[cursor.itemId];
@@ -1864,7 +1819,7 @@ export class ZylarServer {
         }
 
         if (Array.isArray(data.changedSlots)) {
-          const mcData = is119 ? mcData1192 : mcData1211;
+          const mcData = mcData1218;
           for (const change of data.changedSlots) {
             const slot = change.location;
             const item = change.item;
@@ -2145,7 +2100,7 @@ export class ZylarServer {
         const rx = ((x % 16) + 16) % 16;
         const rz = ((z % 16) + 16) % 16;
         const stateId = chunk ? chunk.getBlockStateId(new Vec3(rx, y, rz)) : 1;
-        const mcData = is119 ? mcData1192 : mcData1211;
+        const mcData = mcData1218;
         const blockName = mcData.blocksByStateId[stateId]?.name || '';
 
         // Check 5x5 Hub Wheat Minion Exclusion Zone (X: 45..49, Y: 70, Z: -139..-135)
@@ -2177,7 +2132,7 @@ export class ZylarServer {
         return;
       }
 
-      const mcData = is119 ? mcData1192 : mcData1211;
+      const mcData = mcData1218;
       const blockDef = mcData.blocksByName[currentBlock];
       const isInstantBreak = blockDef && (blockDef.hardness === 0 || blockDef.hardness === null);
 
@@ -2333,7 +2288,7 @@ export class ZylarServer {
       }
 
       const blockToPlace = ITEM_TO_BLOCK[held.name] || held.name;
-      const mcData = is119 ? mcData1192 : mcData1211;
+      const mcData = mcData1218;
       const blockDef = mcData.blocksByName[blockToPlace];
 
       // Non-placeable item (e.g. Swords, tools, items without a block)
@@ -2418,7 +2373,13 @@ export class ZylarServer {
 
       if (data.mouse !== 1) return; // 1 = Attack
 
-      // Peaceful Hub Safe Zone Check
+      // 3. Hub Graveyard & Crypt Mob Attack Check
+      if (this.config.worldType === 'hub') {
+        const mobHandled = handleMobAttack(pData, data.target, this);
+        if (mobHandled) return;
+      }
+
+      // Peaceful Hub Safe Zone Check (Player vs Player)
       if (!this.config.pvp || this.config.worldType === 'hub') {
         return;
       }

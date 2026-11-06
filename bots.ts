@@ -47,7 +47,7 @@ function createBotInstance(config: BotConfig) {
     host: '127.0.0.1',
     port: 25565,
     username: config.name,
-    version: '1.19.2',
+    version: '1.21.8',
     auth: 'offline',
     checkTimeoutInterval: 120000
   });
@@ -78,7 +78,7 @@ function createBotInstance(config: BotConfig) {
     if (config.target === 'hub') {
       try {
         bot.loadPlugin(pathfinder);
-        const mcData = minecraftData(bot.version || '1.19.2');
+        const mcData = minecraftData(bot.version || '1.21.8');
         const defaultMove = new Movements(bot, mcData);
         defaultMove.canDig = false;
         defaultMove.allow1by1towers = false;
