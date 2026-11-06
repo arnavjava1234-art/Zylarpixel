@@ -68,7 +68,7 @@ function launchBot(index) {
     });
 
     botClient.on('packet', (data, meta) => {
-      if (meta.name === 'level_chunk_with_light') {
+      if (meta.name === 'map_chunk' || meta.name === 'level_chunk_with_light') {
         chunksReceived++;
       } else if (meta.name === 'player_info') {
         tablistPackets++;
