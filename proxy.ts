@@ -400,8 +400,11 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
   backendClient.on('raw', (buffer: Buffer, meta: any) => {
     if (session.client.state !== mc.states.PLAY) return;
 
-    // Suppress login state packets (compress, success), duplicate server_data, and proxy internal channels
-    if (meta.state === 'login' || meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data') {
+    // Suppress non-play state packets (login, configuration, etc.), duplicate server_data, and proxy internal channels
+    if (meta.state !== mc.states.PLAY && meta.state !== 'play') {
+      return;
+    }
+    if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data') {
       return;
     }
     if (meta.name === 'custom_payload' && buffer.includes('zylarpixel:proxy')) {
