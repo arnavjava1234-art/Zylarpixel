@@ -374,12 +374,6 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
 export function openBankUpgradesMenu(client: any, pData: any): void {
   pData.openWindowId = BANK_UPGRADES_WINDOW_ID;
 
-  client.write('open_window', {
-    windowId: BANK_UPGRADES_WINDOW_ID,
-    inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Bank Account Upgrades' })
-  });
-
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
