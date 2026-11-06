@@ -255,42 +255,18 @@ export function createMerchantGuiItem(
 /**
  * Synchronizes player inventory inside the open 54-slot chest window (slots 54..89)
  */
-export function syncMerchantChestPlayerInventory(client: any, pData: any, is119: boolean = true): void {
+export function syncMerchantChestPlayerInventory(client: any, pData: any, is119: boolean = false): void {
   // Main inventory: slots 9..35 mapped to chest slots 54..80
   for (let s = 9; s < 36; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 9 + 54;
-    try {
-      client.write('set_slot', {
-        windowId: FARM_MERCHANT_WINDOW_ID,
-        stateId: 1,
-        slot: chestSlot,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, FARM_MERCHANT_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
   // Hotbar: slots 36..43 mapped to chest slots 81..88
   for (let s = 36; s < 44; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 36 + 81;
-    try {
-      client.write('set_slot', {
-        windowId: FARM_MERCHANT_WINDOW_ID,
-        stateId: 1,
-        slot: chestSlot,
-        item: item && item.count > 0 ? tagVanillaItemStack({
-          present: true,
-          itemId: item.itemId,
-          itemCount: item.count,
-          nbtData: item.nbtData
-        }, is119) : { present: false }
-      });
-    } catch (_) {}
+    sendSlot(client, FARM_MERCHANT_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
   }
 }
 
