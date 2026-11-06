@@ -413,7 +413,11 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
 
     // Intercept and suppress kick/disconnect packets from backend so player is NEVER kicked to multiplayer menu!
     if (meta.name === 'kick_disconnect' || meta.name === 'disconnect') {
-      log('INFO', `[Proxy] Intercepted backend ${target} disconnect/kick for ${session.username} - redirecting to Limbo!`);
+      let reasonText = '';
+      try {
+        reasonText = buffer.toString('utf8');
+      } catch (_) {}
+      log('INFO', `[Proxy] Intercepted backend ${target} disconnect/kick for ${session.username} - Reason: ${reasonText} - redirecting to Limbo!`);
       if (!session.isInLimbo) {
         enterLimbo(session, target);
       }
