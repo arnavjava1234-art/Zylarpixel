@@ -238,7 +238,7 @@ export class ZylarServer {
       dz: 0,
       yaw,
       pitch,
-      flags: {}
+      flags: { _value: 0 }
     });
   }
 
