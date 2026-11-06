@@ -310,9 +310,7 @@ export function spawnMobToClient(client: any, mob: ActiveMob): void {
       yaw: toProtocolByte(mob.yaw),
       headPitch: toProtocolByte(mob.pitch),
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
 
     // 2. Equipment (Weapons / Armor)
@@ -332,9 +330,7 @@ export function spawnMobToClient(client: any, mob: ActiveMob): void {
       yaw: 0,
       headPitch: 0,
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
 
     client.write('entity_metadata', {
