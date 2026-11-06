@@ -51,7 +51,7 @@ const proxyServer = (mc as any).createServer({
   version: '1.21.8',
   maxPlayers: 250,
   motd: '§d§lZYLARPIXEL §7[Proxy Network] ⚡ Hypixel SkyBlock',
-  registryCodec: mcData1218.loginPacket.dimensionCodec
+  registryCodec: sanitizedDimensionCodec1218
 } as any);
 
 // Limbo Void coordinates (deep space, zero chunk collisions, zero chunk streaming)
