@@ -95,70 +95,49 @@ function generateOfflineUuid(username: string): string {
 
 const SERVER_SIDE_HUB_BOTS: any[] = [];
 
+let tablistDebounceTimer: NodeJS.Timeout | null = null;
+function queueGlobalProxyTablist(): void {
+  if (tablistDebounceTimer) return;
+  tablistDebounceTimer = setTimeout(() => {
+    tablistDebounceTimer = null;
+    broadcastGlobalProxyTablist();
+  }, 120);
+}
+
 function broadcastGlobalProxyTablist(): void {
   const activeSessions = Array.from(sessions.values()).filter(s => s.client && s.client.state === mc.states.PLAY);
   if (activeSessions.length === 0) return;
 
+  const entries = activeSessions.map(target => {
+    const formatted = getNetworkDisplayName(target);
+    return {
+      uuid: target.client.uuid,
+      player: { name: target.username.substring(0, 16), properties: [] },
+      gamemode: 0,
+      listed: 1,
+      latency: 1,
+      displayName: nbt.comp({ text: nbt.string(formatted) }),
+      showHat: true
+    };
+  });
+
+  const tablistPacket = {
+    action: {
+      add_player: true,
+      initialize_chat: false,
+      update_game_mode: true,
+      update_listed: true,
+      update_latency: true,
+      update_display_name: true,
+      update_hat: true,
+      update_list_order: false
+    },
+    data: entries
+  };
+
   for (const observer of activeSessions) {
-    for (const target of activeSessions) {
-      const formatted = getNetworkDisplayName(target);
-
-      try {
-        observer.client.write('player_info', {
-          action: {
-            add_player: true,
-            initialize_chat: false,
-            update_game_mode: true,
-            update_listed: true,
-            update_latency: true,
-            update_display_name: true,
-            update_hat: true,
-            update_list_order: false
-          },
-          data: [{
-            uuid: target.client.uuid,
-            player: { name: target.username.substring(0, 16), properties: [] },
-            gamemode: 0,
-            listed: 1,
-            latency: 1,
-            displayName: nbt.comp({ text: nbt.string(formatted) }),
-            showHat: true
-          }]
-        });
-      } catch (_) {}
-
-      try {
-        observer.client.write('player_info', {
-          action: {
-            add_player: false,
-            initialize_chat: false,
-            update_game_mode: false,
-            update_listed: false,
-            update_latency: false,
-            update_display_name: true,
-            update_hat: false,
-            update_list_order: false
-          },
-          data: [{
-            uuid: target.client.uuid,
-            displayName: nbt.comp({ text: nbt.string(formatted) })
-          }]
-        });
-      } catch (_) {}
-    }
-
-    // Purge any lingering dummy bots or NPC player entries from Tablist
     try {
-      observer.client.write('player_remove', {
-        players: [
-          generateOfflineUuid('Village_Alex'),
-          generateOfflineUuid('Village_Kai'),
-          generateOfflineUuid('Village_Sam'),
-          generateOfflineUuid('Village_Leo'),
-          generateOfflineUuid('Village_Mia'),
-          '8b61a1a6-a2a2-4c10-9977-e1a3fc82e38f' // Banker UUID
-        ]
-      });
+      observer.client.write('player_info', tablistPacket);
     } catch (_) {}
 
     try {
@@ -166,7 +145,7 @@ function broadcastGlobalProxyTablist(): void {
       observer.client.write('playerlist_header', {
         header: nbt.comp({ text: nbt.string('\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n') }),
         footer: nbt.comp({
-          text: nbt.string(`\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n`)
+          text: nbt.string(`\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a250\n§eType §f/hub §eor §f/is §eto switch servers!\n`)
         })
       });
     } catch (_) {}
@@ -175,7 +154,7 @@ function broadcastGlobalProxyTablist(): void {
 
 setInterval(() => {
   broadcastGlobalProxyTablist();
-}, 2500);
+}, 3000);
 
 function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   if (session.isInLimbo) return;
