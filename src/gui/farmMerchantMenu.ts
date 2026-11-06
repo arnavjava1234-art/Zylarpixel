@@ -469,14 +469,7 @@ export function handleFarmMerchantClick(
           totalCropsSold += it.count;
           totalCoinsEarned += coins;
           pData.inventory.delete(s);
-          try {
-            client.write('set_slot', {
-              windowId: 0,
-              stateId: 1,
-              slot: s,
-              item: { present: false }
-            });
-          } catch (_) {}
+          sendSlot(client, 0, s, null);
         }
       }
 
