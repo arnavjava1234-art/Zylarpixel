@@ -716,7 +716,7 @@ proxyServer.on('playerJoin', (client: any) => {
           dz: 0,
           yaw: 0,
           pitch: 0,
-          flags: {}
+          flags: { _value: 0 }
         });
       } catch (_) {}
     }
