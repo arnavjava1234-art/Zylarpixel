@@ -291,7 +291,7 @@ export class ZylarServer {
         observerPData.client.write('spawn_entity', {
           entityId: targetPData.entityId,
           objectUUID: targetPData.client.uuid,
-          type: 128,
+          type: 149,
           x: targetPData.x,
           y: targetPData.y,
           z: targetPData.z,
@@ -299,7 +299,9 @@ export class ZylarServer {
           yaw: yawByte,
           headPitch: pitchByte,
           objectData: 0,
-          velocity: { x: 0, y: 0, z: 0 }
+          velocityX: 0,
+          velocityY: 0,
+          velocityZ: 0
         });
         observerPData.client.write('entity_metadata', {
           entityId: targetPData.entityId,
