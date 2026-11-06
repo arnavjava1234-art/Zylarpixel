@@ -101,19 +101,24 @@ function launchBot(index) {
 async function runSwarmTest() {
   console.log(`🚀 Launching Bot Fleet of ${BOT_COUNT} bots into ZylarPixel Proxy...`);
 
-  // Stagger launch: 1 bot every 60ms to prevent OS socket starvation
+  // Non-blocking staggered pipeline
+  const launchPromises = [];
   for (let i = 1; i <= BOT_COUNT; i++) {
-    const bot = await launchBot(i);
-    if (bot) bots.push(bot);
-    await sleep(60);
+    launchPromises.push(launchBot(i).then(bot => {
+      if (bot) bots.push(bot);
+      return bot;
+    }));
+    await sleep(75);
   }
+
+  await Promise.all(launchPromises);
 
   console.log(`\n✅ Fleet launch phase complete! Active bots: ${bots.length}/${BOT_COUNT}`);
   console.log(`🎯 Engaging multi-role workload across Hub and Islands...`);
 
   const startTime = Date.now();
   const testInterval = setInterval(() => {
-    // 1. Simulate warps for 10% of bots
+    // 1. Simulate warps for bots
     const warpIndex = Math.floor(Math.random() * bots.length);
     const targetBot = bots[warpIndex];
     if (targetBot && targetBot.state === 'play') {
@@ -124,13 +129,18 @@ async function runSwarmTest() {
       } catch (_) {}
     }
 
-    // 2. Simulate combat attack from combat bots (attack entity in range)
-    for (let j = 0; j < Math.min(5, bots.length); j++) {
+    // 2. Simulate combat attack from Graveyard combat bots
+    for (let j = 0; j < Math.min(6, bots.length); j++) {
       const combatBot = bots[j];
       if (combatBot && combatBot.state === 'play') {
         try {
-          // Send use_entity attack packet towards mob IDs (20000..20025)
-          const targetMobId = 20000 + (j % 20);
+          combatBot.write('position', {
+            x: -130 + (j * 2),
+            y: 70,
+            z: -90 + (j * 2),
+            onGround: true
+          });
+          const targetMobId = 20000 + (j % 12);
           combatBot.write('use_entity', {
             target: targetMobId,
             mouse: 1, // Attack
