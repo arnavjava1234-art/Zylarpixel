@@ -12,18 +12,47 @@ export const mcData = mcData1218;
 export const mcData1192 = mcData1218;
 export const mcData1211 = mcData1218;
 
-// 1.21.8 Registry Codec Sanitizer (Fixes Mojang Biome music WeightedList codec crash)
+// 1.21.8 Registry Codec Sanitizer (Fixes Mojang Biome music and Wolf Variant 1.21.8 codecs)
 export const sanitizedDimensionCodec1218 = (() => {
   const codec = JSON.parse(JSON.stringify(mcData1218.loginPacket.dimensionCodec));
+
+  // 1. Sanitize Biomes: Omit optional music tag to bypass Mojang 1.21.8 WeightedList validation
   const biomes = codec['minecraft:worldgen/biome']?.entries;
   if (Array.isArray(biomes)) {
     for (const entry of biomes) {
       const eff = entry?.value?.value?.effects?.value;
       if (eff && eff.music) {
-        delete eff.music; // Omit optional music tag to bypass Mojang 1.21.8 WeightedList validation
+        delete eff.music;
       }
     }
   }
+
+  // 2. Sanitize Wolf Variants: Wrap flat textures into 1.21.8 assets compound { wild, tame, angry }
+  const wolves = codec['minecraft:wolf_variant']?.entries;
+  if (Array.isArray(wolves)) {
+    for (const entry of wolves) {
+      const val = entry?.value?.value;
+      if (val && val.wild_texture && !val.assets) {
+        const wild = val.wild_texture.value;
+        const tame = val.tame_texture ? val.tame_texture.value : wild;
+        const angry = val.angry_texture ? val.angry_texture.value : wild;
+        entry.value = {
+          type: 'compound',
+          value: {
+            assets: {
+              type: 'compound',
+              value: {
+                wild: { type: 'string', value: wild },
+                tame: { type: 'string', value: tame },
+                angry: { type: 'string', value: angry }
+              }
+            }
+          }
+        };
+      }
+    }
+  }
+
   return codec;
 })();
 
