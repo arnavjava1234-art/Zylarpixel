@@ -1,0 +1,39 @@
+{
+  "username": "Swarm_038",
+  "uuid": "86271726-3d65-35f2-8ed3-18fc9700fa2a",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Swarm_038",
+    "originX": 118000,
+    "originZ": 0,
+    "spawnX": 118000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-06T11:10:48.159Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1793963448159
+}
