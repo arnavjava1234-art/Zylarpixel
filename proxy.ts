@@ -733,7 +733,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Default initial server: Hub
   connectToBackend(session, 'hub');
-  setTimeout(() => broadcastGlobalProxyTablist(), 800);
+  setTimeout(() => queueGlobalProxyTablist(), 250);
 
   client.on('end', () => {
     log('INFO', `[-] Player disconnected from Proxy: ${username}`);
@@ -762,7 +762,7 @@ proxyServer.on('playerJoin', (client: any) => {
         } catch (_) {}
       }
     }
-    broadcastGlobalProxyTablist();
+    queueGlobalProxyTablist();
   });
 
   client.on('error', (err: any) => {
