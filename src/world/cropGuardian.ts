@@ -365,9 +365,7 @@ export function spawnSingleProtector(
       yaw: toProtocolByte(protector.yaw),
       headPitch: 0,
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
 
     // Metadata: 0x20 Invisible, 0x19 Small + Marker + NoBasePlate
