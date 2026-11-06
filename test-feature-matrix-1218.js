@@ -180,7 +180,7 @@ async function runFeatureSuite() {
 
   // Test 6: Combat against Mob #20000
   console.log('\n⚔️ Testing Combat vs Mob #20000 (Graveyard Zombie)...');
-  client.write('position', { x: -130, y: 70, z: -90, onGround: true });
+  client.write('position', { x: -130, y: 70, z: -90, flags: { _value: 1 } });
   await sleep(200);
   client.write('use_entity', {
     target: 20000,
