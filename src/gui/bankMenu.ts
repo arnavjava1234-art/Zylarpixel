@@ -228,15 +228,8 @@ export function openBankMainMenu(client: any, pData: any): void {
 
   pData.currentGuiItems = items;
 
-  // 3. Write items to window
-  try {
-    client.write('window_items', {
-      windowId: BANK_MAIN_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  // 2. Open window and write items via 1.21.8 Data Components
+  sendWindow(client, BANK_MAIN_WINDOW_ID, 3, '§8Personal Bank Account', items);
 }
 
 // ==========================================
