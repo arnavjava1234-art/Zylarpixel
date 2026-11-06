@@ -1634,8 +1634,12 @@ export class ZylarServer {
                 x: data.x,
                 y: data.y,
                 z: data.z,
-                yaw: yawByte,
-                pitch: pitchByte,
+                dx: 0,
+                dy: 0,
+                dz: 0,
+                yaw: pData.yaw,
+                pitch: pData.pitch,
+                flags: { _value: 0 },
                 onGround: true
               });
             }
