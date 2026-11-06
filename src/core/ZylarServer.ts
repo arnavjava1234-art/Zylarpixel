@@ -654,7 +654,6 @@ export class ZylarServer {
     if (this.config.worldType === 'hub') {
       this.log('INFO', '⚡ Loading Authentic Hypixel SkyBlock Hub Chunks from Region Files...');
       preWarmHubSpawn();
-      initMobManager(this);
     } else {
       generateStarterIslands();
     }
