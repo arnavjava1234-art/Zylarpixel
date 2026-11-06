@@ -49,7 +49,7 @@ const proxyServer = (mc as any).createServer({
   host: '0.0.0.0',
   port: PROXY_PORT,
   version: '1.21.8',
-  maxPlayers: 100,
+  maxPlayers: 250,
   motd: '§d§lZYLARPIXEL §7[Proxy Network] ⚡ Hypixel SkyBlock',
   registryCodec: mcData1218.loginPacket.dimensionCodec
 } as any);
