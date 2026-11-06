@@ -4,6 +4,8 @@
  */
 
 const Vec3: any = require('vec3');
+import * as fs from 'fs';
+import * as path from 'path';
 import { savePlayerIslandBlock } from '../storage/diskStorage';
 
 const Chunk1218 = require('prismarine-chunk')('1.21.8');
@@ -12,7 +14,35 @@ export const mcData = mcData1218;
 export const mcData1192 = mcData1218;
 export const mcData1211 = mcData1218;
 
-// 1.21.8 Registry Codec Sanitizer (Fixes Mojang Biome music and Wolf Variant 1.21.8 codecs)
+function jsonToNbtCompound(val: any): any {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'string') return { type: 'string', value: val };
+  if (typeof val === 'number') return Number.isInteger(val) ? { type: 'int', value: val } : { type: 'float', value: val };
+  if (typeof val === 'boolean') return { type: 'byte', value: val ? 1 : 0 };
+  if (Array.isArray(val)) {
+    if (val.length === 0) return { type: 'list', value: { type: 'end', value: [] } };
+    const converted = val.map(jsonToNbtCompound);
+    const childType = converted[0].type;
+    return {
+      type: 'list',
+      value: {
+        type: childType,
+        value: converted.map((c: any) => c.value)
+      }
+    };
+  }
+  if (typeof val === 'object') {
+    const res: any = {};
+    for (const k of Object.keys(val)) {
+      const child = jsonToNbtCompound(val[k]);
+      if (child !== null) res[k] = child;
+    }
+    return { type: 'compound', value: res };
+  }
+  return null;
+}
+
+// 1.21.8 Registry Codec Sanitizer (Complete 21-Registry Mojang 1.21.8 Synchronized Suite)
 export const sanitizedDimensionCodec1218 = (() => {
   const codec = JSON.parse(JSON.stringify(mcData1218.loginPacket.dimensionCodec));
 
@@ -51,6 +81,28 @@ export const sanitizedDimensionCodec1218 = (() => {
         };
       }
     }
+  }
+
+  // 3. Inject all 9 additional 1.21.8 synchronized registries (wolf_sound_variant, cat, frog, chicken, cow, pig, dialog, test)
+  try {
+    const addFile = path.join(__dirname, 'additionalRegistries1218.json');
+    if (fs.existsSync(addFile)) {
+      const addData = JSON.parse(fs.readFileSync(addFile, 'utf8'));
+      for (const regName of Object.keys(addData)) {
+        const rawEntries = addData[regName];
+        if (Array.isArray(rawEntries)) {
+          codec[regName] = {
+            id: regName,
+            entries: rawEntries.map((e: any) => ({
+              key: e.key,
+              value: jsonToNbtCompound(JSON.parse(e.jsonText))
+            }))
+          };
+        }
+      }
+    }
+  } catch (err: any) {
+    console.error('Failed to load additional 1.21.8 registries:', err?.message || err);
   }
 
   return codec;
