@@ -138,7 +138,7 @@ async function runSwarmTest() {
             x: -130 + (j * 2),
             y: 70,
             z: -90 + (j * 2),
-            onGround: true
+            flags: { _value: 1 }
           });
           const targetMobId = 20000 + (j % 12);
           combatBot.write('use_entity', {
