@@ -504,8 +504,12 @@ export class ZylarServer {
               x: bot.pos.x,
               y: bot.pos.y,
               z: bot.pos.z,
-              yaw: this.toProtocolByte(bot.pos.yaw),
-              pitch: this.toProtocolByte(bot.pos.pitch),
+              dx: 0,
+              dy: 0,
+              dz: 0,
+              yaw: bot.pos.yaw,
+              pitch: bot.pos.pitch,
+              flags: { _value: 0 },
               onGround: true
             });
             p.client.write('entity_head_rotation', {
