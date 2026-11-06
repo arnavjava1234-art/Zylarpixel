@@ -241,12 +241,6 @@ export function openBankDepositMenu(client: any, pData: any): void {
   if (typeof pData.bank !== 'number') pData.bank = 0;
   if (typeof pData.purse !== 'number') pData.purse = 0;
 
-  client.write('open_window', {
-    windowId: BANK_DEPOSIT_WINDOW_ID,
-    inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Bank Deposit' })
-  });
-
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
