@@ -129,14 +129,10 @@ export function openAdminItemSpawner(
     slotItemMap
   };
 
-  try {
-    client.write('window_items', {
-      windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  const title = totalPages > 1
+    ? `§8Item Spawner (${currentPage + 1}/${totalPages})`
+    : '§8Item & Combat Spawner';
+  sendWindow(client, ADMIN_ITEM_SPAWNER_WINDOW_ID, 5, title, items);
 }
 
 export function handleAdminItemSpawnerClick(
