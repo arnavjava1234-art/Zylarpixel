@@ -229,9 +229,7 @@ export function spawnBankerNpc(client: any, is119: boolean, toProtocolByte: (deg
       yaw: 0,
       headPitch: 0,
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
     client.write('entity_metadata', {
       entityId: BANKER_HOLO_TITLE_ID,
