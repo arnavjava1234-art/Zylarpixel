@@ -4,12 +4,15 @@
  */
 
 import { mcData1192 } from '../world/worldManager';
+import { formatSlotForClient } from '../items';
+import { sendWindow } from './guiHelper';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
+  if (!itemName || count <= 0) return { itemCount: 0 };
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
 
-  return {
+  return formatSlotForClient({
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -32,7 +35,7 @@ export function createGuiItem(itemName: string, count: number, displayName: stri
         }
       }
     }
-  };
+  }, false);
 }
 
 export function createAdminBaseSlots(totalSlots: number = 54): any[] {
