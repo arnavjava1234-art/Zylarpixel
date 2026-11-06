@@ -6,15 +6,10 @@
 import { createGuiItem, createAdminBaseSlots } from './adminMenu';
 import { createPlayerSkullItem } from '../storage/skinService';
 import { formatPlayerName } from '../config/ranks';
+import { sendWindow } from './guiHelper';
 
 export function openPlayerSelector(client: any, pData: any, playersMap: Map<number, any>): void {
   pData.openWindowId = 3;
-
-  client.write('open_window', {
-    windowId: 3,
-    inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8Select Player to Change Rank' })
-  });
 
   const items = createAdminBaseSlots(54);
 
