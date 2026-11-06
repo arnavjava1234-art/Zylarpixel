@@ -568,7 +568,7 @@ proxyServer.on('playerJoin', (client: any) => {
       entityId: 99999,
       isHardcore: false,
       worldNames: ['minecraft:overworld'],
-      maxPlayers: 100,
+      maxPlayers: 250,
       viewDistance: 12,
       simulationDistance: 12,
       reducedDebugInfo: false,
