@@ -469,7 +469,7 @@ export function handleCraftingTableClick(
         windowId: -1,
         stateId: data.stateId,
         slot: -1,
-        item: { present: false }
+        item: makeEmptySlot()
       });
     } catch (_) {}
     return;
@@ -493,7 +493,7 @@ export function handleCraftingTableClick(
         windowId: -1,
         stateId: data.stateId,
         slot: -1,
-        item: data.cursorItem || data.carriedItem || { present: false }
+        item: data.cursorItem || data.carriedItem ? formatSlotForClient(data.cursorItem || data.carriedItem, false) : makeEmptySlot()
       });
     } catch (_) {}
     return;
@@ -516,7 +516,7 @@ export function handleCraftingTableClick(
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: { present: false }
+          item: makeEmptySlot()
         });
       } catch (_) {}
       return;
@@ -554,7 +554,7 @@ export function handleCraftingTableClick(
             windowId: -1,
             stateId: data.stateId,
             slot: -1,
-            item: { present: false }
+            item: makeEmptySlot()
           });
         } catch (_) {}
         return;
