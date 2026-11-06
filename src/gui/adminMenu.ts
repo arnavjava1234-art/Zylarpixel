@@ -57,14 +57,7 @@ export function createAdminBaseSlots(totalSlots: number = 54): any[] {
 export function openAdminMenu(client: any, pData: any): void {
   pData.openWindowId = 1;
 
-  // 1. Open 54-slot chest window
-  client.write('open_window', {
-    windowId: 1,
-    inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8ZylarPixel Admin Control Panel' })
-  });
-
-  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  // Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
   const items = createAdminBaseSlots(54);
 
   // Slot 8: Server Restart Tool (Redstone Block, Top-Right Corner)
