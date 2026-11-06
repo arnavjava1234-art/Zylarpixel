@@ -50,14 +50,7 @@ export function createGuiItem(
 export function openStatsMenu(client: any, pData: PlayerSession): void {
   pData.openWindowId = 5; // Window ID 5 = Stats Menu
 
-  // 1. Open 54-slot generic chest (inventoryType 5 = 9x6)
-  client.write('open_window', {
-    windowId: 5,
-    inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8Your SkyBlock Stats' })
-  });
-
-  // 2. Fill background with dark gray glass panes (premium dark theme)
+  // Fill background with dark gray glass panes (premium dark theme)
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§7', [])
   );
