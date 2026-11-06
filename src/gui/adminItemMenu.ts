@@ -40,16 +40,6 @@ export function openAdminItemSpawner(
   const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
   const currentPage = Math.max(0, Math.min(page, totalPages - 1));
 
-  client.write('open_window', {
-    windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
-    inventoryType: 5, // generic_9x6 (54 slots)
-    windowTitle: JSON.stringify({
-      text: totalPages > 1
-        ? `§8Item Spawner (${currentPage + 1}/${totalPages})`
-        : '§8Item & Combat Spawner'
-    })
-  });
-
   // 1. Fill slots: Outer border = Black Stained Glass, Inner = Gray Stained Glass
   const items = createAdminBaseSlots(54);
 
