@@ -225,13 +225,6 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
     ['§7Click to close this stats menu.']
   );
 
-  // 3. Send window items to client
-  client.write('window_items', {
-    windowId: 5,
-    stateId: 1,
-    items,
-    carriedItem: { present: false }
-  });
-
   (pData as any).currentGuiItems = items;
+  sendWindow(client, 5, 5, '§8Your SkyBlock Stats', items);
 }
