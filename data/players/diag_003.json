@@ -1,0 +1,39 @@
+{
+  "username": "Diag_003",
+  "uuid": "c1eee4d6-9038-33d4-8d4c-bf6d04ea576d",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Diag_003",
+    "originX": 103000,
+    "originZ": 0,
+    "spawnX": 103000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-06T10:58:13.707Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1793962693707
+}
