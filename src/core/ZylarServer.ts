@@ -1308,11 +1308,10 @@ export class ZylarServer {
       } catch (_) {}
     }
 
-    // 8. Server-Side Banker NPC, Farm Merchant NPC, and Mobs (if Hub)
+    // 8. Server-Side Banker NPC & Farm Merchant NPC (if Hub)
     if (this.config.worldType === 'hub') {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
       spawnFarmMerchantNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
-      sendMobsToPlayer(client);
     }
 
     // 8b. Active Dropped Items
