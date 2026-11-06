@@ -498,15 +498,7 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
   items[31] = createGuiItem('arrow', 1, '§aGo Back', ['§7To Personal Bank Account']);
 
   pData.currentGuiItems = items;
-
-  try {
-    client.write('window_items', {
-      windowId: BANK_UPGRADES_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  sendWindow(client, BANK_UPGRADES_WINDOW_ID, 3, '§8Bank Account Upgrades', items);
 }
 
 // ==========================================
