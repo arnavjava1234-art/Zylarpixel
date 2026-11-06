@@ -12,7 +12,7 @@ export const mcData = mcData1218;
 export const mcData1192 = mcData1218;
 export const mcData1211 = mcData1218;
 
-// 1.21.8 Registry Codec Sanitizer (Fixes Mojang 'Not a list' Biome music crash)
+// 1.21.8 Registry Codec Sanitizer (Fixes Mojang Biome music WeightedList codec crash)
 export const sanitizedDimensionCodec1218 = (() => {
   const codec = JSON.parse(JSON.stringify(mcData1218.loginPacket.dimensionCodec));
   const biomes = codec['minecraft:worldgen/biome']?.entries;
@@ -20,15 +20,7 @@ export const sanitizedDimensionCodec1218 = (() => {
     for (const entry of biomes) {
       const eff = entry?.value?.value?.effects?.value;
       if (eff && eff.music) {
-        if (eff.music.type === 'compound') {
-          eff.music = {
-            type: 'list',
-            value: {
-              type: 'compound',
-              value: [eff.music.value]
-            }
-          };
-        }
+        delete eff.music; // Omit optional music tag to bypass Mojang 1.21.8 WeightedList validation
       }
     }
   }
