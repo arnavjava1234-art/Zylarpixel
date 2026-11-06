@@ -2454,9 +2454,7 @@ export class ZylarServer {
       try {
         targetClient.write('entity_velocity', {
           entityId: targetEntityId,
-          velocityX: vx,
-          velocityY: vy,
-          velocityZ: vz
+          velocity: { x: vx, y: vy, z: vz }
         });
       } catch (_) {}
 
@@ -2465,9 +2463,7 @@ export class ZylarServer {
           try {
             p.client.write('entity_velocity', {
               entityId: targetEntityId,
-              velocityX: vx,
-              velocityY: vy,
-              velocityZ: vz
+              velocity: { x: vx, y: vy, z: vz }
             });
           } catch (_) {}
         }
