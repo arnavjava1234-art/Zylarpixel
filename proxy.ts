@@ -242,7 +242,7 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   }
 
   startLimboPoller(session);
-  broadcastGlobalProxyTablist();
+  queueGlobalProxyTablist();
 }
 
 function startLimboPoller(session: ProxySession) {
