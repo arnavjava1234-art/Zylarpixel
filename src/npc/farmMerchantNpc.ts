@@ -204,14 +204,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
       players: ['FARM_MERCHANT']
     });
 
-    // 6. Remove Farm Merchant from Tablist after 2 seconds
-    setTimeout(() => {
-      try {
-        client.write('player_remove', {
-          players: [FARM_MERCHANT_UUID]
-        });
-      } catch (_) {}
-    }, 2000);
+    // 6. Note: Modern 1.21.8 keeps player profile cached with listed: 0 so custom skin renders permanently
 
     // 7. Modern 1.21.8 Text Display Hologram (Billboard Mode, 0 Hitbox, Crisp Rendering)
     client.write('spawn_entity', {
