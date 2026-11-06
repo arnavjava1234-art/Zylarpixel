@@ -18,6 +18,7 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { sendWindow } from './guiHelper';
 
 export const BANK_MAIN_WINDOW_ID = 7;
 export const BANK_DEPOSIT_WINDOW_ID = 8;
