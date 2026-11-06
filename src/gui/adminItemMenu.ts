@@ -211,7 +211,7 @@ export function handleAdminItemSpawnerClick(
         windowId: 0,
         stateId: 1,
         slot: targetSlot,
-        item: itemStack
+        item: formatSlotForClient(itemStack, false)
       });
       client.write('named_sound_effect', {
         soundName: 'entity.item.pickup',
