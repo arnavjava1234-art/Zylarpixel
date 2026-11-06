@@ -35,14 +35,7 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
 
   const title = `§8Rank: ${target.username}`;
 
-  // 1. Open 54-slot chest window
-  client.write('open_window', {
-    windowId: 2,
-    inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: title })
-  });
-
-  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  // Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
   const items = createAdminBaseSlots(54);
 
   // Populate Staff & Player Ranks
