@@ -1749,7 +1749,7 @@ export class ZylarServer {
             windowId: -1,
             stateId: data.stateId,
             slot: -1,
-            item: { present: false }
+            item: formatSlotForClient(null, false)
           });
           giveNetherStar(client);
           openSkyBlockMenu(client, pData);
@@ -1771,7 +1771,7 @@ export class ZylarServer {
                   windowId: 0,
                   stateId: data.stateId,
                   slot: clickedSlot,
-                  item: { present: false }
+                  item: formatSlotForClient(null, false)
                 });
               } catch (_) {}
             } else {
