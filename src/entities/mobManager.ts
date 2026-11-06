@@ -224,74 +224,32 @@ function getRandomZoneCoord(zone: MobTemplate['zone']): { x: number; y: number; 
   return { x, y, z };
 }
 
-function createEquipmentPacket(entityId: number, equipment: NonNullable<MobTemplate['equipment']>) {
-  const equipments: any[] = [];
-  if (equipment.mainhand) {
-    equipments.push({
-      slot: 0,
-      item: {
-        itemCount: 1,
-        itemId: equipment.mainhand,
-        addedComponentCount: 0,
-        removedComponentCount: 0,
-        components: [],
-        removeComponents: []
-      }
+function createEquipmentPackets(entityId: number, equipment: NonNullable<MobTemplate['equipment']>): any[] {
+  const packets: any[] = [];
+  const addSlot = (slot: number, itemId: number) => {
+    packets.push({
+      entityId,
+      equipments: [{
+        slot,
+        item: {
+          itemCount: 1,
+          itemId,
+          addedComponentCount: 0,
+          removedComponentCount: 0,
+          components: [],
+          removeComponents: []
+        }
+      }]
     });
-  }
-  if (equipment.boots) {
-    equipments.push({
-      slot: 2,
-      item: {
-        itemCount: 1,
-        itemId: equipment.boots,
-        addedComponentCount: 0,
-        removedComponentCount: 0,
-        components: [],
-        removeComponents: []
-      }
-    });
-  }
-  if (equipment.leggings) {
-    equipments.push({
-      slot: 3,
-      item: {
-        itemCount: 1,
-        itemId: equipment.leggings,
-        addedComponentCount: 0,
-        removedComponentCount: 0,
-        components: [],
-        removeComponents: []
-      }
-    });
-  }
-  if (equipment.chestplate) {
-    equipments.push({
-      slot: 4,
-      item: {
-        itemCount: 1,
-        itemId: equipment.chestplate,
-        addedComponentCount: 0,
-        removedComponentCount: 0,
-        components: [],
-        removeComponents: []
-      }
-    });
-  }
-  if (equipment.helmet) {
-    equipments.push({
-      slot: 5,
-      item: {
-        itemCount: 1,
-        itemId: equipment.helmet,
-        addedComponentCount: 0,
-        removedComponentCount: 0,
-        components: [],
-        removeComponents: []
-      }
-    });
-  }
-  return { entityId, equipments };
+  };
+
+  if (equipment.mainhand) addSlot(0, equipment.mainhand);
+  if (equipment.boots) addSlot(2, equipment.boots);
+  if (equipment.leggings) addSlot(3, equipment.leggings);
+  if (equipment.chestplate) addSlot(4, equipment.chestplate);
+  if (equipment.helmet) addSlot(5, equipment.helmet);
+
+  return packets;
 }
 
 export function spawnMobToClient(client: any, mob: ActiveMob): void {
