@@ -178,9 +178,7 @@ export function spawnBankerNpc(client: any, is119: boolean, toProtocolByte: (deg
       yaw: toProtocolByte(BANKER_POS.yaw),
       headPitch: toProtocolByte(BANKER_POS.pitch),
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
 
     // 3. Set Head Rotation
