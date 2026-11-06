@@ -12,6 +12,7 @@ import * as nbt from 'prismarine-nbt';
 
 import {
   mcData1218,
+  sanitizedDimensionCodec1218,
   setWorldBlock,
   getWorldBlockName,
   dumpChunkPacket,
