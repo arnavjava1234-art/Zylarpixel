@@ -676,7 +676,7 @@ export class ZylarServer {
       version: '1.21.8',
       maxPlayers: 250,
       motd: this.config.motd || `§d§lZYLARPIXEL §7[${this.config.serverName}]`,
-      registryCodec: mcData1218.loginPacket.dimensionCodec
+      registryCodec: sanitizedDimensionCodec1218
     } as any);
 
     this.serverInstance.on('error', (err: any) => {
