@@ -12,10 +12,11 @@
  */
 
 import { createGuiItem, openAdminMenu, createAdminBaseSlots } from './adminMenu';
-import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition } from '../items';
+import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition, formatSlotForClient } from '../items';
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { playSound } from './bankMenu';
+import { sendWindow } from './guiHelper';
 
 export const ADMIN_ITEM_SPAWNER_WINDOW_ID = 13;
 export const ITEMS_PER_PAGE = 28;
