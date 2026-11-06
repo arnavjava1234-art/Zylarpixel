@@ -8,8 +8,9 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { createNetherStarItem, giveNetherStar, HOTBAR_NETHER_STAR_SLOT } from './skyblockMenu';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack } from '../items';
+import { tagVanillaItemStack, formatSlotForClient } from '../items';
 import { persistPlayerSession } from '../players/playerManager';
+import { sendWindow, sendSlot, makeEmptySlot } from './guiHelper';
 
 export const CRAFTING_TABLE_WINDOW_ID = 15;
 
