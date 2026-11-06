@@ -165,12 +165,6 @@ export function openCoinActionMenu(
 ): void {
   pData.openWindowId = ADMIN_COIN_ACTION_WINDOW_ID;
 
-  client.write('open_window', {
-    windowId: ADMIN_COIN_ACTION_WINDOW_ID,
-    inventoryType: 3, // generic_9x4 (36 slots)
-    windowTitle: JSON.stringify({ text: `§8Purse: ${targetUsername}` })
-  });
-
   const items = createAdminBaseSlots(36);
 
   // Fetch current purse
