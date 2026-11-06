@@ -44,7 +44,7 @@ const results = {
   warpHubSuccess: false
 };
 
-const FARM_MERCHANT_UUID = '0a23f8f2-4e09-4b8b-8776-4ca5c700bdd3';
+const FARM_MERCHANT_UUID = '8b61a1a6-8870-4c10-9977-e1a3fc82e38f';
 const BANKER_UUID = '8b61a1a6-a2a2-4c10-9977-e1a3fc82e38f';
 
 let currentOpenWindow = null;
