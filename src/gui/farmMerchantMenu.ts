@@ -15,9 +15,10 @@
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack } from '../items';
+import { tagVanillaItemStack, formatSlotForClient } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { sendWindow, sendSlot, makeEmptySlot } from './guiHelper';
 
 export const FARM_MERCHANT_WINDOW_ID = 16;
 export const DAILY_MERCHANT_LIMIT = 640;
