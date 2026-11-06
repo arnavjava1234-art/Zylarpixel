@@ -8,6 +8,7 @@ import { formatSlotForClient } from '../items';
 import { createGuiItem, openStatsMenu } from './statsMenu';
 import { openBankMainMenu } from './bankMenu';
 import { openCraftingTableMenu } from './craftingTableMenu';
+import { sendWindow } from './guiHelper';
 
 export const SKYBLOCK_MENU_WINDOW_ID = 6;
 export const HOTBAR_NETHER_STAR_SLOT = 44; // Slot index 8 in hotbar (36 + 8)
