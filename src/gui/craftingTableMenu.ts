@@ -629,7 +629,7 @@ export function handleCraftingTableClick(
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: carried
+          item: formatSlotForClient(carried, false)
         });
       } catch (_) {}
 
