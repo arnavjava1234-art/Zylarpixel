@@ -389,23 +389,16 @@ function formatItemName(raw: string): string {
 /**
  * Opens the Farm Merchant 54-slot chest GUI
  */
-export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = true): void {
+export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = false): void {
   pData.openWindowId = FARM_MERCHANT_WINDOW_ID;
   checkAndRolloverDailyCaps(pData);
 
-  // 1. Open 54-slot double chest container
-  client.write('open_window', {
-    windowId: FARM_MERCHANT_WINDOW_ID,
-    inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8Farm Merchant' })
-  });
-
-  // 2. Base fillers: gray stained glass panes
+  // 1. Base fillers: gray stained glass panes
   const items = new Array(54).fill(null).map(() =>
     createMerchantGuiItem('gray_stained_glass_pane', 1, '§8 ', [])
   );
 
-  // 3. Populate 13 Commodities
+  // 2. Populate 13 Commodities
   for (const slotStr of Object.keys(COMMODITIES)) {
     const slot = parseInt(slotStr, 10);
     const c = COMMODITIES[slot];
@@ -418,7 +411,7 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = t
     );
   }
 
-  // 4. Utility Slot 48: Hopper ("Sell Item")
+  // 3. Utility Slot 48: Hopper ("Sell Item")
   items[48] = createMerchantGuiItem(
     'hopper',
     1,
@@ -431,7 +424,7 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = t
     ]
   );
 
-  // 5. Utility Slot 49: Barrier ("Close")
+  // 4. Utility Slot 49: Barrier ("Close")
   items[49] = createMerchantGuiItem(
     'barrier',
     1,
@@ -443,17 +436,10 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = t
 
   pData.currentGuiItems = items;
 
-  // 6. Write window items
-  try {
-    client.write('window_items', {
-      windowId: FARM_MERCHANT_WINDOW_ID,
-      stateId: 1,
-      items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  // 5. Open window and write items via 1.21.8 Data Components
+  sendWindow(client, FARM_MERCHANT_WINDOW_ID, 5, '§8Farm Merchant', items);
 
-  // 7. Sync open chest player inventory slots
+  // 6. Sync open chest player inventory slots
   syncMerchantChestPlayerInventory(client, pData, is119);
 
   playSound(client, pData, 'ui.button.click', 1.0);
