@@ -431,14 +431,7 @@ export function openCraftingTableMenu(client: any, pData: any): void {
     pData.craftingGrid = new Array(9).fill(null);
   }
 
-  // 1. Open 54-slot chest container (inventoryType 5 = 9x6)
-  client.write('open_window', {
-    windowId: CRAFTING_TABLE_WINDOW_ID,
-    inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8Crafting Table' })
-  });
-
-  // 2. Base fillers: black stained glass panes
+  // 1. Base fillers: black stained glass panes
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
