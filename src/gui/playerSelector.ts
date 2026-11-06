@@ -47,11 +47,5 @@ export function openPlayerSelector(client: any, pData: any, playersMap: Map<numb
   );
 
   pData.currentGuiItems = items;
-
-  client.write('window_items', {
-    windowId: 3,
-    stateId: 1,
-    items,
-    carriedItem: { present: false }
-  });
+  sendWindow(client, 3, 5, '§8Select Player to Change Rank', items);
 }
