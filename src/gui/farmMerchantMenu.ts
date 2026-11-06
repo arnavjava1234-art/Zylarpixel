@@ -594,20 +594,8 @@ export function handleFarmMerchantClick(
       pData.inventory.delete(survivalSlot);
 
       // Clear slot in survival window 0 and open chest window
-      try {
-        client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: survivalSlot,
-          item: { present: false }
-        });
-        client.write('set_slot', {
-          windowId: FARM_MERCHANT_WINDOW_ID,
-          stateId: 1,
-          slot: clickedSlot,
-          item: { present: false }
-        });
-      } catch (_) {}
+      sendSlot(client, 0, survivalSlot, null);
+      sendSlot(client, FARM_MERCHANT_WINDOW_ID, clickedSlot, null);
 
       updatePlayerScoreboardPurse(pData);
       persistPlayerSession(pData);
