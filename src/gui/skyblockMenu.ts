@@ -282,16 +282,7 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
   );
 
   pSession.currentGuiItems = items;
-
-  // 3. Write all window items
-  try {
-    client.write('window_items', {
-      windowId: SKYBLOCK_MENU_WINDOW_ID,
-      stateId: 1,
-      items: items,
-      carriedItem: { present: false }
-    });
-  } catch (_) {}
+  sendWindow(client, SKYBLOCK_MENU_WINDOW_ID, 5, '§8SkyBlock Menu', items);
 }
 
 export const SKYBLOCK_MENU_FEATURE_SLOTS = new Set([
