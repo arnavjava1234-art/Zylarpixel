@@ -2366,12 +2366,6 @@ export class ZylarServer {
 
       if (data.mouse !== 1) return; // 1 = Attack
 
-      // 3. Hub Graveyard & Crypt Mob Attack Check
-      if (this.config.worldType === 'hub') {
-        const mobHandled = handleMobAttack(pData, data.target, this);
-        if (mobHandled) return;
-      }
-
       // Peaceful Hub Safe Zone Check (Player vs Player)
       if (!this.config.pvp || this.config.worldType === 'hub') {
         return;
