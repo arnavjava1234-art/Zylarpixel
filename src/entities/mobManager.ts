@@ -630,6 +630,9 @@ export function handleMobAttack(player: any, targetEntityId: number, server: any
 
   const players = Array.from(server.getPlayers() as Map<any, any>).map(([_, p]) => p);
   const nearbyPlayers = players.filter(p => p.client && Math.hypot(p.x - mob.x, p.z - mob.z) <= 48);
+  if (!nearbyPlayers.some(p => p.client === player.client)) {
+    nearbyPlayers.push(player);
+  }
 
   // 1. Authentic Hypixel Floating Damage Hologram
   spawnDamageIndicator(nearbyPlayers, mob.x, mob.y, mob.z, damage, isCrit);
