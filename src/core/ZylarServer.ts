@@ -1813,7 +1813,7 @@ export class ZylarServer {
                   windowId: -1,
                   stateId: data.stateId,
                   slot: -1,
-                  item: { present: false }
+                  item: formatSlotForClient(null, false)
                 });
               } catch (_) {}
             }
@@ -1845,7 +1845,7 @@ export class ZylarServer {
                     windowId: 0,
                     stateId: data.stateId,
                     slot,
-                    item: tagged
+                    item: formatSlotForClient(tagged, is119)
                   });
                 } catch (_) {}
               }
@@ -1870,7 +1870,7 @@ export class ZylarServer {
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: { present: false }
+          item: formatSlotForClient(null, false)
         });
 
         // CRITICAL FIX: Restore clicked slot item in GUI so items (like player head!) NEVER disappear!
@@ -1879,7 +1879,7 @@ export class ZylarServer {
             windowId: pData.openWindowId,
             stateId: data.stateId,
             slot: clickedSlot,
-            item: pData.currentGuiItems[clickedSlot] || { present: false }
+            item: formatSlotForClient(pData.currentGuiItems[clickedSlot], false)
           });
         }
 
