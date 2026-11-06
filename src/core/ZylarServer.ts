@@ -1133,7 +1133,7 @@ export class ZylarServer {
       entityId: client.id,
       isHardcore: false,
       worldNames: ['minecraft:overworld'],
-      maxPlayers: 50,
+      maxPlayers: 250,
       viewDistance: 12,
       simulationDistance: 12,
       reducedDebugInfo: false,
