@@ -301,14 +301,7 @@ function addCommodityToPlayerInventory(pData: any, itemName: string, count: numb
       }, is119);
       existing.nbtData = tagged.nbtData;
 
-      try {
-        pData.client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: s,
-          item: tagged
-        });
-      } catch (_) {}
+      sendSlot(pData.client, 0, s, tagged);
     }
   }
 
@@ -332,14 +325,7 @@ function addCommodityToPlayerInventory(pData: any, itemName: string, count: numb
       });
       remaining -= canAdd;
 
-      try {
-        pData.client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: s,
-          item: tagged
-        });
-      } catch (_) {}
+      sendSlot(pData.client, 0, s, tagged);
     }
   }
 
