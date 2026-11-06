@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-06T10:48:01.066Z",
+  "lastLogin": "2026-11-06T10:49:59.336Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -35,5 +35,5 @@
   "inventory": [],
   "merchantDailyPurchases": {},
   "merchantLastResetDay": 0,
-  "lastSeen": 1793962081066
+  "lastSeen": 1793962199336
 }
