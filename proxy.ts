@@ -493,7 +493,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
             }
           }, 650);
         }
-        setTimeout(() => broadcastGlobalProxyTablist(), 700);
+        setTimeout(() => queueGlobalProxyTablist(), 200);
       } else {
         session.hasInitialJoined = true;
         if (session.pendingCommand) {
@@ -511,7 +511,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
             }
           }, 650);
         }
-        setTimeout(() => broadcastGlobalProxyTablist(), 700);
+        setTimeout(() => queueGlobalProxyTablist(), 200);
       }
       return;
     }
