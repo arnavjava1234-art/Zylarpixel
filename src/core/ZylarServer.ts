@@ -2336,7 +2336,7 @@ export class ZylarServer {
           windowId: 0,
           stateId: 1,
           slot: activeSlot,
-          item: updatedTagged
+          item: formatSlotForClient(updatedTagged, is119)
         });
 
         persistPlayerSession(pData);
