@@ -174,9 +174,7 @@ export function spawnFarmMerchantNpc(client: any, is119: boolean, toProtocolByte
       yaw: toProtocolByte(FARM_MERCHANT_POS.yaw),
       headPitch: toProtocolByte(FARM_MERCHANT_POS.pitch),
       objectData: 0,
-      velocityX: 0,
-      velocityY: 0,
-      velocityZ: 0
+      velocity: { x: 0, y: 0, z: 0 }
     });
 
     // 3. Set Initial Head Rotation
