@@ -13,7 +13,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as net from 'net';
 import * as nbt from 'prismarine-nbt';
-import { mcData1218 } from './src/world/worldManager';
+import { mcData1218, sanitizedDimensionCodec1218 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
 
