@@ -18,7 +18,7 @@ let loggedIn = false;
 let chunksCount = 0;
 let mobsSpawned = 0;
 let textDisplays = 0;
-let damageIndicators = 0;
+let totalEntities = 0;
 let chatMessages = [];
 
 client.on('login', (packet) => {
@@ -27,24 +27,30 @@ client.on('login', (packet) => {
 });
 
 client.on('packet', (data, meta) => {
-  if (meta.name === 'level_chunk_with_light' || meta.name === 'map_chunk') {
+  if (meta.name === 'map_chunk') {
     chunksCount++;
   } else if (meta.name === 'spawn_entity') {
+    totalEntities++;
     if (data.type === 145 || data.type === 147) {
       mobsSpawned++;
     } else if (data.type === 126) {
       textDisplays++;
     }
   } else if (meta.name === 'system_chat') {
-    chatMessages.push(JSON.stringify(data.content));
+    let text = '';
+    if (typeof data.content === 'string') text = data.content;
+    else if (data.content?.value?.text?.value) text = data.content.value.text.value;
+    else text = JSON.stringify(data.content);
+    chatMessages.push(text);
   }
 });
 
-// After 2.5 seconds, simulate attacking mob ID 20000
+// After 3.5 seconds, all initial chunks, NPCs, and mobs are fully streamed
 setTimeout(() => {
   console.log(`\n📦 World Chunks Received: ${chunksCount}`);
   console.log(`🧟 Mobs Spawned: ${mobsSpawned}`);
   console.log(`🏷️ Nametags / Text Displays: ${textDisplays}`);
+  console.log(`✨ Total Entities Received: ${totalEntities}`);
 
   console.log('\n⚔️ Testing Combat: Attacking Mob #20000 (Graveyard Zombie)...');
   client.write('use_entity', {
@@ -60,7 +66,7 @@ setTimeout(() => {
       mouse: 1,
       sneaking: false
     });
-  }, 500);
+  }, 600);
 
   setTimeout(() => {
     console.log('\n📜 Chat Messages Received:');
@@ -79,5 +85,5 @@ setTimeout(() => {
         process.exit(0);
       }, 2000);
     }, 2000);
-  }, 1500);
-}, 2500);
+  }, 1800);
+}, 3500);
