@@ -83,11 +83,5 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
 
   // Cache items on session so clicks can never alter or steal them
   pData.currentGuiItems = items;
-
-  client.write('window_items', {
-    windowId: 2,
-    stateId: 1,
-    items,
-    carriedItem: { present: false }
-  });
+  sendWindow(client, 2, 5, title, items);
 }
