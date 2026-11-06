@@ -568,7 +568,7 @@ function handlePlayerDeathByMob(server: any, player: any, mob: ActiveMob): void 
       dz: 0,
       yaw: 0,
       pitch: 0,
-      flags: {}
+      flags: { _value: 0 }
     });
 
     player.client.write('set_title_text', {
