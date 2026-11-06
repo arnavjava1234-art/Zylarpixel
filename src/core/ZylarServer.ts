@@ -101,6 +101,8 @@ import {
   handleFarmMerchantClick
 } from '../gui/farmMerchantMenu';
 import {
+  spawnCropGuardians,
+  tickCropGuardians,
   isHarvestableHubCrop,
   handleHubCropHarvest,
   isHubMinionExclusionZone
