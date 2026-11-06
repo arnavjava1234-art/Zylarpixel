@@ -129,11 +129,12 @@ async function runFeatureSuite() {
   console.log(`🧑‍🌾 Farmer Merchant Skin Present: ${results.farmerSkinPresent ? 'YES (Mojang signed)' : 'NO'}`);
   console.log(`🏦 Banker Skin Present: ${results.bankerSkinPresent ? 'YES (Mojang signed)' : 'NO'}`);
 
-  // Test 1: Interact with Farmer Merchant (Right click entity 19999)
+  // Test 1: Interact with Farmer Merchant (Right click entity 8870)
   console.log('\n🛒 Testing Farmer Merchant NPC Interaction...');
   client.write('use_entity', {
-    target: 19999,
+    target: 8870,
     mouse: 0, // Interact
+    hand: 0,
     sneaking: false
   });
   await sleep(1000);
@@ -142,11 +143,12 @@ async function runFeatureSuite() {
   client.write('close_window', { windowId: 16 });
   await sleep(400);
 
-  // Test 2: Interact with Banker (Right click entity 19998)
+  // Test 2: Interact with Banker (Right click entity 8888)
   console.log('\n💰 Testing Banker NPC Interaction...');
   client.write('use_entity', {
-    target: 19998,
+    target: 8888,
     mouse: 0,
+    hand: 0,
     sneaking: false
   });
   await sleep(1000);
