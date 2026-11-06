@@ -273,7 +273,9 @@ export function spawnMobToClient(client: any, mob: ActiveMob): void {
 
     // 2. Equipment (Weapons / Armor)
     if (mob.template.equipment) {
-      client.write('entity_equipment', createEquipmentPacket(mob.entityId, mob.template.equipment));
+      for (const eqPacket of createEquipmentPackets(mob.entityId, mob.template.equipment)) {
+        client.write('entity_equipment', eqPacket);
+      }
     }
 
     // 3. Floating Nametag (Native 1.21.8 text_display)
