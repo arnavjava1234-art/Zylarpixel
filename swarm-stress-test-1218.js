@@ -88,7 +88,7 @@ function launchBot(index) {
     });
 
     botClient.on('end', () => {
-      // Clean disconnect
+      if (!loggedIn) resolve(null);
     });
 
     // Fallback timeout for connect
