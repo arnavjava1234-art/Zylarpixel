@@ -136,11 +136,5 @@ export function openAdminMenu(client: any, pData: any): void {
   );
 
   pData.currentGuiItems = items;
-
-  client.write('window_items', {
-    windowId: 1,
-    stateId: 1,
-    items,
-    carriedItem: { present: false }
-  });
+  sendWindow(client, 1, 5, '§8ZylarPixel Admin Control Panel', items);
 }
