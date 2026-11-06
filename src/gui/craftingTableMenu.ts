@@ -89,8 +89,9 @@ export function createGuiItemById(
   displayName: string,
   loreArray: string[] = []
 ): any {
+  if (!itemId || count <= 0) return { itemCount: 0 };
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
-  return {
+  return formatSlotForClient({
     present: true,
     itemId,
     itemCount: count || 1,
@@ -113,7 +114,7 @@ export function createGuiItemById(
         }
       }
     }
-  };
+  }, false);
 }
 
 /**
