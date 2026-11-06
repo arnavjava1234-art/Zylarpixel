@@ -281,7 +281,7 @@ export class ZylarServer {
         });
         observerPData.client.write('entity_metadata', {
           entityId: targetPData.entityId,
-          metadata: [{ key: 17, type: 0, value: 127 }]
+          metadata: [{ key: 17, type: 'byte', value: 127 }]
         });
         observerPData.client.write('entity_head_rotation', {
           entityId: targetPData.entityId,
@@ -303,7 +303,7 @@ export class ZylarServer {
         });
         observerPData.client.write('entity_metadata', {
           entityId: targetPData.entityId,
-          metadata: [{ key: 17, type: 0, value: 127 }]
+          metadata: [{ key: 17, type: 'byte', value: 127 }]
         });
         observerPData.client.write('entity_head_rotation', {
           entityId: targetPData.entityId,
@@ -369,7 +369,7 @@ export class ZylarServer {
           });
           client.write('entity_metadata', {
             entityId: bot.entityId,
-            metadata: [{ key: 17, type: 0, value: 127 }]
+            metadata: [{ key: 17, type: 'byte', value: 127 }]
           });
           sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, true);
         } else {
@@ -403,7 +403,7 @@ export class ZylarServer {
           });
           client.write('entity_metadata', {
             entityId: bot.entityId,
-            metadata: [{ key: 17, type: 0, value: 127 }]
+            metadata: [{ key: 17, type: 'byte', value: 127 }]
           });
           sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, false);
         }
