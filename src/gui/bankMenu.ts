@@ -131,14 +131,7 @@ export function openBankMainMenu(client: any, pData: any): void {
   if (typeof pData.bank !== 'number') pData.bank = 0;
   if (typeof pData.purse !== 'number') pData.purse = 0;
 
-  // 1. Open 36-slot chest container (inventoryType 3 = generic_9x4)
-  client.write('open_window', {
-    windowId: BANK_MAIN_WINDOW_ID,
-    inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Personal Bank Account' })
-  });
-
-  // 2. Base fillers: Dark Gray / Black Stained Glass Pane
+  // 1. Base fillers: Dark Gray / Black Stained Glass Pane
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
