@@ -424,8 +424,12 @@ function tickMobManager(server: any): void {
                 x: mob.x,
                 y: mob.y,
                 z: mob.z,
-                yaw: toProtocolByte(mob.yaw),
+                dx: 0,
+                dy: 0,
+                dz: 0,
+                yaw: mob.yaw,
                 pitch: 0,
+                flags: { _value: 0 },
                 onGround: true
               });
               player.client.write('entity_head_rotation', {
@@ -438,8 +442,12 @@ function tickMobManager(server: any): void {
                 x: mob.x,
                 y: mob.y + 2.15,
                 z: mob.z,
+                dx: 0,
+                dy: 0,
+                dz: 0,
                 yaw: 0,
                 pitch: 0,
+                flags: { _value: 0 },
                 onGround: false
               });
             } catch (_) {}
