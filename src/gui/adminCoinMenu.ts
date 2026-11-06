@@ -32,12 +32,6 @@ export function openCoinPlayerSelector(
 ): void {
   pData.openWindowId = ADMIN_COIN_SELECTOR_WINDOW_ID;
 
-  client.write('open_window', {
-    windowId: ADMIN_COIN_SELECTOR_WINDOW_ID,
-    inventoryType: 5, // generic_9x6 (54 slots)
-    windowTitle: JSON.stringify({ text: '§8Manage Coins: Select Player' })
-  });
-
   const items = createAdminBaseSlots(54);
 
   const slotPlayerMap = new Map<number, { username: string; isOnline: boolean; purse: number; targetPData?: any }>();
