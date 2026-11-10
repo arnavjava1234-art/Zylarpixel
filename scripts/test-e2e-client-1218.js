@@ -65,7 +65,8 @@ const EXPECTED_REGISTRIES = [
   'minecraft:test_instance',
   'minecraft:dialog',
   'minecraft:pig_variant',
-  'minecraft:wolf_sound_variant'
+  'minecraft:wolf_sound_variant',
+  'minecraft:zombie_nautilus_variant'
 ];
 
 let timer = null;
