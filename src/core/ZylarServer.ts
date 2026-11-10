@@ -314,75 +314,42 @@ export class ZylarServer {
     }
   }
 
-  private spawnServerBotsForPlayer(client: any, is119: boolean): void {
+  private spawnServerBotsForPlayer(client: any, _is119?: boolean): void {
     for (const bot of SERVER_SIDE_BOTS) {
       try {
-        if (is119) {
-          client.write('player_info', {
-            action: 'add_player',
-            data: [{
-              uuid: bot.uuid,
-              name: bot.name,
-              properties: [],
-              gamemode: 2,
-              ping: 1,
-              displayName: JSON.stringify({ text: `§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}` }),
-              crypto: undefined
-            }]
-          });
-          client.write('named_entity_spawn', {
-            entityId: bot.entityId,
-            playerUUID: bot.uuid,
-            x: bot.pos.x,
-            y: bot.pos.y,
-            z: bot.pos.z,
-            yaw: this.toProtocolByte(bot.pos.yaw),
-            pitch: this.toProtocolByte(bot.pos.pitch)
-          });
-          client.write('entity_head_rotation', {
-            entityId: bot.entityId,
-            headYaw: this.toProtocolByte(bot.pos.yaw)
-          });
-          client.write('entity_metadata', {
-            entityId: bot.entityId,
-            metadata: [{ key: 17, type: 'byte', value: 127 }]
-          });
-          sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, true);
-        } else {
-          client.write('player_info', {
-            action: 1 | 4 | 8 | 16,
-            data: [{
-              uuid: bot.uuid,
-              player: { name: bot.name, properties: [] },
-              gamemode: 2,
-              listed: 1,
-              latency: 1,
-              displayName: JSON.stringify({ text: `§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}` })
-            }]
-          });
-          client.write('spawn_entity', {
-            entityId: bot.entityId,
-            objectUUID: bot.uuid,
-            type: 149,
-            x: bot.pos.x,
-            y: bot.pos.y,
-            z: bot.pos.z,
-            pitch: this.toProtocolByte(bot.pos.pitch),
-            yaw: this.toProtocolByte(bot.pos.yaw),
-            headPitch: this.toProtocolByte(bot.pos.pitch),
-            objectData: 0,
-            velocity: { x: 0, y: 0, z: 0 }
-          });
-          client.write('entity_head_rotation', {
-            entityId: bot.entityId,
-            headYaw: this.toProtocolByte(bot.pos.yaw)
-          });
-          client.write('entity_metadata', {
-            entityId: bot.entityId,
-            metadata: [{ key: 17, type: 'byte', value: 127 }]
-          });
-          sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, false);
-        }
+        client.write('player_info', {
+          action: 1 | 4 | 8 | 16,
+          data: [{
+            uuid: bot.uuid,
+            player: { name: bot.name, properties: [] },
+            gamemode: 2,
+            listed: 1,
+            latency: 1,
+            displayName: JSON.stringify({ text: `§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}` })
+          }]
+        });
+        client.write('spawn_entity', {
+          entityId: bot.entityId,
+          objectUUID: bot.uuid,
+          type: 149,
+          x: bot.pos.x,
+          y: bot.pos.y,
+          z: bot.pos.z,
+          pitch: this.toProtocolByte(bot.pos.pitch),
+          yaw: this.toProtocolByte(bot.pos.yaw),
+          headPitch: this.toProtocolByte(bot.pos.pitch),
+          objectData: 0,
+          velocity: { x: 0, y: 0, z: 0 }
+        });
+        client.write('entity_head_rotation', {
+          entityId: bot.entityId,
+          headYaw: this.toProtocolByte(bot.pos.yaw)
+        });
+        client.write('entity_metadata', {
+          entityId: bot.entityId,
+          metadata: [{ key: 17, type: 'byte', value: 127 }]
+        });
+        sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, false);
       } catch (_) {}
     }
   }
