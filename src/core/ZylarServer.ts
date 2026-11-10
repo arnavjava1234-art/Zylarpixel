@@ -328,17 +328,28 @@ export class ZylarServer {
   }
 
   private spawnServerBotsForPlayer(client: any, _is119?: boolean): void {
+    if (!client || client.ended || client.state === 'closed') return;
     for (const bot of SERVER_SIDE_BOTS) {
       try {
         client.write('player_info', {
-          action: 1 | 4 | 8 | 16,
+          action: {
+            add_player: true,
+            initialize_chat: false,
+            update_game_mode: true,
+            update_listed: true,
+            update_latency: true,
+            update_display_name: true,
+            update_hat: true,
+            update_list_order: false
+          },
           data: [{
             uuid: bot.uuid,
             player: { name: bot.name, properties: [] },
             gamemode: 2,
             listed: 1,
             latency: 1,
-            displayName: JSON.stringify({ text: `§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}` })
+            displayName: nbt.comp({ text: nbt.string(`§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}`) }),
+            showHat: true
           }]
         });
         client.write('spawn_entity', {
@@ -368,139 +379,152 @@ export class ZylarServer {
   }
 
   private tickServerBots(): void {
-    if (players.size === 0) return;
+    if (SERVER_SIDE_BOTS.length === 0 || players.size === 0) return;
 
-    let target: any = null;
-    for (const [_, p] of players) {
-      if (p.username.toLowerCase() === 'arnavjava') {
-        target = p;
-        break;
-      }
-    }
-    if (!target) {
+    try {
+      let target: any = null;
       for (const [_, p] of players) {
-        if (p.username.toLowerCase() === 'chuchichan') {
+        if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+        if ((p.username || '').toLowerCase() === 'arnavjava') {
           target = p;
           break;
         }
       }
-    }
-    if (!target) {
-      target = players.values().next().value;
-    }
-    if (!target) return;
-
-    const targetX = target.x;
-    const targetY = target.y;
-    const targetZ = target.z;
-    const targetYawRad = ((target.yaw || 0) * Math.PI) / 180;
-
-    for (const bot of SERVER_SIDE_BOTS) {
-      const currentAngle = targetYawRad + bot.angleOffset;
-      const destX = targetX + Math.sin(currentAngle) * 3.0;
-      const destZ = targetZ - Math.cos(currentAngle) * 3.0;
-      const destY = targetY;
-
-      const dx = destX - bot.pos.x;
-      const dz = destZ - bot.pos.z;
-      const dy = destY - bot.pos.y;
-      const distToDest = Math.hypot(dx, dz);
-      const distToPlayer = Math.hypot(targetX - bot.pos.x, targetZ - bot.pos.z);
-
-      const toPlayerX = targetX - bot.pos.x;
-      const toPlayerZ = targetZ - bot.pos.z;
-      const lookYaw = Math.atan2(-toPlayerX, toPlayerZ) * (180 / Math.PI);
-      const lookPitch = Math.atan2(-(targetY + 1.4 - (bot.pos.y + 1.6)), Math.max(0.1, distToPlayer)) * (180 / Math.PI);
-
-      const oldX = bot.pos.x;
-      const oldY = bot.pos.y;
-      const oldZ = bot.pos.z;
-
-      let moved = false;
-      let teleported = false;
-
-      if (distToPlayer > 35) {
-        bot.pos.x = destX;
-        bot.pos.y = destY;
-        bot.pos.z = destZ;
-        bot.pos.yaw = lookYaw;
-        bot.pos.pitch = lookPitch;
-        teleported = true;
-      } else if (distToDest > 0.2) {
-        const speed = distToDest > 6 ? 0.55 : (distToDest > 2 ? 0.38 : 0.22);
-        const step = Math.min(distToDest, speed);
-
-        bot.pos.x += (dx / distToDest) * step;
-        bot.pos.z += (dz / distToDest) * step;
-        if (Math.abs(dy) > 0.1) {
-          bot.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), 0.35);
-        } else {
-          bot.pos.y = destY;
-        }
-        bot.pos.yaw = lookYaw;
-        bot.pos.pitch = lookPitch;
-        moved = true;
-      } else {
-        if (Math.abs(bot.pos.yaw - lookYaw) > 2 || Math.abs(bot.pos.pitch - lookPitch) > 2) {
-          bot.pos.yaw = lookYaw;
-          bot.pos.pitch = lookPitch;
-          moved = true;
+      if (!target) {
+        for (const [_, p] of players) {
+          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          if ((p.username || '').toLowerCase() === 'chuchichan') {
+            target = p;
+            break;
+          }
         }
       }
-
-      if (teleported) {
+      if (!target) {
         for (const [_, p] of players) {
-          try {
-            p.client.write('entity_teleport', {
-              entityId: bot.entityId,
-              x: bot.pos.x,
-              y: bot.pos.y,
-              z: bot.pos.z,
-              dx: 0,
-              dy: 0,
-              dz: 0,
-              yaw: bot.pos.yaw,
-              pitch: bot.pos.pitch,
-              flags: { _value: 0 },
-              onGround: true
-            });
-            p.client.write('entity_head_rotation', {
-              entityId: bot.entityId,
-              headYaw: this.toProtocolByte(bot.pos.yaw)
-            });
-          } catch (_) {}
+          if (p && p.client && !p.client.ended && p.client.state !== 'closed') {
+            target = p;
+            break;
+          }
         }
-      } else if (moved) {
-        const dX = Math.round((bot.pos.x - oldX) * 4096);
-        const dY = Math.round((bot.pos.y - oldY) * 4096);
-        const dZ = Math.round((bot.pos.z - oldZ) * 4096);
+      }
+      if (!target) return;
 
-        for (const [_, p] of players) {
-          try {
-            if (Math.abs(dX) < 32768 && Math.abs(dY) < 32768 && Math.abs(dZ) < 32768 && (dX !== 0 || dY !== 0 || dZ !== 0)) {
-              p.client.write('entity_move_look', {
-                entityId: bot.entityId,
-                dX, dY, dZ,
-                yaw: this.toProtocolByte(bot.pos.yaw),
-                pitch: this.toProtocolByte(bot.pos.pitch),
-                onGround: true
-              });
+      const targetX = target.x;
+      const targetY = target.y;
+      const targetZ = target.z;
+      const targetYawRad = ((target.yaw || 0) * Math.PI) / 180;
+
+      for (const bot of SERVER_SIDE_BOTS) {
+        try {
+          const currentAngle = targetYawRad + bot.angleOffset;
+          const destX = targetX + Math.sin(currentAngle) * 3.0;
+          const destZ = targetZ - Math.cos(currentAngle) * 3.0;
+          const destY = targetY;
+
+          const dx = destX - bot.pos.x;
+          const dz = destZ - bot.pos.z;
+          const dy = destY - bot.pos.y;
+          const distToDest = Math.hypot(dx, dz);
+          const distToPlayer = Math.hypot(targetX - bot.pos.x, targetZ - bot.pos.z);
+
+          const toPlayerX = targetX - bot.pos.x;
+          const toPlayerZ = targetZ - bot.pos.z;
+          const lookYaw = Math.atan2(-toPlayerX, toPlayerZ) * (180 / Math.PI);
+          const lookPitch = Math.atan2(-(targetY + 1.4 - (bot.pos.y + 1.6)), Math.max(0.1, distToPlayer)) * (180 / Math.PI);
+
+          const oldX = bot.pos.x;
+          const oldY = bot.pos.y;
+          const oldZ = bot.pos.z;
+
+          let moved = false;
+          let teleported = false;
+
+          if (distToPlayer > 35) {
+            bot.pos.x = destX;
+            bot.pos.y = destY;
+            bot.pos.z = destZ;
+            bot.pos.yaw = lookYaw;
+            bot.pos.pitch = lookPitch;
+            teleported = true;
+          } else if (distToDest > 0.2) {
+            const speed = distToDest > 6 ? 0.55 : (distToDest > 2 ? 0.38 : 0.22);
+            const step = Math.min(distToDest, speed);
+
+            bot.pos.x += (dx / distToDest) * step;
+            bot.pos.z += (dz / distToDest) * step;
+            if (Math.abs(dy) > 0.1) {
+              bot.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), 0.35);
             } else {
-              p.client.write('entity_look', {
-                entityId: bot.entityId,
-                yaw: this.toProtocolByte(bot.pos.yaw),
-                pitch: this.toProtocolByte(bot.pos.pitch),
-                onGround: true
-              });
+              bot.pos.y = destY;
             }
-            p.client.write('entity_head_rotation', {
-              entityId: bot.entityId,
-              headYaw: this.toProtocolByte(bot.pos.yaw)
-            });
-          } catch (_) {}
-        }
+            bot.pos.yaw = lookYaw;
+            bot.pos.pitch = lookPitch;
+            moved = true;
+          } else {
+            if (Math.abs(bot.pos.yaw - lookYaw) > 2 || Math.abs(bot.pos.pitch - lookPitch) > 2) {
+              bot.pos.yaw = lookYaw;
+              bot.pos.pitch = lookPitch;
+              moved = true;
+            }
+          }
+
+          if (teleported) {
+            for (const [_, p] of players) {
+              if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+              try {
+                p.client.write('entity_teleport', {
+                  entityId: bot.entityId,
+                  x: bot.pos.x,
+                  y: bot.pos.y,
+                  z: bot.pos.z,
+                  dx: 0,
+                  dy: 0,
+                  dz: 0,
+                  yaw: bot.pos.yaw, // float32 degrees in 1.21.8 schema
+                  pitch: bot.pos.pitch, // float32 degrees in 1.21.8 schema
+                  flags: { _value: 0 },
+                  onGround: true
+                });
+                p.client.write('entity_head_rotation', {
+                  entityId: bot.entityId,
+                  headYaw: this.toProtocolByte(bot.pos.yaw) // int8 byte
+                });
+              } catch (_) {}
+            }
+          } else if (moved) {
+            const dX = Math.round((bot.pos.x - oldX) * 4096);
+            const dY = Math.round((bot.pos.y - oldY) * 4096);
+            const dZ = Math.round((bot.pos.z - oldZ) * 4096);
+
+            for (const [_, p] of players) {
+              if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+              try {
+                if (Math.abs(dX) < 32768 && Math.abs(dY) < 32768 && Math.abs(dZ) < 32768 && (dX !== 0 || dY !== 0 || dZ !== 0)) {
+                  p.client.write('entity_move_look', {
+                    entityId: bot.entityId,
+                    dX, dY, dZ,
+                    yaw: this.toProtocolByte(bot.pos.yaw),
+                    pitch: this.toProtocolByte(bot.pos.pitch),
+                    onGround: true
+                  });
+                } else {
+                  p.client.write('entity_look', {
+                    entityId: bot.entityId,
+                    yaw: this.toProtocolByte(bot.pos.yaw),
+                    pitch: this.toProtocolByte(bot.pos.pitch),
+                    onGround: true
+                  });
+                }
+                p.client.write('entity_head_rotation', {
+                  entityId: bot.entityId,
+                  headYaw: this.toProtocolByte(bot.pos.yaw)
+                });
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
       }
-    }
+    } catch (_) {}
   }
 
   public reGenerateWorld(client: any, _is119?: boolean): void {
