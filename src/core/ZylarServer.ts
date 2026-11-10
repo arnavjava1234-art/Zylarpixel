@@ -265,47 +265,27 @@ export class ZylarServer {
       const yawByte = this.toProtocolByte(targetPData.yaw || 0);
       const pitchByte = this.toProtocolByte(targetPData.pitch || 0);
 
-      if (observerPData.is119) {
-        observerPData.client.write('named_entity_spawn', {
-          entityId: targetPData.entityId,
-          playerUUID: targetPData.client.uuid,
-          x: targetPData.x,
-          y: targetPData.y,
-          z: targetPData.z,
-          yaw: yawByte,
-          pitch: pitchByte
-        });
-        observerPData.client.write('entity_metadata', {
-          entityId: targetPData.entityId,
-          metadata: [{ key: 17, type: 'byte', value: 127 }]
-        });
-        observerPData.client.write('entity_head_rotation', {
-          entityId: targetPData.entityId,
-          headYaw: yawByte
-        });
-      } else {
-        observerPData.client.write('spawn_entity', {
-          entityId: targetPData.entityId,
-          objectUUID: targetPData.client.uuid,
-          type: 149,
-          x: targetPData.x,
-          y: targetPData.y,
-          z: targetPData.z,
-          pitch: pitchByte,
-          yaw: yawByte,
-          headPitch: pitchByte,
-          objectData: 0,
-          velocity: { x: 0, y: 0, z: 0 }
-        });
-        observerPData.client.write('entity_metadata', {
-          entityId: targetPData.entityId,
-          metadata: [{ key: 17, type: 'byte', value: 127 }]
-        });
-        observerPData.client.write('entity_head_rotation', {
-          entityId: targetPData.entityId,
-          headYaw: yawByte
-        });
-      }
+      observerPData.client.write('spawn_entity', {
+        entityId: targetPData.entityId,
+        objectUUID: targetPData.client.uuid,
+        type: 149,
+        x: targetPData.x,
+        y: targetPData.y,
+        z: targetPData.z,
+        pitch: pitchByte,
+        yaw: yawByte,
+        headPitch: pitchByte,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+      observerPData.client.write('entity_metadata', {
+        entityId: targetPData.entityId,
+        metadata: [{ key: 17, type: 'byte', value: 127 }]
+      });
+      observerPData.client.write('entity_head_rotation', {
+        entityId: targetPData.entityId,
+        headYaw: yawByte
+      });
     } catch (_) {}
   }
 
