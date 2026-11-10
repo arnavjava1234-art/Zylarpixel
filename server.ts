@@ -14,6 +14,14 @@
 
 import { ZylarServer } from './src/core/ZylarServer';
 
+// Top-level crash isolation guards: ensure background ticker or network errors never crash the Islands process
+process.on('uncaughtException', (err: any) => {
+  console.error('[CRITICAL] Uncaught exception in Islands server:', err?.stack || err?.message || err);
+});
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[CRITICAL] Unhandled promise rejection in Islands server:', reason?.stack || reason?.message || reason);
+});
+
 const islandPort = parseInt(process.env.PORT || '25567', 10);
 
 const islands = new ZylarServer({
