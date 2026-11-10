@@ -243,48 +243,62 @@ export function tickBankerNpc(
   players: Map<any, any>,
   toProtocolByte: (deg: number) => number
 ): void {
-  if (players.size === 0) return;
+  if (!players || players.size === 0) return;
 
-  const bankerEyeX = BANKER_POS.x;
-  const bankerEyeY = BANKER_POS.y + 1.62;
-  const bankerEyeZ = BANKER_POS.z;
+  try {
+    const bankerEyeX = BANKER_POS.x;
+    const bankerEyeY = BANKER_POS.y + 1.62;
+    const bankerEyeZ = BANKER_POS.z;
 
-  for (const [_, p] of players) {
-    try {
-      const pEyeX = p.x;
-      const pEyeY = p.y + 1.62;
-      const pEyeZ = p.z;
+    for (const [_, p] of players) {
+      if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
 
-      const visible = hasLineOfSight(bankerEyeX, bankerEyeY, bankerEyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
+      try {
+        const pEyeX = p.x;
+        const pEyeY = p.y + 1.62;
+        const pEyeZ = p.z;
 
-      let lookYaw = BANKER_POS.yaw;
-      let lookPitch = BANKER_POS.pitch;
+        const visible = hasLineOfSight(bankerEyeX, bankerEyeY, bankerEyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
 
-      if (visible) {
-        const dx = pEyeX - bankerEyeX;
-        const dy = pEyeY - bankerEyeY;
-        const dz = pEyeZ - bankerEyeZ;
-        const distHoriz = Math.hypot(dx, dz);
+        let lookYaw = BANKER_POS.yaw;
+        let lookPitch = BANKER_POS.pitch;
 
-        lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
-        lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
-      }
+        if (visible) {
+          const dx = pEyeX - bankerEyeX;
+          const dy = pEyeY - bankerEyeY;
+          const dz = pEyeZ - bankerEyeZ;
+          const distHoriz = Math.hypot(dx, dz);
 
-      // Rotate head smoothly
-      p.client.write('entity_head_rotation', {
-        entityId: BANKER_ENTITY_ID,
-        headYaw: toProtocolByte(lookYaw)
-      });
+          lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
+          lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
+        }
 
-      // Rotate body & pitch
-      p.client.write('entity_look', {
-        entityId: BANKER_ENTITY_ID,
-        yaw: toProtocolByte(lookYaw),
-        pitch: toProtocolByte(lookPitch),
-        onGround: true
-      });
-    } catch (_) {}
-  }
+        // Delta Throttling: Only send packets if yaw or pitch changed by >= 1.0 degree
+        const lastYaw = (p.client as any)._bankerLastYaw ?? -9999;
+        const lastPitch = (p.client as any)._bankerLastPitch ?? -9999;
+        if (Math.abs(lookYaw - lastYaw) < 1.0 && Math.abs(lookPitch - lastPitch) < 1.0) {
+          continue;
+        }
+
+        (p.client as any)._bankerLastYaw = lookYaw;
+        (p.client as any)._bankerLastPitch = lookPitch;
+
+        // Rotate head smoothly (i8 byte)
+        p.client.write('entity_head_rotation', {
+          entityId: BANKER_ENTITY_ID,
+          headYaw: toProtocolByte(lookYaw)
+        });
+
+        // Rotate body & pitch (i8 byte)
+        p.client.write('entity_look', {
+          entityId: BANKER_ENTITY_ID,
+          yaw: toProtocolByte(lookYaw),
+          pitch: toProtocolByte(lookPitch),
+          onGround: true
+        });
+      } catch (_) {}
+    }
+  } catch (_) {}
 }
 
 /**
