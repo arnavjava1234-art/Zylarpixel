@@ -13,6 +13,14 @@
 import { ZylarServer } from './src/core/ZylarServer';
 import { HUB_SPAWN_X, HUB_SPAWN_Y, HUB_SPAWN_Z } from './src/world/hubRegionProvider';
 
+// Top-level crash isolation guards: ensure background ticker or network errors never crash the Hub process
+process.on('uncaughtException', (err: any) => {
+  console.error('[CRITICAL] Uncaught exception in Hub server:', err?.stack || err?.message || err);
+});
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[CRITICAL] Unhandled promise rejection in Hub server:', reason?.stack || reason?.message || reason);
+});
+
 const hub = new ZylarServer({
   serverId: 'hub',
   serverName: 'Village Hub',
