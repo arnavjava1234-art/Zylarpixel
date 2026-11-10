@@ -1098,6 +1098,12 @@ export class ZylarServer {
     const is119 = false;
     const verLabel = '1.21.8 (Protocol 772)';
 
+    // Attach stream error handler early so socket hiccups never crash process
+    client.on('error', (err: any) => {
+      const msg = err?.message || String(err);
+      this.log('WARN', `[!] Client network error for ${client.username || client.id}: ${msg}`);
+    });
+
     this.log('INFO', `[+] Player joined ${this.config.serverName}: ${client.username} [${verLabel}]`);
 
     const pData = createPlayerSession(client, is119);
