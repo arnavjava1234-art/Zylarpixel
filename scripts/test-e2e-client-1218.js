@@ -164,7 +164,7 @@ function checkCompletion(isEnd = false) {
   const allRegistriesMet = results.registriesReceived.size >= 21;
   const tagsMet = results.tagsReceived && results.itemTagsFound > 0 && results.enchantmentTagsFound > 0;
   const finishConfigMet = results.finishConfigurationReceived;
-  const playMet = results.playStateEntered && results.loginPacketReceived;
+  const playMet = results.playStateEntered && results.loginPacketReceived && results.spawnPositionReceived;
   const chunksMet = results.chunksReceived >= 5;
 
   if (allRegistriesMet && tagsMet && finishConfigMet && playMet && chunksMet) {
