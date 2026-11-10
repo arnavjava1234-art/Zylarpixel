@@ -164,7 +164,7 @@ client.on('end', (reason) => {
 });
 
 function checkCompletion(isEnd = false) {
-  const allRegistriesMet = results.registriesReceived.size >= 21;
+  const allRegistriesMet = results.registriesReceived.size >= EXPECTED_REGISTRIES.length;
   const tagsMet = results.tagsReceived && results.itemTagsFound > 0 && results.enchantmentTagsFound > 0;
   const finishConfigMet = results.finishConfigurationReceived;
   const playMet = results.playStateEntered && results.loginPacketReceived && results.spawnPositionReceived;
