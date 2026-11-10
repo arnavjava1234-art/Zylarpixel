@@ -63,9 +63,9 @@ export function spawnDamageIndicator(
       client.write('entity_metadata', {
         entityId,
         metadata: [
-          { key: 23, type: 'byte', value: 3 }, // Center billboard mode (faces camera)
-          { key: 27, type: 'component', value: nbt.comp({ text: nbt.string(displayText) }) },
-          { key: 31, type: 'byte', value: 1 } // Shadow
+          { key: 15, type: 'byte', value: 3 }, // Center billboard mode (faces camera)
+          { key: 23, type: 'component', value: nbt.comp({ text: nbt.string(displayText) }) },
+          { key: 27, type: 'byte', value: 1 } // Shadow
         ]
       });
     } catch (_) {}
