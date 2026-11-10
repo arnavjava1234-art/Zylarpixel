@@ -552,7 +552,7 @@ proxyServer.on('playerJoin', (client: any) => {
     client.write('login', {
       entityId: 99999,
       isHardcore: false,
-      worldNames: ['minecraft:overworld'],
+      worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
       maxPlayers: 250,
       viewDistance: 12,
       simulationDistance: 12,
