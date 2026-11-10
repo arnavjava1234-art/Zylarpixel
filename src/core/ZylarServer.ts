@@ -1476,10 +1476,6 @@ export class ZylarServer {
         const pruneRadius = streamRadius + 3;
         let newChunksStreamed = 0;
 
-        if (!is119) {
-          try { client.write('chunk_batch_start', {}); } catch (_) {}
-        }
-
         if (pData.loadedChunks) {
           for (const key of pData.loadedChunks) {
             const commaIdx = key.indexOf(',');
@@ -1487,6 +1483,9 @@ export class ZylarServer {
             const cz = parseInt(key.slice(commaIdx + 1), 10);
             if (Math.abs(cx - currentCx) > pruneRadius || Math.abs(cz - currentCz) > pruneRadius) {
               pData.loadedChunks.delete(key);
+              try {
+                client.write('unload_chunk', { chunkX: cx, chunkZ: cz });
+              } catch (_) {}
             }
           }
         }
@@ -1505,6 +1504,9 @@ export class ZylarServer {
         }
 
         if (chunksToStream.length > 0) {
+          if (!is119) {
+            try { client.write('chunk_batch_start', {}); } catch (_) {}
+          }
           // Send closest chunks first for instant floor stability
           chunksToStream.sort((a, b) => a.dist - b.dist);
 
