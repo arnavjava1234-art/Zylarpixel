@@ -1181,20 +1181,16 @@ export class ZylarServer {
         } catch (_) {}
       }
     } else {
-      if (!is119) {
-        try { client.write('chunk_batch_start', {}); } catch (_) {}
-      }
+      try { client.write('chunk_batch_start', {}); } catch (_) {}
 
       for (let cx = baseChunkX - 4; cx <= baseChunkX + 4; cx++) {
         for (let cz = baseChunkZ - 4; cz <= baseChunkZ + 4; cz++) {
           pData.loadedChunks.add(`${cx},${cz}`);
-          client.write('map_chunk', dumpChunkPacket(cx, cz, is119));
+          client.write('map_chunk', dumpChunkPacket(cx, cz));
         }
       }
 
-      if (!is119) {
-        try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
-      }
+      try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
 
       // Send Initial Position
       const joinTpId = ++this.teleportCounter;
