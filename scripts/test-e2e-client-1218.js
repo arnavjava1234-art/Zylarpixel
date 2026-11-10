@@ -134,6 +134,7 @@ client.on('packet', (data, meta) => {
       results.spawnPositionReceived = true;
       results.spawnCoords = data.location || { x: data.x, y: data.y, z: data.z };
       console.log(`   📍 [PLAY] Received ${meta.name} packet at:`, results.spawnCoords);
+      checkCompletion();
     }
 
     if (meta.name === 'map_chunk') {
