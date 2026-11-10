@@ -1158,11 +1158,17 @@ export class ZylarServer {
 
       // Send immediate floor chunks directly under player's feet FIRST so floor is 100% solid
       const immediate = chunkCoords.filter(c => c.dist <= 2);
+      if (!is119 && immediate.length > 0) {
+        try { client.write('chunk_batch_start', {}); } catch (_) {}
+      }
       for (const c of immediate) {
         pData.loadedChunks.add(`${c.cx},${c.cz}`);
         try {
           client.write('map_chunk', dumpHubChunkPacket(c.cx, c.cz, is119));
         } catch (_) {}
+      }
+      if (!is119 && immediate.length > 0) {
+        try { client.write('chunk_batch_finished', { batchSize: immediate.length }); } catch (_) {}
       }
 
       // Send Initial Position
@@ -1174,11 +1180,17 @@ export class ZylarServer {
 
       // Stream remaining outer chunks smoothly right after
       const outer = chunkCoords.filter(c => c.dist > 2);
+      if (!is119 && outer.length > 0) {
+        try { client.write('chunk_batch_start', {}); } catch (_) {}
+      }
       for (const c of outer) {
         pData.loadedChunks.add(`${c.cx},${c.cz}`);
         try {
           client.write('map_chunk', dumpHubChunkPacket(c.cx, c.cz, is119));
         } catch (_) {}
+      }
+      if (!is119 && outer.length > 0) {
+        try { client.write('chunk_batch_finished', { batchSize: outer.length }); } catch (_) {}
       }
     } else {
       try { client.write('chunk_batch_start', {}); } catch (_) {}
