@@ -490,7 +490,7 @@ export class ZylarServer {
     }
   }
 
-  public reGenerateWorld(client: any, is119: boolean): void {
+  public reGenerateWorld(client: any, _is119?: boolean): void {
     const pData = players.get(client.id);
     if (!pData || !pData.island) return;
 
@@ -505,18 +505,14 @@ export class ZylarServer {
       client.write('update_view_position', { chunkX: baseChunkX, chunkZ: baseChunkZ });
     } catch (_) {}
 
-    if (!is119) {
-      try { client.write('chunk_batch_start', {}); } catch (_) {}
-    }
+    try { client.write('chunk_batch_start', {}); } catch (_) {}
     for (let cx = baseChunkX - 4; cx <= baseChunkX + 4; cx++) {
       for (let cz = baseChunkZ - 4; cz <= baseChunkZ + 4; cz++) {
         pData.loadedChunks.add(`${cx},${cz}`);
-        client.write('map_chunk', dumpChunkPacket(cx, cz, is119));
+        client.write('map_chunk', dumpChunkPacket(cx, cz));
       }
     }
-    if (!is119) {
-      try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
-    }
+    try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
   }
 
   public triggerServerRestart(): void {
