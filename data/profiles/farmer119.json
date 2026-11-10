@@ -1,0 +1,240 @@
+{
+  "username": "Farmer119",
+  "rank": "DEFAULT",
+  "isOp": false,
+  "coins": 0,
+  "bank": 0,
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "speed": 100,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "critChance": 30,
+    "critDamage": 50
+  },
+  "skills": {
+    "combat": 1,
+    "mining": 1,
+    "foraging": 1,
+    "farming": 1
+  },
+  "inventory": [
+    {
+      "slot": 37,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 38,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 39,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 40,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 41,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 42,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 43,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 9,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 10,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 11,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 12,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 13,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 14,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 15,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 16,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 17,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 18,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 19,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 20,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 21,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 22,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 23,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 24,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 25,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 26,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 27,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 28,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 29,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 30,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 31,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 32,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 33,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 34,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 35,
+      "itemId": 1,
+      "count": 64,
+      "name": "stone"
+    },
+    {
+      "slot": 36,
+      "itemId": 911,
+      "count": 5,
+      "name": "wheat"
+    }
+  ],
+  "currentServer": "hub",
+  "lastSeen": 1794287368257
+}
