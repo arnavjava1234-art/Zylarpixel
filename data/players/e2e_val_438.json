@@ -1,0 +1,39 @@
+{
+  "username": "E2E_Val_438",
+  "uuid": "a8a146d1-c96c-37f9-a5c6-62348abd0553",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "E2E_Val_438",
+    "originX": 158000,
+    "originZ": 0,
+    "spawnX": 158000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-10T04:29:40.482Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794284980482
+}
