@@ -556,7 +556,7 @@ function renderRegrowthLaserBeam(
   protector.lastBeamRenderTime = now;
 
   for (const [_, p] of playerMap) {
-    if (!p.client) continue;
+    if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
     const pDist = Math.hypot((p.x || 0) - task.x, (p.z || 0) - task.z);
     if (pDist > 96.0) continue;
 
@@ -579,6 +579,7 @@ function renderRegrowthLaserBeam(
         } else {
           p.client.write('world_particles', {
             longDistance: true,
+            alwaysShow: true,
             x: pt.x,
             y: pt.y,
             z: pt.z,
@@ -610,7 +611,7 @@ function completeCropRegrowth(
   const fullyGrown = FULLY_GROWN_CROP_STATES[cropName];
 
   for (const [_, p] of playerMap) {
-    if (!p.client) continue;
+    if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
     const pDist = Math.hypot((p.x || 0) - x, (p.z || 0) - z);
     if (pDist > 96.0) continue;
 
@@ -634,6 +635,7 @@ function completeCropRegrowth(
       } else {
         p.client.write('world_particles', {
           longDistance: true,
+          alwaysShow: true,
           x: x + 0.5,
           y: y + 0.35,
           z: z + 0.5,
@@ -649,16 +651,7 @@ function completeCropRegrowth(
 
     // 2. Crisp Fertilizer Chime Sound (item.bone_meal.use)
     try {
-      p.client.write('named_sound_effect', {
-        soundName: 'item.bone_meal.use',
-        soundCategory: 0,
-        x: Math.floor(x * 8),
-        y: Math.floor(y * 8),
-        z: Math.floor(z * 8),
-        volume: 1.0,
-        pitch: 1.25,
-        seed: [0, 0]
-      });
+      playSoundEffect(p.client, 'item.bone_meal.use', x, y, z, 1.0, 1.25, 'block', is119);
     } catch (_) {}
 
     // 3. Hydrate farmland underneath if not nether_wart
