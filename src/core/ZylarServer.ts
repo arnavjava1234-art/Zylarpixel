@@ -1644,6 +1644,13 @@ export class ZylarServer {
       }
     });
 
+    client.on('chunk_batch_received', (data: any) => {
+      // Mojang 1.21.8 chunk batch feedback telemetry from client
+      if (data && typeof data.chunksPerTick === 'number') {
+        pData.chunksPerTick = data.chunksPerTick;
+      }
+    });
+
     client.on('held_item_slot', (data: any) => {
       if (typeof data.slotId === 'number') {
         pData.selectedSlot = data.slotId;
