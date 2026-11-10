@@ -662,6 +662,13 @@ export class ZylarServer {
       this.log('ERROR', '⚠️ Server socket error:', err.message);
     });
 
+    this.serverInstance.on('connection', (client: any) => {
+      client.on('error', (err: any) => {
+        const msg = err?.message || String(err);
+        this.log('DEBUG', `Socket connection error for client: ${msg}`);
+      });
+    });
+
     this.serverInstance.on('playerJoin', (client: any) => {
       this.handlePlayerJoin(client);
     });
@@ -680,69 +687,102 @@ export class ZylarServer {
   }
 
   private initLoops(): void {
+    this.clearLoops();
+
     // A. Action Bar Ticker (every 100ms)
-    setInterval(() => {
-      for (const [_, p] of players) {
-        if (!p.client || !p.stats) continue;
-        try {
-          if (p.actionBarOverride && Date.now() < p.actionBarOverride.expiresAt) {
-            sendActionBar(p.client, p.is119, p.actionBarOverride.text);
-          } else {
-            p.actionBarOverride = undefined;
-            const text = formatActionBar(p.stats);
-            sendActionBar(p.client, p.is119, text);
-          }
-        } catch (_) {}
-      }
-    }, 100);
+    this.intervals.push(setInterval(() => {
+      try {
+        for (const [_, p] of players) {
+          if (!p || !p.client || !p.stats || p.client.ended || p.client.state === 'closed') continue;
+          try {
+            if (p.actionBarOverride && Date.now() < p.actionBarOverride.expiresAt) {
+              sendActionBar(p.client, p.is119, p.actionBarOverride.text);
+            } else {
+              p.actionBarOverride = undefined;
+              const text = formatActionBar(p.stats);
+              sendActionBar(p.client, p.is119, text);
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }, 100));
 
     // B. Mana Regeneration Loop (every 1s)
-    setInterval(() => {
-      for (const [_, p] of players) {
-        if (!p.stats) continue;
-        if (p.stats.mana < p.stats.maxMana) {
-          const regen = calculateManaRegen(p.stats.maxMana);
-          p.stats.mana = Math.min(p.stats.maxMana, p.stats.mana + regen);
+    this.intervals.push(setInterval(() => {
+      try {
+        for (const [_, p] of players) {
+          if (!p || !p.stats) continue;
+          try {
+            if (p.stats.mana < p.stats.maxMana) {
+              const regen = calculateManaRegen(p.stats.maxMana);
+              p.stats.mana = Math.min(p.stats.maxMana, p.stats.mana + regen);
+            }
+          } catch (_) {}
         }
-      }
-    }, 1000);
+      } catch (_) {}
+    }, 1000));
 
     // C. Health Regeneration Loop (every 2s)
-    setInterval(() => {
-      for (const [_, p] of players) {
-        if (!p.stats || !p.client) continue;
-        if (p.stats.health < p.stats.maxHealth && p.stats.health > 0) {
-          const hpRegen = calculateHealthRegen(p.stats.maxHealth);
-          p.stats.health = Math.min(p.stats.maxHealth, p.stats.health + hpRegen);
-          syncVanillaHealthAndHunger(p.client, p.stats);
-          for (const [__, observer] of players) {
-            updatePlayerHealthScore(observer.client, p.username, p.stats.health, observer.is119);
-          }
+    this.intervals.push(setInterval(() => {
+      try {
+        for (const [_, p] of players) {
+          if (!p || !p.stats || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          try {
+            if (p.stats.health < p.stats.maxHealth && p.stats.health > 0) {
+              const hpRegen = calculateHealthRegen(p.stats.maxHealth);
+              p.stats.health = Math.min(p.stats.maxHealth, p.stats.health + hpRegen);
+              try { syncVanillaHealthAndHunger(p.client, p.stats); } catch (_) {}
+              for (const [__, observer] of players) {
+                if (!observer || !observer.client || observer.client.ended || observer.client.state === 'closed') continue;
+                try {
+                  updatePlayerHealthScore(observer.client, p.username, p.stats.health, observer.is119);
+                } catch (_) {}
+              }
+            }
+          } catch (_) {}
         }
-      }
-    }, 2000);
+      } catch (_) {}
+    }, 2000));
 
     // D. Proximity Player Sync Loop (every 500ms)
-    setInterval(() => {
-      for (const [_, p] of players) {
-        if (!p.client) continue;
-        this.syncNearbyPlayers(p);
-      }
-    }, 500);
+    this.intervals.push(setInterval(() => {
+      try {
+        for (const [_, p] of players) {
+          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          try {
+            this.syncNearbyPlayers(p);
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }, 500));
 
     // E. Dropped Items Pickup Loop (every 100ms)
-    setInterval(() => {
-      this.tickDroppedItems();
-    }, 100);
+    this.intervals.push(setInterval(() => {
+      try {
+        this.tickDroppedItems();
+      } catch (_) {}
+    }, 100));
 
-    // F. Hub Banker NPC, Farm Merchant NPC & Crop Guardians Ticker (every 50ms / 20 TPS)
-    if (this.config.worldType === 'hub') {
-      this.botTickerInterval = setInterval(() => {
-        tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
-        tickFarmMerchantNpc(players, (deg: number) => this.toProtocolByte(deg));
-        tickCropGuardians(this, players, (deg: number) => this.toProtocolByte(deg));
-      }, 50);
-    }
+    // F. Hub Banker NPC, Farm Merchant NPC, Crop Guardians & Server Bots Ticker (every 50ms / 20 TPS)
+    this.botTickerInterval = setInterval(() => {
+      try {
+        this.tickServerBots();
+      } catch (_) {}
+
+      if (this.config.worldType === 'hub') {
+        try {
+          tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
+        } catch (_) {}
+
+        try {
+          tickFarmMerchantNpc(players, (deg: number) => this.toProtocolByte(deg));
+        } catch (_) {}
+
+        try {
+          tickCropGuardians(this, players, (deg: number) => this.toProtocolByte(deg));
+        } catch (_) {}
+      }
+    }, 50);
   }
 
   private tickDroppedItems(): void {
