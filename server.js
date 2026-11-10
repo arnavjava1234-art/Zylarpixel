@@ -960,8 +960,12 @@ function startServerInstance() {
               x: data.x,
               y: data.y,
               z: data.z,
+              dx: 0,
+              dy: 0,
+              dz: 0,
               yaw: yawByte,
               pitch: pitchByte,
+              flags: { _value: 0 },
               onGround: true
             });
             other.client.write('entity_head_rotation', {
