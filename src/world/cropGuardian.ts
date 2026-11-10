@@ -790,16 +790,7 @@ export function handleHubCropHarvest(
 
       // Authentic Hypixel Blue Rare Drop alert (§9§lRARE DROP!) + pitch 2.0 ding
       try {
-        pData.client.write('named_sound_effect', {
-          soundName: 'entity.player.levelup',
-          soundCategory: 0,
-          x: Math.floor(pData.x * 8),
-          y: Math.floor(pData.y * 8),
-          z: Math.floor(pData.z * 8),
-          volume: 1.0,
-          pitch: 2.0,
-          seed: [0, 0]
-        });
+        playSoundEffect(pData.client, 'entity.player.levelup', pData.x, pData.y, pData.z, 1.0, 2.0, 'player', pData.is119);
       } catch (_) {}
 
       try {
