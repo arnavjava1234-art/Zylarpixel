@@ -188,7 +188,7 @@ function printSummaryAndExit(success) {
   console.log('                 📊 E2E VALIDATION SUMMARY REPORT');
   console.log('===============================================================');
   console.log(`• Configuration State Entered:  ${results.configurationEntered ? '✅ PASS' : '❌ FAIL'}`);
-  console.log(`• Registries Received (21/21):  ${results.registriesReceived.size >= 21 ? '✅ PASS' : '❌ FAIL'} (${results.registriesReceived.size}/21 received)`);
+  console.log(`• Registries Received (${EXPECTED_REGISTRIES.length}/${EXPECTED_REGISTRIES.length}):  ${results.registriesReceived.size >= EXPECTED_REGISTRIES.length ? '✅ PASS' : '❌ FAIL'} (${results.registriesReceived.size}/${EXPECTED_REGISTRIES.length} received)`);
   
   for (const reg of EXPECTED_REGISTRIES) {
     const hasReg = results.registriesReceived.has(reg);
