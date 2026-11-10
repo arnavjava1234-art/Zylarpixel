@@ -720,16 +720,7 @@ export function handleHubCropHarvest(
 
     // Cancel silently with a dull thud sound and keep wheat intact (zero drops)
     try {
-      pData.client.write('named_sound_effect', {
-        soundName: 'block.wood.hit',
-        soundCategory: 0,
-        x: Math.floor(x * 8),
-        y: Math.floor(y * 8),
-        z: Math.floor(z * 8),
-        volume: 0.8,
-        pitch: 0.8,
-        seed: [0, 0]
-      });
+      playSoundEffect(pData.client, 'block.wood.hit', x, y, z, 0.8, 0.8, 'block', pData.is119);
     } catch (_) {}
 
     if (typeof sequence === 'number') {
