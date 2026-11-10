@@ -239,56 +239,60 @@ export function tickFarmMerchantNpc(
   players: Map<any, any>,
   toProtocolByte: (deg: number) => number
 ): void {
-  if (players.size === 0) return;
+  if (!players || players.size === 0) return;
 
-  const eyeX = FARM_MERCHANT_POS.x;
-  const eyeY = FARM_MERCHANT_POS.y + 1.62;
-  const eyeZ = FARM_MERCHANT_POS.z;
+  try {
+    const eyeX = FARM_MERCHANT_POS.x;
+    const eyeY = FARM_MERCHANT_POS.y + 1.62;
+    const eyeZ = FARM_MERCHANT_POS.z;
 
-  for (const [_, p] of players) {
-    try {
-      const pEyeX = p.x;
-      const pEyeY = p.y + 1.62;
-      const pEyeZ = p.z;
+    for (const [_, p] of players) {
+      if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
 
-      const visible = hasLineOfSight(eyeX, eyeY, eyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
+      try {
+        const pEyeX = p.x;
+        const pEyeY = p.y + 1.62;
+        const pEyeZ = p.z;
 
-      let lookYaw = FARM_MERCHANT_POS.yaw;
-      let lookPitch = FARM_MERCHANT_POS.pitch;
+        const visible = hasLineOfSight(eyeX, eyeY, eyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
 
-      if (visible) {
-        const dx = pEyeX - eyeX;
-        const dy = pEyeY - eyeY;
-        const dz = pEyeZ - eyeZ;
-        const distHoriz = Math.hypot(dx, dz);
+        let lookYaw = FARM_MERCHANT_POS.yaw;
+        let lookPitch = FARM_MERCHANT_POS.pitch;
 
-        lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
-        lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
-      }
+        if (visible) {
+          const dx = pEyeX - eyeX;
+          const dy = pEyeY - eyeY;
+          const dz = pEyeZ - eyeZ;
+          const distHoriz = Math.hypot(dx, dz);
 
-      // Delta Throttling: Only send packets if yaw or pitch changed by >= 1.0 degree
-      const lastYaw = (p.client as any)._farmMerchantLastYaw ?? -9999;
-      const lastPitch = (p.client as any)._farmMerchantLastPitch ?? -9999;
-      if (Math.abs(lookYaw - lastYaw) < 1.0 && Math.abs(lookPitch - lastPitch) < 1.0) {
-        continue;
-      }
+          lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
+          lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
+        }
 
-      (p.client as any)._farmMerchantLastYaw = lookYaw;
-      (p.client as any)._farmMerchantLastPitch = lookPitch;
+        // Delta Throttling: Only send packets if yaw or pitch changed by >= 1.0 degree
+        const lastYaw = (p.client as any)._farmMerchantLastYaw ?? -9999;
+        const lastPitch = (p.client as any)._farmMerchantLastPitch ?? -9999;
+        if (Math.abs(lookYaw - lastYaw) < 1.0 && Math.abs(lookPitch - lastPitch) < 1.0) {
+          continue;
+        }
 
-      p.client.write('entity_head_rotation', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        headYaw: toProtocolByte(lookYaw)
-      });
+        (p.client as any)._farmMerchantLastYaw = lookYaw;
+        (p.client as any)._farmMerchantLastPitch = lookPitch;
 
-      p.client.write('entity_look', {
-        entityId: FARM_MERCHANT_ENTITY_ID,
-        yaw: toProtocolByte(lookYaw),
-        pitch: toProtocolByte(lookPitch),
-        onGround: true
-      });
-    } catch (_) {}
-  }
+        p.client.write('entity_head_rotation', {
+          entityId: FARM_MERCHANT_ENTITY_ID,
+          headYaw: toProtocolByte(lookYaw)
+        });
+
+        p.client.write('entity_look', {
+          entityId: FARM_MERCHANT_ENTITY_ID,
+          yaw: toProtocolByte(lookYaw),
+          pitch: toProtocolByte(lookPitch),
+          onGround: true
+        });
+      } catch (_) {}
+    }
+  } catch (_) {}
 }
 
 /**
