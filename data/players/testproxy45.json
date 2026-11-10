@@ -1,0 +1,39 @@
+{
+  "username": "TestProxy45",
+  "uuid": "e90a7039-dcfa-354e-bd3d-30492da75d3c",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "TestProxy45",
+    "originX": 180000,
+    "originZ": 0,
+    "spawnX": 180000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-10T05:10:31.145Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794287431145
+}
