@@ -22,20 +22,28 @@ const server = (mc as any).createServer({
 server.on('playerJoin', (client: any) => {
   console.log(`[SERVER] Player joined: ${client.username} [Protocol: ${client.protocolVersion}, Version: ${client.version}]`);
   client.write('login', {
-    entityId: 1001,
+    entityId: 99999,
     isHardcore: false,
-    worldNames: ['minecraft:overworld'],
-    maxPlayers: 10,
-    viewDistance: 8,
-    simulationDistance: 8,
+    worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
+    maxPlayers: 250,
+    viewDistance: 12,
+    simulationDistance: 12,
     reducedDebugInfo: false,
     enableRespawnScreen: true,
     doLimitedCrafting: false,
-    dimensionType: 'minecraft:overworld',
-    worldName: 'minecraft:overworld',
-    hashedSeed: [0, 0],
-    gameMode: 0,
-    isFlat: true
+    worldState: {
+      dimension: 0,
+      name: 'minecraft:overworld',
+      hashedSeed: [0, 0],
+      gamemode: 'survival',
+      previousGamemode: 255,
+      isDebug: false,
+      isFlat: false,
+      death: undefined,
+      portalCooldown: 0,
+      seaLevel: 63
+    },
+    enforcesSecureChat: false
   });
 });
 
