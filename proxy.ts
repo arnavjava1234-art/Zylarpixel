@@ -423,7 +423,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
           try {
             session.client.write('respawn', {
               worldState: {
-                dimension: 0,
+                dimension: 3, // In 1.21.8 dimensionCodec: 0=overworld, 1=overworld_caves, 2=the_end, 3=the_nether
                 name: 'minecraft:the_nether',
                 hashedSeed: [0, 0],
                 gamemode: 'survival',

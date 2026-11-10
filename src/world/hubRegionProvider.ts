@@ -31,7 +31,13 @@ const hubPacketCache121 = hubPacketCache;
 // Region file cache: regionKey ('rx,rz') -> Buffer
 const regionCache = new Map<string, Buffer | null>();
 
-const REGION_DIR = path.resolve(__dirname, '../../The_Hub/The Hub/region');
+const candidateRegionDirs = [
+  path.resolve(__dirname, '../../The_Hub/The Hub/region'),
+  path.resolve(__dirname, '../../../The_Hub/The Hub/region'),
+  path.resolve(process.cwd(), 'The_Hub/The Hub/region'),
+  path.resolve(__dirname, '../The_Hub/The Hub/region')
+];
+const REGION_DIR = candidateRegionDirs.find(d => fs.existsSync(d)) || candidateRegionDirs[0];
 
 function getRegionBuffer(rx: number, rz: number): Buffer | null {
   const key = `${rx},${rz}`;
