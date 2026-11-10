@@ -1,0 +1,39 @@
+{
+  "username": "Subagent2_60s",
+  "uuid": "e2fcaa14-ef74-3bbf-b928-6b362295f2bc",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "Subagent2_60s",
+    "originX": 181000,
+    "originZ": 0,
+    "spawnX": 181000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-10T05:14:18.508Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794287658508
+}
