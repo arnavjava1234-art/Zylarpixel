@@ -757,16 +757,7 @@ export function handleHubCropHarvest(
 
   // 3. Play crisp crop break crunch sound
   try {
-    pData.client.write('named_sound_effect', {
-      soundName: 'block.crop.break',
-      soundCategory: 0,
-      x: Math.floor(x * 8),
-      y: Math.floor(y * 8),
-      z: Math.floor(z * 8),
-      volume: 1.0,
-      pitch: 1.0,
-      seed: [0, 0]
-    });
+    playSoundEffect(pData.client, 'block.crop.break', x, y, z, 1.0, 1.0, 'block', pData.is119);
   } catch (_) {}
 
   // 4. Drop table calculation scaled by Farming Fortune (Authentic Hypixel Additive Formula)
