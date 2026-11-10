@@ -136,14 +136,14 @@ export function persistPlayerSession(pData: any): void {
 
   savePlayerData(pData.username, {
     username: pData.username,
-    uuid: pData.client.uuid,
-    rank: pData.rank.id,
+    uuid: pData.client?.uuid || '',
+    rank: pData.rank?.id || 'default',
     isOp: pData.isOp,
     island: pData.island,
     lastLogin: new Date().toISOString(),
     stats: statsToPersist,
     ...( {
-      rankId: pData.rank.id,
+      rankId: pData.rank?.id || 'default',
       purse: pData.purse,
       bank: pData.bank,
       bankTransactions: pData.bankTransactions,
