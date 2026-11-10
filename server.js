@@ -367,9 +367,12 @@ function startServerInstance() {
         x: spawnX,
         y: spawnY,
         z: spawnZ,
+        dx: 0,
+        dy: 0,
+        dz: 0,
         yaw: 0.0,
         pitch: 0.0,
-        flags: 0x00,
+        flags: { _value: 0 },
         teleportId: ++teleportCounter,
         dismountVehicle: false
       });
