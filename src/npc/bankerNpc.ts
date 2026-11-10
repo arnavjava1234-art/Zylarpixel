@@ -227,9 +227,9 @@ export function spawnBankerNpc(client: any, is119: boolean, toProtocolByte: (deg
     client.write('entity_metadata', {
       entityId: BANKER_HOLO_TITLE_ID,
       metadata: [
-        { key: 23, type: 'byte', value: 3 }, // Center billboard mode
-        { key: 27, type: 'component', value: nbt.comp({ text: nbt.string('§fBanker\n§e§lCLICK') }) },
-        { key: 31, type: 'byte', value: 1 } // Shadow
+        { key: 15, type: 'byte', value: 3 }, // Center billboard mode
+        { key: 23, type: 'component', value: nbt.comp({ text: nbt.string('§fBanker\n§e§lCLICK') }) },
+        { key: 27, type: 'byte', value: 1 } // Shadow
       ]
     });
   } catch (_) {}
