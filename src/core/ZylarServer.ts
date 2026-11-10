@@ -17,7 +17,8 @@ import {
   getWorldBlockName,
   dumpChunkPacket,
   BLOCK_DROPS,
-  ITEM_TO_BLOCK
+  ITEM_TO_BLOCK,
+  playSoundEffect
 } from '../world/worldManager';
 import { tagRegistryManager } from '../world/tagRegistryManager';
 import {
