@@ -2557,7 +2557,12 @@ export class ZylarServer {
       handleTabComplete(client, pData, data, players);
     });
 
-    // I. Player Disconnect
+    // I. Player Error & Disconnect
+    client.on('error', (err: any) => {
+      const msg = err?.message || String(err);
+      this.log('DEBUG', `[!] Client packet stream error for ${client.username || client.id}: ${msg}`);
+    });
+
     client.on('end', () => {
       persistPlayerSession(pData);
       removePlayerSession(client.id);
