@@ -149,8 +149,8 @@ players.set('Farmer121', mockP121);
 
 // Harvest a hub crop (carrot outside the wheat minion exclusion zone)
 handleHubCropHarvest(server, mockP121, 44, 70, -135, 'carrots');
-const [dropId, dropItem] = Array.from(server.droppedItems.entries())[0];
-if (dropItem) dropItem.spawnTime = Date.now() - 1000;
+const harvestEntry = Array.from(server.droppedItems.entries())[0];
+if (harvestEntry && harvestEntry[1]) harvestEntry[1].spawnTime = Date.now() - 1000;
 (server as any).tickDroppedItems();
 
 assert(captured121Slots.length > 0, 'set_slot packets must be sent to 1.21.1 client');
