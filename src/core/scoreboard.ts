@@ -209,22 +209,32 @@ export function sendScoreboardTeam(client: any, username: string, rank: RankDefi
   } catch (e) {}
 }
 
-export function startScoreboardAnimation(playersMap: Map<any, any>): void {
-  setInterval(() => {
-    currentTitleIndex = (currentTitleIndex + 1) % TITLE_FRAMES.length;
-    const titleText = TITLE_FRAMES[currentTitleIndex];
+let scoreboardAnimationInterval: NodeJS.Timeout | null = null;
 
-    for (const [_, p] of playersMap) {
-      try {
-        p.client.write('scoreboard_objective', {
-          name: 'sb',
-          action: 2,
-          displayText: nbt.comp({ text: nbt.string(titleText) }),
-          type: 0,
-          number_format: undefined
-        });
-      } catch (e) {}
-    }
+export function startScoreboardAnimation(playersMap: Map<any, any>): void {
+  if (scoreboardAnimationInterval) {
+    try { clearInterval(scoreboardAnimationInterval); } catch (_) {}
+    scoreboardAnimationInterval = null;
+  }
+
+  scoreboardAnimationInterval = setInterval(() => {
+    try {
+      currentTitleIndex = (currentTitleIndex + 1) % TITLE_FRAMES.length;
+      const titleText = TITLE_FRAMES[currentTitleIndex];
+
+      for (const [_, p] of playersMap) {
+        if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+        try {
+          p.client.write('scoreboard_objective', {
+            name: 'sb',
+            action: 2,
+            displayText: nbt.comp({ text: nbt.string(titleText) }),
+            type: 0,
+            number_format: undefined
+          });
+        } catch (e) {}
+      }
+    } catch (_) {}
   }, 250);
 }
 
