@@ -14,14 +14,22 @@ export const mcData = mcData1218;
 export const mcData1192 = mcData1218;
 export const mcData1211 = mcData1218;
 
-function jsonToNbtCompound(val: any): any {
+function jsonToNbtCompound(val: any, propName?: string): any {
   if (val === null || val === undefined) return null;
   if (typeof val === 'string') return { type: 'string', value: val };
-  if (typeof val === 'number') return Number.isInteger(val) ? { type: 'int', value: val } : { type: 'float', value: val };
+  if (typeof val === 'number') {
+    if (propName === 'downfall' || propName === 'temperature' || propName === 'length_in_seconds' || propName === 'probability' || propName === 'range') {
+      return { type: 'float', value: val };
+    }
+    if (propName === 'offset') {
+      return { type: 'double', value: val };
+    }
+    return Number.isInteger(val) ? { type: 'int', value: val } : { type: 'float', value: val };
+  }
   if (typeof val === 'boolean') return { type: 'byte', value: val ? 1 : 0 };
   if (Array.isArray(val)) {
     if (val.length === 0) return { type: 'list', value: { type: 'end', value: [] } };
-    const converted = val.map(jsonToNbtCompound);
+    const converted = val.map((item: any) => jsonToNbtCompound(item, propName));
     const childType = converted[0].type;
     return {
       type: 'list',
@@ -34,7 +42,7 @@ function jsonToNbtCompound(val: any): any {
   if (typeof val === 'object') {
     const res: any = {};
     for (const k of Object.keys(val)) {
-      const child = jsonToNbtCompound(val[k]);
+      const child = jsonToNbtCompound(val[k], k);
       if (child !== null) res[k] = child;
     }
     return { type: 'compound', value: res };
@@ -83,21 +91,37 @@ export const sanitizedDimensionCodec1218 = (() => {
     }
   }
 
-  // 3. Inject all 9 additional 1.21.8 synchronized registries (wolf_sound_variant, cat, frog, chicken, cow, pig, dialog, test)
+  // 3. Inject and merge 1.21.8 synchronized registries (wolf_sound_variant, cat, frog, chicken, cow, pig, dialog, test, pale_garden, dennis, resin, music)
   try {
-    const addFile = path.join(__dirname, 'additionalRegistries1218.json');
-    if (fs.existsSync(addFile)) {
+    const candidatePaths = [
+      path.join(__dirname, 'additionalRegistries1218.json'),
+      path.join(__dirname, '../../src/world/additionalRegistries1218.json'),
+      path.join(__dirname, '../../../src/world/additionalRegistries1218.json'),
+      path.join(process.cwd(), 'src/world/additionalRegistries1218.json'),
+      path.join(process.cwd(), 'dist/src/world/additionalRegistries1218.json')
+    ];
+    const addFile = candidatePaths.find(p => fs.existsSync(p));
+    if (addFile) {
       const addData = JSON.parse(fs.readFileSync(addFile, 'utf8'));
       for (const regName of Object.keys(addData)) {
         const rawEntries = addData[regName];
         if (Array.isArray(rawEntries)) {
-          codec[regName] = {
-            id: regName,
-            entries: rawEntries.map((e: any) => ({
-              key: e.key,
-              value: jsonToNbtCompound(JSON.parse(e.jsonText))
-            }))
-          };
+          if (!codec[regName]) {
+            codec[regName] = {
+              id: regName,
+              entries: []
+            };
+          }
+          const existingKeys = new Set((codec[regName].entries || []).map((e: any) => e.key));
+          for (const e of rawEntries) {
+            if (!existingKeys.has(e.key)) {
+              codec[regName].entries.push({
+                key: e.key,
+                value: jsonToNbtCompound(JSON.parse(e.jsonText))
+              });
+              existingKeys.add(e.key);
+            }
+          }
         }
       }
     }

@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import * as net from 'net';
 import * as nbt from 'prismarine-nbt';
 import { mcData1218, sanitizedDimensionCodec1218 } from './src/world/worldManager';
+import { tagRegistryManager } from './src/world/tagRegistryManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
 
@@ -51,7 +52,8 @@ const proxyServer = (mc as any).createServer({
   version: '1.21.8',
   maxPlayers: 250,
   motd: '§d§lZYLARPIXEL §7[Proxy Network] ⚡ Hypixel SkyBlock',
-  registryCodec: sanitizedDimensionCodec1218
+  registryCodec: sanitizedDimensionCodec1218,
+  tags: tagRegistryManager.getTagPacketData()
 } as any);
 
 // Limbo Void coordinates (deep space, zero chunk collisions, zero chunk streaming)

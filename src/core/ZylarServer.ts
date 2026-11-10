@@ -19,6 +19,7 @@ import {
   BLOCK_DROPS,
   ITEM_TO_BLOCK
 } from '../world/worldManager';
+import { tagRegistryManager } from '../world/tagRegistryManager';
 import {
   generateStarterIslands,
   generatePlayerIsland,
@@ -676,7 +677,8 @@ export class ZylarServer {
       version: '1.21.8',
       maxPlayers: 250,
       motd: this.config.motd || `§d§lZYLARPIXEL §7[${this.config.serverName}]`,
-      registryCodec: sanitizedDimensionCodec1218
+      registryCodec: sanitizedDimensionCodec1218,
+      tags: tagRegistryManager.getTagPacketData()
     } as any);
 
     this.serverInstance.on('error', (err: any) => {
