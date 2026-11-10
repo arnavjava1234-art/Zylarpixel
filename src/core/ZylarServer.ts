@@ -924,16 +924,7 @@ export class ZylarServer {
 
           // 4. Play pickup sound
           try {
-            p.client.write('named_sound_effect', {
-              soundName: 'entity.item.pickup',
-              soundCategory: 0,
-              x: Math.floor(p.x * 8),
-              y: Math.floor(p.y * 8),
-              z: Math.floor(p.z * 8),
-              volume: 0.8,
-              pitch: 1.2,
-              seed: [0, 0]
-            });
+            playSoundEffect(p.client, 'entity.item.pickup', p.x, p.y, p.z, 0.8, 1.2, 'player', p.is119);
           } catch (_) {}
 
           // 5. Send collect animation to all observers
