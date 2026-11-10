@@ -1183,7 +1183,14 @@ export class ZylarServer {
       walkingSpeed: 0.1 * ((pData.stats.speed || 100) / 100.0)
     });
 
-    // 3. View Distance & View Center
+    // 3. Spawn Position & View Center
+    try {
+      client.write('spawn_position', {
+        location: { x: Math.floor(spawnX), y: Math.floor(spawnY), z: Math.floor(spawnZ) },
+        angle: 0
+      });
+    } catch (_) {}
+
     client.write('update_view_distance', { viewDistance: 12 });
 
     const baseChunkX = Math.floor(spawnX / 16);
