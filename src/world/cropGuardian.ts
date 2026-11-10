@@ -412,82 +412,86 @@ export function tickCropGuardians(
   playerMap: Map<any, any>,
   toProtocolByte: (deg: number) => number
 ): void {
-  const now = Date.now();
-  // Fast 1.5-second sinusoidal bobbing cycle (±0.2 blocks)
-  const bobOffset = Math.sin((now / 1500) * Math.PI * 2) * 0.2;
+  try {
+    const now = Date.now();
+    // Fast 1.5-second sinusoidal bobbing cycle (±0.2 blocks)
+    const bobOffset = Math.sin((now / 1500) * Math.PI * 2) * 0.2;
 
-  for (const protector of CROP_PROTECTORS) {
-    // 1. Continuous 24/7 Animation
-    protector.yaw = (protector.yaw + 3) % 360;
-    protector.currentY = protector.basePos.y + bobOffset;
-    const yawByte = toProtocolByte(protector.yaw);
+    for (const protector of CROP_PROTECTORS) {
+      try {
+        // 1. Continuous 24/7 Animation
+        protector.yaw = (protector.yaw + 3) % 360;
+        protector.currentY = protector.basePos.y + bobOffset;
+        const yawByte = toProtocolByte(protector.yaw);
 
-    // Broadcast smooth head rotation, vertical hover bobbing, and dynamic range tracking
-    for (const [_, p] of playerMap) {
-      if (!p.client) continue;
-      p._spawnedProtectors = p._spawnedProtectors || new Set<number>();
-      const dist = Math.hypot((p.x || 0) - protector.basePos.x, (p.z || 0) - protector.basePos.z);
+        // Broadcast smooth head rotation, vertical hover bobbing, and dynamic range tracking
+        for (const [_, p] of playerMap) {
+          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          p._spawnedProtectors = p._spawnedProtectors || new Set<number>();
+          const dist = Math.hypot((p.x || 0) - protector.basePos.x, (p.z || 0) - protector.basePos.z);
 
-      // Within tracking range (85 blocks):
-      if (dist <= 85.0) {
-        if (!p._spawnedProtectors.has(protector.id)) {
-          spawnSingleProtector(p.client, p.is119, protector, toProtocolByte);
-          p._spawnedProtectors.add(protector.id);
+          // Within tracking range (85 blocks):
+          if (dist <= 85.0) {
+            if (!p._spawnedProtectors.has(protector.id)) {
+              spawnSingleProtector(p.client, p.is119, protector, toProtocolByte);
+              p._spawnedProtectors.add(protector.id);
+            }
+
+            try {
+              p.client.write('entity_teleport', {
+                entityId: protector.id,
+                x: protector.basePos.x,
+                y: protector.currentY,
+                z: protector.basePos.z,
+                dx: 0,
+                dy: 0,
+                dz: 0,
+                yaw: protector.yaw, // 1.21.8 schema: float32 degrees
+                pitch: 0,
+                flags: { _value: 0 },
+                onGround: false
+              });
+              p.client.write('entity_head_rotation', {
+                entityId: protector.id,
+                headYaw: yawByte // 1.21.8 schema: int8 protocol byte
+              });
+            } catch (_) {}
+          } else if (dist > 105.0) {
+            if (p._spawnedProtectors.has(protector.id)) {
+              try {
+                p.client.write('entity_destroy', {
+                  entityIds: [protector.id]
+                });
+              } catch (_) {}
+              p._spawnedProtectors.delete(protector.id);
+            }
+          }
         }
 
-        try {
-          p.client.write('entity_teleport', {
-            entityId: protector.id,
-            x: protector.basePos.x,
-            y: protector.currentY,
-            z: protector.basePos.z,
-            dx: 0,
-            dy: 0,
-            dz: 0,
-            yaw: yawByte,
-            pitch: 0,
-            flags: { _value: 0 },
-            onGround: false
-          });
-          p.client.write('entity_head_rotation', {
-            entityId: protector.id,
-            headYaw: yawByte
-          });
-        } catch (_) {}
-      } else if (dist > 105.0) {
-        if (p._spawnedProtectors.has(protector.id)) {
-          try {
-            p.client.write('entity_destroy', {
-              entityIds: [protector.id]
-            });
-          } catch (_) {}
-          p._spawnedProtectors.delete(protector.id);
+        // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
+        if (protector.currentTask) {
+          const task = protector.currentTask;
+
+          // Check if beam cycle (0.8s = 800ms) has completed
+          if (now >= protector.taskEndTime) {
+            // Impact & Complete Regrowth!
+            completeCropRegrowth(playerMap, task);
+            protector.currentTask = null;
+            protector.lastBeamRenderTime = 0;
+          } else {
+            // While active: Render continuous solid white end_rod laser beam from head to soil
+            renderRegrowthLaserBeam(playerMap, protector, task);
+          }
+        } else if (protector.queue.length > 0) {
+          // Pop the next task in FIFO order
+          const nextTask = protector.queue.shift()!;
+          protector.currentTask = nextTask;
+          protector.taskStartTime = now;
+          protector.taskEndTime = now + 800; // 0.8-second continuous beam hold
         }
-      }
+      } catch (_) {}
     }
-
-    // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
-    if (protector.currentTask) {
-      const task = protector.currentTask;
-
-      // Check if beam cycle (0.8s = 800ms) has completed
-      if (now >= protector.taskEndTime) {
-        // Impact & Complete Regrowth!
-        completeCropRegrowth(playerMap, task);
-        protector.currentTask = null;
-        protector.lastBeamRenderTime = 0;
-      } else {
-        // While active: Render continuous solid white end_rod laser beam from head to soil
-        renderRegrowthLaserBeam(playerMap, protector, task);
-      }
-    } else if (protector.queue.length > 0) {
-      // Pop the next task in FIFO order
-      const nextTask = protector.queue.shift()!;
-      protector.currentTask = nextTask;
-      protector.taskStartTime = now;
-      protector.taskEndTime = now + 800; // 0.8-second continuous beam hold
-    }
-  }
+  } catch (_) {}
 }
 
 /**
