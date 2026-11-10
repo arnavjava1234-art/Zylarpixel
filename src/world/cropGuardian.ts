@@ -441,8 +441,12 @@ export function tickCropGuardians(
             x: protector.basePos.x,
             y: protector.currentY,
             z: protector.basePos.z,
+            dx: 0,
+            dy: 0,
+            dz: 0,
             yaw: yawByte,
             pitch: 0,
+            flags: { _value: 0 },
             onGround: false
           });
           p.client.write('entity_head_rotation', {
