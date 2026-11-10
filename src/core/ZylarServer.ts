@@ -995,16 +995,7 @@ export class ZylarServer {
           p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
           p.client.write('set_title_text', { text: nbt.comp({ text: nbt.string('§c§lINVENTORY FULL') }) });
         }
-        p.client.write('named_sound_effect', {
-          soundName: 'block.chest.locked',
-          soundCategory: 0,
-          x: Math.floor(p.x * 8),
-          y: Math.floor(p.y * 8),
-          z: Math.floor(p.z * 8),
-          volume: 1.0,
-          pitch: 0.8,
-          seed: [0, 0]
-        });
+        playSoundEffect(p.client, 'block.chest.locked', p.x, p.y, p.z, 1.0, 0.8, 'block', p.is119);
       } catch (_) {}
     }
   }
