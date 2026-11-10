@@ -75,36 +75,40 @@ export function spawnDamageIndicator(
   let ticks = 0;
   const maxTicks = 16;
   const interval = setInterval(() => {
-    ticks++;
-    posY += 0.035;
+    try {
+      ticks++;
+      posY += 0.035;
 
-    for (const observer of observers) {
-      try {
-        const client = observer.client || observer;
-        client.write('entity_teleport', {
-          entityId,
-          x: posX,
-          y: posY,
-          z: posZ,
-          dx: 0,
-          dy: 0,
-          dz: 0,
-          yaw: 0,
-          pitch: 0,
-          flags: { _value: 0 },
-          onGround: false
-        });
-      } catch (_) {}
-    }
-
-    if (ticks >= maxTicks) {
-      clearInterval(interval);
-      // 3. Despawn entity
       for (const observer of observers) {
         try {
           const client = observer.client || observer;
-          client.write('entity_destroy', { entityIds: [entityId] });
+          if (!client || client.ended || client.state === 'closed') continue;
+          client.write('entity_teleport', {
+            entityId,
+            x: posX,
+            y: posY,
+            z: posZ,
+            dx: 0,
+            dy: 0,
+            dz: 0,
+            yaw: 0,
+            pitch: 0,
+            flags: { _value: 0 },
+            onGround: false
+          });
         } catch (_) {}
+      }
+    } catch (_) {} finally {
+      if (ticks >= maxTicks) {
+        clearInterval(interval);
+        // 3. Despawn entity
+        for (const observer of observers) {
+          try {
+            const client = observer.client || observer;
+            if (!client || client.ended || client.state === 'closed') continue;
+            client.write('entity_destroy', { entityIds: [entityId] });
+          } catch (_) {}
+        }
       }
     }
   }, 50);
