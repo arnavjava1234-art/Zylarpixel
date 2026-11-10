@@ -59,7 +59,7 @@ client.on('state', (state) => {
           x: curX,
           y: curY,
           z: curZ,
-          onGround: true
+          flags: { onGround: true, hasHorizontalCollision: false }
         });
       } catch (err) {
         console.error('Failed writing position:', err);
