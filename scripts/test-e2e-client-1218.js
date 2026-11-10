@@ -76,7 +76,8 @@ const client = mc.createClient({
   username: BOT_USERNAME,
   version: '1.21.8',
   auth: 'offline',
-  skipValidation: true
+  skipValidation: true,
+  fakeHost: process.env.TEST_FAKE_HOST
 });
 
 timer = setTimeout(() => {
