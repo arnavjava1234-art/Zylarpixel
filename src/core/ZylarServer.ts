@@ -1071,7 +1071,7 @@ export class ZylarServer {
     client.write('login', {
       entityId: client.id,
       isHardcore: false,
-      worldNames: ['minecraft:overworld'],
+      worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
       maxPlayers: 250,
       viewDistance: 12,
       simulationDistance: 12,
