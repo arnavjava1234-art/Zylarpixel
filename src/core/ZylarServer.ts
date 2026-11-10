@@ -1382,6 +1382,10 @@ export class ZylarServer {
             client.write('update_view_position', { chunkX: spawnCx, chunkZ: spawnCz });
           } catch (_) {}
 
+          if (!is119) {
+            try { client.write('chunk_batch_start', {}); } catch (_) {}
+          }
+          let rescueChunks = 0;
           for (let dx = -3; dx <= 3; dx++) {
             for (let dz = -3; dz <= 3; dz++) {
               const targetCx = spawnCx + dx;
@@ -1389,8 +1393,12 @@ export class ZylarServer {
               pData.loadedChunks.add(`${targetCx},${targetCz}`);
               try {
                 client.write('map_chunk', dumpHubChunkPacket(targetCx, targetCz, is119));
+                rescueChunks++;
               } catch (_) {}
             }
+          }
+          if (!is119 && rescueChunks > 0) {
+            try { client.write('chunk_batch_finished', { batchSize: rescueChunks }); } catch (_) {}
           }
 
           this.sendPositionPacket(client, HUB_SPAWN_X, 71.0, HUB_SPAWN_Z, 180, 0, rescueTpId, is119);
