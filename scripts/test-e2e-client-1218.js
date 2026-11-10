@@ -103,7 +103,7 @@ client.on('packet', (data, meta) => {
       const regId = data.id || data.codec?.id;
       const entryCount = Array.isArray(data.entries) ? data.entries.length : (data.codec?.entries?.length || 0);
       results.registriesReceived.set(regId, entryCount);
-      console.log(`   📦 [CONFIG] Received registry_data: "${regId}" (${entryCount} entries) [Total unique: ${results.registriesReceived.size}/21]`);
+      console.log(`   📦 [CONFIG] Received registry_data: "${regId}" (${entryCount} entries) [Total unique: ${results.registriesReceived.size}/${EXPECTED_REGISTRIES.length}]`);
     }
 
     if (meta.name === 'tags') {
