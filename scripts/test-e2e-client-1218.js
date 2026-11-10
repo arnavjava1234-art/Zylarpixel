@@ -130,10 +130,10 @@ client.on('packet', (data, meta) => {
       console.log(`   🎮 [PLAY] Received login packet! Entity ID: ${data.entityId}, Dimension: ${results.dimension}, Gamemode: ${data.gameMode}`);
     }
 
-    if (meta.name === 'spawn_position') {
+    if (meta.name === 'spawn_position' || meta.name === 'position') {
       results.spawnPositionReceived = true;
-      results.spawnCoords = data.location;
-      console.log(`   📍 [PLAY] Received spawn_position packet at:`, data.location);
+      results.spawnCoords = data.location || { x: data.x, y: data.y, z: data.z };
+      console.log(`   📍 [PLAY] Received ${meta.name} packet at:`, results.spawnCoords);
     }
 
     if (meta.name === 'map_chunk') {
