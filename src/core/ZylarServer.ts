@@ -534,10 +534,7 @@ export class ZylarServer {
 
     this.log('INFO', '🔄 Server restart triggered! Saving all players and rebooting fresh process from disk...');
 
-    if (this.botTickerInterval) {
-      clearInterval(this.botTickerInterval);
-      this.botTickerInterval = null;
-    }
+    this.clearLoops();
 
     for (const [_, p] of players) {
       try {
