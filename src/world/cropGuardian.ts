@@ -25,7 +25,7 @@
  * - Hydrated Farmland (farmland[moisture=7]) & Trample Auto-Repair.
  */
 
-import { mcData1192, mcData1211 } from './worldManager';
+import { mcData1192, mcData1211, playSoundEffect } from './worldManager';
 import { tagVanillaItemStack, formatSlotForClient } from '../items/engine/itemBuilder';
 import { setHubBlockStateId } from './hubRegionProvider';
 import { players, sendSystemMessage } from '../players/playerManager';
