@@ -364,8 +364,13 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
     log('INFO', `Backend connection opened for ${session.username} on : ${targetPort}`);
   });
 
-  // Intercept proxy custom payload communication from backend
+  // Auto-respond to backend keepalive so backend NEVER kicks backendClient for KeepAliveTimeout
   backendClient.on('packet', (data: any, meta: any) => {
+    if (meta.name === 'keep_alive' && data && data.keepAliveId !== undefined) {
+      try {
+        backendClient.write('keep_alive', { keepAliveId: data.keepAliveId });
+      } catch (_) {}
+    }
     if (meta.name === 'custom_payload' && data && data.channel === 'zylarpixel:proxy') {
       const action = (Buffer.isBuffer(data.data) ? data.data : Buffer.from(data.data || '')).toString('utf-8');
       log('INFO', `Received backend proxy command for ${session.username}: ${action}`);
@@ -381,11 +386,11 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
   backendClient.on('raw', (buffer: Buffer, meta: any) => {
     if (session.client.state !== mc.states.PLAY) return;
 
-    // Suppress non-play state packets (login, configuration, etc.), duplicate server_data, and proxy internal channels
+    // Suppress non-play state packets (login, configuration, etc.), duplicate server_data, proxy internal channels, and backend keepalive
     if (meta.state !== mc.states.PLAY && meta.state !== 'play') {
       return;
     }
-    if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data') {
+    if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data' || meta.name === 'keep_alive') {
       return;
     }
     if (meta.name === 'custom_payload' && buffer.includes('zylarpixel:proxy')) {
@@ -721,9 +726,10 @@ proxyServer.on('playerJoin', (client: any) => {
     }
   });
 
-  // Forward packets from player client to backend
+  // Forward packets from player client to backend (excluding keep_alive which is managed independently)
   client.on('raw', (buffer: Buffer, meta: any) => {
     if (session.isInLimbo) return;
+    if (meta && meta.name === 'keep_alive') return;
     if (session.backend && session.backend.state === mc.states.PLAY) {
       try {
         session.backend.writeRaw(buffer);

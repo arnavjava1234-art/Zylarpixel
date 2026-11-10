@@ -305,3 +305,48 @@ export const ITEM_TO_BLOCK: Record<string, string> = {
   stone_brick_slab: 'stone_brick_slab',
   lantern: 'lantern'
 };
+
+/**
+ * Universal type-safe sound player for 1.21.8 and legacy 1.19.2.
+ * Uses 1.21.8 sound_effect (ItemSoundHolder schema) and legacy named_sound_effect.
+ * Isolated in try/catch so errors never crash the server or drop clients.
+ */
+export function playSoundEffect(
+  client: any,
+  soundName: string,
+  x: number,
+  y: number,
+  z: number,
+  volume = 1.0,
+  pitch = 1.0,
+  soundCategory: string = 'master',
+  is119 = false
+): void {
+  if (!client || client.ended || client.state === 'closed') return;
+  try {
+    if (is119) {
+      client.write('named_sound_effect', {
+        soundName,
+        soundCategory: 0,
+        x: Math.round(x * 8),
+        y: Math.round(y * 8),
+        z: Math.round(z * 8),
+        volume,
+        pitch,
+        seed: [0, 0]
+      });
+    } else {
+      client.write('sound_effect', {
+        sound: { soundId: undefined, data: { soundName, fixedRange: undefined } },
+        soundCategory,
+        x: Math.round(x * 8),
+        y: Math.round(y * 8),
+        z: Math.round(z * 8),
+        volume,
+        pitch,
+        seed: 0n
+      });
+    }
+  } catch (_) {}
+}
+
