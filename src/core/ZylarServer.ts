@@ -187,6 +187,18 @@ export class ZylarServer {
   private isRestarting = false;
   private logStream: fs.WriteStream | null = null;
   private botTickerInterval: NodeJS.Timeout | null = null;
+  private intervals: NodeJS.Timeout[] = [];
+
+  public clearLoops(): void {
+    for (const interval of this.intervals) {
+      try { clearInterval(interval); } catch (_) {}
+    }
+    this.intervals = [];
+    if (this.botTickerInterval) {
+      try { clearInterval(this.botTickerInterval); } catch (_) {}
+      this.botTickerInterval = null;
+    }
+  }
 
   constructor(config: ZylarServerConfig) {
     this.config = config;
