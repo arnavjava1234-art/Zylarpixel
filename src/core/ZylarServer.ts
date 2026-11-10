@@ -2430,18 +2430,7 @@ export class ZylarServer {
         if (!pData.lastPvpNotice || now - pData.lastPvpNotice > 1500) {
           pData.lastPvpNotice = now;
           sendSystemMessage(client, `§cYou cannot attack players on ZylarPixel! Only Operators can attack.`, is119);
-          try {
-            client.write('named_sound_effect', {
-              soundName: 'entity.villager.no',
-              soundCategory: 0,
-              x: Math.floor(pData.x * 8),
-              y: Math.floor(pData.y * 8),
-              z: Math.floor(pData.z * 8),
-              volume: 0.8,
-              pitch: 1.0,
-              seed: [0, 0]
-            });
-          } catch (_) {}
+          playSoundEffect(client, 'entity.villager.no', pData.x, pData.y, pData.z, 0.8, 1.0, 'player', is119);
         }
         return;
       }
@@ -2460,17 +2449,9 @@ export class ZylarServer {
 
       // Hurt Sound Effect
       for (const [_, p] of players) {
+        if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
         try {
-          p.client.write('named_sound_effect', {
-            soundName: 'entity.player.hurt',
-            soundCategory: 0,
-            x: Math.floor(targetPData.x * 8),
-            y: Math.floor(targetPData.y * 8),
-            z: Math.floor(targetPData.z * 8),
-            volume: 1.0,
-            pitch: 1.0,
-            seed: [0, 0]
-          });
+          playSoundEffect(p.client, 'entity.player.hurt', targetPData.x, targetPData.y, targetPData.z, 1.0, 1.0, 'player', p.is119);
         } catch (_) {}
       }
 
