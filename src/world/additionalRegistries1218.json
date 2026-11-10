@@ -184,5 +184,15 @@
       "key": "minecraft:tears",
       "jsonText": "{\n  \"comparator_output\": 10,\n  \"description\": {\n    \"translate\": \"jukebox_song.minecraft.tears\"\n  },\n  \"length_in_seconds\": 175.0,\n  \"sound_event\": \"minecraft:music_disc.tears\"\n}"
     }
+  ],
+  "minecraft:zombie_nautilus_variant": [
+    {
+      "key": "minecraft:temperate",
+      "jsonText": "{\n  \"asset_id\": \"minecraft:entity/nautilus/zombie_nautilus\",\n  \"spawn_conditions\": [\n    {\n      \"priority\": 0\n    }\n  ]\n}"
+    },
+    {
+      "key": "minecraft:warm",
+      "jsonText": "{\n  \"asset_id\": \"minecraft:entity/nautilus/zombie_nautilus_coral\",\n  \"model\": \"warm\",\n  \"spawn_conditions\": [\n    {\n      \"condition\": {\n        \"type\": \"minecraft:biome\",\n        \"biomes\": \"#minecraft:spawns_coral_variant_zombie_nautilus\"\n      },\n      \"priority\": 1\n    }\n  ]\n}"
+    }
   ]
 }
