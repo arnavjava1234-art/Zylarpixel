@@ -9444,6 +9444,12 @@
         "entries": [
           33
         ]
+      },
+      {
+        "tagName": "minecraft:spawns_coral_variant_zombie_nautilus",
+        "entries": [
+          57
+        ]
       }
     ]
   },
