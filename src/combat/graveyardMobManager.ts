@@ -161,9 +161,6 @@ const PASSABLE_BLOCKS = new Set([
   'oak_sapling', 'spruce_sapling', 'birch_sapling', 'dark_oak_sapling'
 ]);
 
-// Combat XP required per level (1 -> 2 is 50 XP, scales progressively)
-const COMBAT_LEVEL_THRESHOLDS = [0, 50, 175, 375, 675, 1175, 1925, 2925, 4425, 6425, 9925];
-
 let spawnPads: SpawnPad[] = [];
 let padsInitialized = false;
 let nextMobEntityId = 200000;
@@ -916,27 +913,9 @@ function getHeldWeaponDamage(pData: any): number {
   return 0;
 }
 
-function awardCombatXpAndCoins(pData: any, def: GraveyardMobDef): void {
+function awardMobCoins(pData: any, coinReward: number): void {
   const profile = loadPlayerProfile(pData.username);
-  if (!profile.skillXp) profile.skillXp = { combat: 0 };
-  const prevXp = typeof profile.skillXp.combat === 'number' ? profile.skillXp.combat : 0;
-  const newXp = prevXp + def.combatXp;
-  profile.skillXp.combat = newXp;
-
-  // Level-up progression across low Combat tiers
-  const currentLvl = profile.skills?.combat || 1;
-  const nextReq = COMBAT_LEVEL_THRESHOLDS[currentLvl] || (currentLvl * 2500);
-  if (newXp >= nextReq && currentLvl < 50) {
-    profile.skills.combat = currentLvl + 1;
-    sendSystemMessage(
-      pData.client,
-      `§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n§b§l  SKILL LEVEL UP §3Combat §8${currentLvl}➜§3${currentLvl + 1}\n§a  REWARDS: §e+4% Crit Chance & ${COIN_ICON} §6+${(currentLvl + 1) * 50} Coins!\n§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`,
-      pData.is119 !== false
-    );
-    pData.purse = (pData.purse || 0) + (currentLvl + 1) * 50;
-  }
-
-  pData.purse = Math.round(((pData.purse || 0) + def.coinReward) * 10) / 10;
+  pData.purse = Math.round(((pData.purse || 0) + coinReward) * 10) / 10;
   profile.coins = pData.purse;
   savePlayerProfile(profile);
   updatePlayerScoreboardPurse(pData);
@@ -944,7 +923,7 @@ function awardCombatXpAndCoins(pData: any, def: GraveyardMobDef): void {
 
   showActionBarMessage(
     pData,
-    `§3+${def.combatXp} Combat (${newXp}/${nextReq})  ${COIN_ICON} §6+${def.coinReward} Coins`,
+    `${COIN_ICON} §6+${coinReward} Coins`,
     1800
   );
 }
