@@ -2047,7 +2047,9 @@ export class ZylarServer {
               updateTablist(observer.client, observer.is119, this.config.scoreboardLocation);
               sendScoreboardTeam(observer.client, target.username, chosenRank, observer.is119);
             }
-            sendSystemMessage(client, `§aUpdated §e${target.username}'s §arank to ${chosenRank.prefix}§a!`, is119);
+            if (target !== pData) {
+              sendSystemMessage(client, `§aUpdated §e${target.username}'s §arank to ${chosenRank.prefix}§a!`, is119);
+            }
             // CRITICAL FIX: Keep user on the Rank Selector page with updated checkmark!
             openRankSelector(client, pData, target);
           }
