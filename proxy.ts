@@ -87,6 +87,7 @@ interface ProxySession {
   limboRetryTimer?: any;
   pendingCommand?: string;
   lastPortalWarp?: number;
+  backendEntityId?: number;
 }
 
 const sessions = new Map<string, ProxySession>();
@@ -398,6 +399,26 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
       return;
     }
 
+    if (meta && meta.name === 'login' && data && typeof data.entityId === 'number') {
+      session.backendEntityId = data.entityId;
+      return;
+    }
+
+    // Rewrite backend self-entityId -> proxy client entityId (99999) so knockback applies to player
+    if (meta && meta.name === 'entity_velocity' && data) {
+      if (!session.client || session.client.state !== mc.states.PLAY) return;
+      try {
+        const mappedId = (session.backendEntityId !== undefined && data.entityId === session.backendEntityId)
+          ? 99999
+          : data.entityId;
+        session.client.write('entity_velocity', {
+          entityId: mappedId,
+          velocity: data.velocity
+        });
+      } catch (_) {}
+      return;
+    }
+
     if (meta && meta.name === 'custom_payload' && data && data.channel === 'zylarpixel:proxy') {
       const action = (Buffer.isBuffer(data.data) ? data.data : Buffer.from(data.data || '')).toString('utf-8');
       log('INFO', `Received backend proxy command for ${session.username}: ${action}`);
@@ -429,7 +450,7 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
     if (!meta || meta.state === 'login' || meta.state !== mc.states.PLAY) {
       return;
     }
-    if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data' || meta.name === 'keep_alive') {
+    if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data' || meta.name === 'keep_alive' || meta.name === 'entity_velocity') {
       return;
     }
     if (meta.name === 'custom_payload' && buffer.includes('zylarpixel:proxy')) {

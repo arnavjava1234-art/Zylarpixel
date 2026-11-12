@@ -155,8 +155,12 @@ const PASSABLE_BLOCKS = new Set([
   'air', 'cave_air', 'void_air', 'grass', 'short_grass', 'tall_grass', 'fern',
   'large_fern', 'dandelion', 'poppy', 'blue_orchid', 'azure_bluet', 'red_tulip',
   'orange_tulip', 'white_tulip', 'pink_tulip', 'oxeye_daisy', 'cornflower',
-  'lily_of_the_valley', 'dead_bush', 'Brown_mushroom', 'brown_mushroom', 'red_mushroom',
-  'snow'
+  'lily_of_the_valley', 'sunflower', 'lilac', 'rose_bush', 'peony',
+  'dead_bush', 'brown_mushroom', 'red_mushroom', 'snow', 'vine', 'cobweb',
+  'torch', 'wall_torch', 'soul_torch', 'soul_wall_torch', 'lantern', 'soul_lantern',
+  'moss_carpet', 'white_carpet', 'gray_carpet', 'black_carpet', 'green_carpet',
+  'sweet_berry_bush', 'wheat', 'sugar_cane', 'lily_pad', 'ladder',
+  'oak_sapling', 'spruce_sapling', 'birch_sapling', 'dark_oak_sapling'
 ]);
 
 // Combat XP required per level (1 -> 2 is 50 XP, scales progressively)
@@ -164,7 +168,7 @@ const COMBAT_LEVEL_THRESHOLDS = [0, 50, 175, 375, 675, 1175, 1925, 2925, 4425, 6
 
 let spawnPads: SpawnPad[] = [];
 let padsInitialized = false;
-let nextMobEntityId = 100000;
+let nextMobEntityId = 200000;
 
 const slots: Array<{ mob: ActiveGraveyardMob | null; nextSpawnAt: number }> = Array.from(
   { length: GRAVEYARD_MOB_CAP },
@@ -379,7 +383,7 @@ function allocateMobIds(): { mobEntityId: number; tagEntityId: number } {
   const mobEntityId = nextMobEntityId;
   const tagEntityId = nextMobEntityId + 1;
   nextMobEntityId += 2;
-  if (nextMobEntityId > 200000) nextMobEntityId = 100000;
+  if (nextMobEntityId > 400000) nextMobEntityId = 200000;
   return { mobEntityId, tagEntityId };
 }
 
@@ -658,39 +662,59 @@ function selectBestTarget(mob: ActiveGraveyardMob, now: number): any | null {
 function stepMobKnockbackAndGravity(server: any, mob: ActiveGraveyardMob, dtSec: number): void {
   let finalX = mob.x;
   let finalZ = mob.z;
+  let steppedUpY = mob.y;
   const candX = mob.x + mob.knockbackVx * dtSec;
   const candZ = mob.z + mob.knockbackVz * dtSec;
 
+  // Check current Y or +1 block step-up when knocked onto a gentle slope while airborne/rising
+  const canMoveXZ = (tx: number, tz: number): number | null => {
+    if (isSpaceClearAt(tx, steppedUpY, tz)) return steppedUpY;
+    if (isSpaceClearAt(tx, steppedUpY + 1.0, tz)) return Math.floor(steppedUpY + 1.05);
+    return null;
+  };
+
   if (Math.abs(mob.knockbackVx) > 0.05 || Math.abs(mob.knockbackVz) > 0.05) {
-    if (isSpaceClearAt(candX, mob.y, candZ)) {
+    const clearBothY = canMoveXZ(candX, candZ);
+    if (clearBothY !== null) {
       finalX = candX;
       finalZ = candZ;
+      steppedUpY = Math.max(steppedUpY, clearBothY);
     } else {
-      if (isSpaceClearAt(candX, mob.y, mob.z)) finalX = candX;
-      else mob.knockbackVx = 0;
-      if (isSpaceClearAt(finalX, mob.y, candZ)) finalZ = candZ;
-      else mob.knockbackVz = 0;
+      const clearX = canMoveXZ(candX, mob.z);
+      if (clearX !== null) {
+        finalX = candX;
+        steppedUpY = Math.max(steppedUpY, clearX);
+      } else {
+        mob.knockbackVx = 0;
+      }
+      const clearZ = canMoveXZ(finalX, candZ);
+      if (clearZ !== null) {
+        finalZ = candZ;
+        steppedUpY = Math.max(steppedUpY, clearZ);
+      } else {
+        mob.knockbackVz = 0;
+      }
     }
   }
 
   // Smooth gravity fall capped gently per 100ms tick so zombies never teleport down cliffs
   mob.knockbackVy = Math.max(-9.0, mob.knockbackVy - 22.0 * dtSec);
-  let nextY = mob.y + Math.max(-0.6, Math.min(0.8, mob.knockbackVy * dtSec));
+  let nextY = steppedUpY + Math.max(-0.6, Math.min(0.8, mob.knockbackVy * dtSec));
 
-  const surfaceY = findGroundHeightAt(finalX, mob.y, finalZ, 6);
+  const surfaceY = findGroundHeightAt(finalX, steppedUpY, finalZ, 6);
   let landed = false;
   if (surfaceY !== null && nextY <= surfaceY && mob.knockbackVy <= 0) {
     nextY = surfaceY;
     mob.knockbackVy = 0;
     landed = true;
   } else if (surfaceY === null && nextY < GRAVEYARD_BOUNDS.minY - 6) {
-    nextY = mob.y;
+    nextY = steppedUpY;
     mob.knockbackVy = 0;
     landed = true;
   }
 
-  mob.knockbackVx *= 0.65;
-  mob.knockbackVz *= 0.65;
+  mob.knockbackVx *= 0.64;
+  mob.knockbackVz *= 0.64;
   if (Math.hypot(mob.knockbackVx, mob.knockbackVz) < 0.25) {
     mob.knockbackVx = 0;
     mob.knockbackVz = 0;
@@ -852,9 +876,9 @@ export function tickGraveyardMobs(server: any): void {
           sendToClientSafe(target.client, 'entity_velocity', {
             entityId: target.entityId,
             velocity: {
-              x: Math.round(-Math.sin(kbAngle) * 3200),
-              y: 2200,
-              z: Math.round(Math.cos(kbAngle) * 3200)
+              x: Math.round(-Math.sin(kbAngle) * 3800),
+              y: 2800,
+              z: Math.round(Math.cos(kbAngle) * 3800)
             }
           });
         }
@@ -968,26 +992,28 @@ export function handleGraveyardMobAttack(server: any, pData: any, targetEntityId
 
   if (mob.hp > 0) {
     updateMobNametag(server, mob);
-    // Real ballistic knockback arc + 420ms hitstun along attacker facing vector
+    // Real vanilla-feel knockback launch (~2.3 blocks arc + 480ms hitstun)
     const dirX = mob.x - pData.x;
     const dirZ = mob.z - pData.z;
-    const len = Math.max(0.01, Math.hypot(dirX, dirZ));
-    const nx = dirX / len;
-    const nz = dirZ / len;
-    mob.knockbackVx = nx * 5.2;
-    mob.knockbackVy = 4.6;
-    mob.knockbackVz = nz * 5.2;
-    mob.knockbackUntil = now + 420;
+    const dist = Math.hypot(dirX, dirZ);
+    const attackerYawRad = ((pData.yaw || 0) * Math.PI) / 180;
+    const nx = dist >= 0.45 ? dirX / dist : -Math.sin(attackerYawRad);
+    const nz = dist >= 0.45 ? dirZ / dist : Math.cos(attackerYawRad);
+
+    mob.knockbackVx = nx * 9.5;
+    mob.knockbackVy = 6.2;
+    mob.knockbackVz = nz * 9.5;
+    mob.knockbackUntil = now + 480;
 
     broadcastPacket(server, 'entity_velocity', {
       entityId: mob.mobEntityId,
       velocity: {
-        x: Math.round(nx * 2800),
-        y: 2400,
-        z: Math.round(nz * 2800)
+        x: Math.round(nx * 5600),
+        y: 3200,
+        z: Math.round(nz * 5600)
       }
     }, mob.mobEntityId);
-    stepMobKnockbackAndGravity(server, mob, 0.06);
+    stepMobKnockbackAndGravity(server, mob, 0.08);
   } else {
     // Mob Killed!
     mob.dyingUntil = now + 550;
