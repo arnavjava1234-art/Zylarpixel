@@ -205,7 +205,7 @@ export function createQuickCraftTeaserItem(): any {
       '§7instantly craft items without',
       '§7arranging recipes!',
       ' ',
-      '§cRequires §a[VIP] §crank or higher!',
+      `§cRequires ${RANKS.vip.prefix} §crank or higher!`,
       '§8(Feature coming soon)'
     ]
   );
