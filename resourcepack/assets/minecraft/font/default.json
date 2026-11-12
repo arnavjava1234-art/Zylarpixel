@@ -3,15 +3,15 @@
     {
       "type": "bitmap",
       "file": "minecraft:font/coin.png",
-      "ascent": 7,
-      "height": 8,
+      "ascent": 8,
+      "height": 10,
       "chars": ["\uE000"]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/bits.png",
-      "ascent": 7,
-      "height": 8,
+      "ascent": 8,
+      "height": 10,
       "chars": ["\uE001"]
     },
     {
