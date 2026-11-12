@@ -1,0 +1,17 @@
+{
+  "username": "vip",
+  "isOp": false,
+  "purse": 60,
+  "bits": 0,
+  "island": {
+    "owner": "vip",
+    "originX": 69000,
+    "originZ": 0,
+    "spawnX": 69000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "rankId": "helper",
+  "rank": "helper"
+}
