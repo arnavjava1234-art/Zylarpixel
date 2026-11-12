@@ -450,9 +450,6 @@ export function handleCommand(
       setPlayerRank(onlineTarget, newRank);
       if (onlineTarget !== pData) {
         sendSystemMessage(client, `§7[§dZylarPixel§7] §aSuccessfully updated §f${onlineTarget.username}'s §arank to ${newRank.prefix}§a!`, is119);
-        sendSystemMessage(onlineTarget.client, `§7[§dZylarPixel§7] §aYour rank has been updated to ${newRank.prefix}§a!`, onlineTarget.is119);
-      } else {
-        sendSystemMessage(client, `§7[§dZylarPixel§7] §aYour rank has been updated to ${newRank.prefix}§a!`, is119);
       }
     } else {
       setOfflinePlayerRank(targetPlayerName, newRank);
