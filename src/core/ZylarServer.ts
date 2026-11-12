@@ -180,6 +180,10 @@ interface DroppedItem {
   x: number;
   y: number;
   z: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  floorY?: number;
   spawnTime: number;
   owner?: string;
   pickupDelay?: number;
@@ -883,6 +887,25 @@ export class ZylarServer {
           continue;
         }
 
+        // Track approximate 20Hz vanilla throw trajectory (this loop runs at 10Hz = 2 MC ticks)
+        if ((item.vx || item.vy || item.vz) && now - item.spawnTime < 1200) {
+          for (let step = 0; step < 2; step++) {
+            item.vy = (item.vy || 0) - 0.04;
+            item.x += (item.vx || 0);
+            item.y += item.vy;
+            item.z += (item.vz || 0);
+            item.vx = (item.vx || 0) * 0.98;
+            item.vy *= 0.98;
+            item.vz = (item.vz || 0) * 0.98;
+            if (item.floorY !== undefined && item.y <= item.floorY) {
+              item.y = item.floorY;
+              item.vx *= 0.55;
+              item.vz *= 0.55;
+              item.vy = 0;
+            }
+          }
+        }
+
         for (const [_, p] of players) {
           if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
 
@@ -1101,15 +1124,20 @@ export class ZylarServer {
     z: number,
     owner?: string,
     velocity?: { x: number; y: number; z: number },
-    pickupDelay?: number
+    pickupDelay?: number,
+    floorY?: number
   ): void {
     const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
     if (!itemDef119) return;
 
     const itemEntityId = this.nextEntityId++;
-    const spawnX = x + 0.5 + (Math.random() - 0.5) * 0.2;
+    const spawnX = x + 0.5 + (Math.random() - 0.5) * 0.1;
     const spawnY = y + 0.2;
-    const spawnZ = z + 0.5 + (Math.random() - 0.5) * 0.2;
+    const spawnZ = z + 0.5 + (Math.random() - 0.5) * 0.1;
+
+    const velX = velocity ? velocity.x : Math.floor((Math.random() - 0.5) * 400);
+    const velY = velocity ? velocity.y : 1600; // Natural upward pop (~0.2 blocks/tick)
+    const velZ = velocity ? velocity.z : Math.floor((Math.random() - 0.5) * 400);
 
     this.droppedItems.set(itemEntityId, {
       entityId: itemEntityId,
@@ -1119,14 +1147,14 @@ export class ZylarServer {
       x: spawnX,
       y: spawnY,
       z: spawnZ,
+      vx: velX / 8000,
+      vy: velY / 8000,
+      vz: velZ / 8000,
+      floorY: floorY !== undefined ? floorY : Math.floor(y),
       spawnTime: Date.now(),
       owner,
       pickupDelay
     });
-
-    const velX = velocity ? velocity.x : Math.floor((Math.random() - 0.5) * 400);
-    const velY = velocity ? velocity.y : 1600; // Natural upward pop (~0.2 blocks/tick)
-    const velZ = velocity ? velocity.z : Math.floor((Math.random() - 0.5) * 400);
 
     for (const [_, p] of players) {
       if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
@@ -1142,12 +1170,8 @@ export class ZylarServer {
           pitch: 0,
           yaw: 0,
           headPitch: 0,
-          objectData: 1,
-          data: 1,
-          velocity: { x: velX, y: velY, z: velZ },
-          velocityX: velX,
-          velocityY: velY,
-          velocityZ: velZ
+          objectData: 0,
+          velocity: { x: velX, y: velY, z: velZ }
         });
 
         p.client.write('entity_metadata', {
@@ -1157,6 +1181,12 @@ export class ZylarServer {
             type: 6,
             value: { present: true, itemId: itemDef119.id, itemCount: count }
           }]
+        });
+
+        // Explicit entity_velocity required in 1.19.2 so ItemEntity actually launches forward in a parabola
+        p.client.write('entity_velocity', {
+          entityId: itemEntityId,
+          velocity: { x: velX, y: velY, z: velZ }
         });
       } catch (_) {}
     }
@@ -1173,15 +1203,26 @@ export class ZylarServer {
     const dirY = -Math.sin(pitchRad);
     const dirZ = Math.cos(yawRad) * Math.cos(pitchRad);
 
-    const velX = Math.floor(dirX * 3000 + (Math.random() - 0.5) * 400);
-    const velY = Math.floor(dirY * 2000 + 1500);
-    const velZ = Math.floor(dirZ * 3000 + (Math.random() - 0.5) * 400);
+    // Vanilla Minecraft parabolic throw impulse (forward ~0.3 b/t, upward hop +0.15 b/t)
+    const velX = Math.floor(dirX * 2500 + (Math.random() - 0.5) * 200);
+    const velY = Math.floor(dirY * 2400 + 1200);
+    const velZ = Math.floor(dirZ * 2500 + (Math.random() - 0.5) * 200);
 
-    const spawnX = pData.x - 0.5 + dirX * 0.4;
-    const spawnY = pData.y + 1.2;
-    const spawnZ = pData.z - 0.5 + dirZ * 0.4;
+    const spawnX = pData.x - 0.5 + dirX * 0.3;
+    const spawnY = pData.y + 1.12; // +0.2 in spawnDroppedItem = pData.y + 1.32 (vanilla eyeY - 0.3)
+    const spawnZ = pData.z - 0.5 + dirZ * 0.3;
 
-    this.spawnDroppedItem(itemName, count, spawnX, spawnY, spawnZ, undefined, { x: velX, y: velY, z: velZ }, 1500);
+    this.spawnDroppedItem(
+      itemName,
+      count,
+      spawnX,
+      spawnY,
+      spawnZ,
+      undefined,
+      { x: velX, y: velY, z: velZ },
+      1500,
+      Math.floor(pData.y)
+    );
   }
 
   private handlePlayerJoin(client: any): void {
