@@ -136,102 +136,237 @@ export function hasLineOfSight(
  */
 export function spawnBankerNpc(client: any, is119: boolean, toProtocolByte: (deg: number) => number): void {
   try {
-    // 1.21.8 Player Info Update
-    client.write('player_info', {
-      action: {
-        add_player: true,
-        initialize_chat: false,
-        update_game_mode: true,
-        update_listed: true,
-        update_latency: true,
-        update_display_name: true,
-        update_hat: true,
-        update_list_order: false
-      },
-      data: [{
-        uuid: BANKER_UUID,
-        player: {
+    if (is119) {
+      // 1. Add Banker to PlayerInfo with authentic Mojang signed suit skin
+      client.write('player_info', {
+        action: 'add_player',
+        data: [{
+          uuid: BANKER_UUID,
           name: 'BANKER',
           properties: [{
             name: 'textures',
             value: BANKER_SKIN_TEXTURE,
             signature: BANKER_SKIN_SIGNATURE
-          }]
-        },
-        gamemode: 2,
-        listed: 0,
-        latency: 1,
-        displayName: nbt.comp({ text: nbt.string('§fBanker') }),
-        showHat: true
-      }]
-    });
+          }],
+          gamemode: 2,
+          ping: 1,
+          displayName: JSON.stringify({ text: '§fBanker' }),
+          crypto: undefined
+        }]
+      });
 
-    // 2. Spawn Banker Entity (1.21.8 player type = 149)
-    client.write('spawn_entity', {
-      entityId: BANKER_ENTITY_ID,
-      objectUUID: BANKER_UUID,
-      type: 149,
-      x: BANKER_POS.x,
-      y: BANKER_POS.y,
-      z: BANKER_POS.z,
-      pitch: toProtocolByte(BANKER_POS.pitch),
-      yaw: toProtocolByte(BANKER_POS.yaw),
-      headPitch: toProtocolByte(BANKER_POS.pitch),
-      objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
-    });
+      // 2. Spawn Banker Entity
+      client.write('named_entity_spawn', {
+        entityId: BANKER_ENTITY_ID,
+        playerUUID: BANKER_UUID,
+        x: BANKER_POS.x,
+        y: BANKER_POS.y,
+        z: BANKER_POS.z,
+        yaw: toProtocolByte(BANKER_POS.yaw),
+        pitch: toProtocolByte(BANKER_POS.pitch)
+      });
 
-    // 3. Set Head Rotation
-    client.write('entity_head_rotation', {
-      entityId: BANKER_ENTITY_ID,
-      headYaw: toProtocolByte(BANKER_POS.yaw)
-    });
+      // 3. Set Head Rotation
+      client.write('entity_head_rotation', {
+        entityId: BANKER_ENTITY_ID,
+        headYaw: toProtocolByte(BANKER_POS.yaw)
+      });
 
-    // 4. Entity Metadata: Show all skin layers
-    client.write('entity_metadata', {
-      entityId: BANKER_ENTITY_ID,
-      metadata: [{ key: 17, type: 'byte', value: 127 }]
-    });
+      // 4. Entity Metadata: Show all skin layers (jacket, sleeves, pants, hat)
+      client.write('entity_metadata', {
+        entityId: BANKER_ENTITY_ID,
+        metadata: [{ key: 17, type: 0, value: 127 }]
+      });
 
-    // 5. Hide Vanilla Nametag & Health Indicator
-    try { client.write('teams', { team: 'npc_banker', mode: 'remove' }); } catch (_) {}
-    client.write('teams', {
-      team: 'npc_banker',
-      mode: 'add',
-      name: nbt.comp({ text: nbt.string('npc_banker') }),
-      flags: { friendly_fire: true, see_friendly_invisible: true },
-      nameTagVisibility: 'never',
-      collisionRule: 'always',
-      formatting: 14,
-      prefix: nbt.comp({ text: nbt.string('') }),
-      suffix: nbt.comp({ text: nbt.string('') }),
-      players: ['BANKER']
-    });
+      // 5. Hide Vanilla Nametag & Below-Name Health Indicator using Scoreboard Team (nameTagVisibility: 'never')
+      try { client.write('teams', { team: 'npc_banker', mode: 1 }); } catch (_) {}
+      client.write('teams', {
+        team: 'npc_banker',
+        mode: 0,
+        name: JSON.stringify({ text: 'npc_banker' }),
+        friendlyFire: 0,
+        nameTagVisibility: 'never', // Hides default white nametag & below-name health!
+        collisionRule: 'never',
+        formatting: 14,
+        prefix: JSON.stringify({ text: '' }),
+        suffix: JSON.stringify({ text: '' }),
+        players: ['BANKER']
+      });
 
-    // 6. Note: Modern 1.21.8 keeps player profile cached with listed: 0 so custom skin renders permanently
+      // 6. Remove Banker from Tablist after 2 seconds to allow the client to download the signed skin
+      setTimeout(() => {
+        try {
+          client.write('player_info', {
+            action: 'remove_player',
+            data: [{ uuid: BANKER_UUID }]
+          });
+        } catch (_) {}
+      }, 2000);
 
-    // 7. Modern 1.21.8 Text Display Hologram (Billboard Mode, 0 Hitbox, Crisp Rendering)
-    client.write('spawn_entity', {
-      entityId: BANKER_HOLO_TITLE_ID,
-      objectUUID: BANKER_HOLO_TITLE_UUID,
-      type: 126, // text_display in 1.21.8
-      x: BANKER_POS.x,
-      y: BANKER_POS.y + 2.15,
-      z: BANKER_POS.z,
-      pitch: 0,
-      yaw: 0,
-      headPitch: 0,
-      objectData: 0,
-      velocity: { x: 0, y: 0, z: 0 }
-    });
-    client.write('entity_metadata', {
-      entityId: BANKER_HOLO_TITLE_ID,
-      metadata: [
-        { key: 15, type: 'byte', value: 3 }, // Center billboard mode
-        { key: 23, type: 'component', value: nbt.comp({ text: nbt.string('§fBanker\n§e§lCLICK') }) },
-        { key: 27, type: 'byte', value: 1 } // Shadow
-      ]
-    });
+      // 7. Spawn Floating Hologram Line 1: §fBanker (Pure clean white)
+      client.write('spawn_entity', {
+        entityId: BANKER_HOLO_TITLE_ID,
+        objectUUID: BANKER_HOLO_TITLE_UUID,
+        type: 2, // armor_stand in 1.19.2
+        x: BANKER_POS.x,
+        y: BANKER_POS.y + 2.05,
+        z: BANKER_POS.z,
+        pitch: 0,
+        yaw: 0,
+        headPitch: 0,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+      client.write('entity_metadata', {
+        entityId: BANKER_HOLO_TITLE_ID,
+        metadata: [
+          { key: 0, type: 0, value: 0x20 }, // Invisible
+          { key: 2, type: 5, value: JSON.stringify({ text: '§fBanker' }) }, // CustomName
+          { key: 3, type: 7, value: true }, // CustomNameVisible
+          { key: 15, type: 0, value: 0x11 } // Small & Marker
+        ]
+      });
+
+      // 8. Spawn Floating Hologram Line 2: §e§lCLICK (Bold yellow prompt)
+      client.write('spawn_entity', {
+        entityId: BANKER_HOLO_CLICK_ID,
+        objectUUID: BANKER_HOLO_CLICK_UUID,
+        type: 2, // armor_stand in 1.19.2
+        x: BANKER_POS.x,
+        y: BANKER_POS.y + 1.75,
+        z: BANKER_POS.z,
+        pitch: 0,
+        yaw: 0,
+        headPitch: 0,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+      client.write('entity_metadata', {
+        entityId: BANKER_HOLO_CLICK_ID,
+        metadata: [
+          { key: 0, type: 0, value: 0x20 }, // Invisible
+          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lCLICK' }) }, // CustomName
+          { key: 3, type: 7, value: true }, // CustomNameVisible
+          { key: 15, type: 0, value: 0x11 } // Small & Marker
+        ]
+      });
+    } else {
+      // 1.21.1 Player Info Update (listed: 0)
+      client.write('player_info', {
+        action: 1 | 4 | 8 | 16,
+        data: [{
+          uuid: BANKER_UUID,
+          player: {
+            name: 'BANKER',
+            properties: [{
+              name: 'textures',
+              value: BANKER_SKIN_TEXTURE,
+              signature: BANKER_SKIN_SIGNATURE
+            }]
+          },
+          gamemode: 2,
+          listed: 0,
+          latency: 1,
+          displayName: JSON.stringify({ text: '§fBanker' })
+        }]
+      });
+
+      client.write('spawn_entity', {
+        entityId: BANKER_ENTITY_ID,
+        objectUUID: BANKER_UUID,
+        type: 128, // player in 1.21.1
+        x: BANKER_POS.x,
+        y: BANKER_POS.y,
+        z: BANKER_POS.z,
+        pitch: toProtocolByte(BANKER_POS.pitch),
+        yaw: toProtocolByte(BANKER_POS.yaw),
+        headPitch: toProtocolByte(BANKER_POS.pitch),
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+
+      client.write('entity_head_rotation', {
+        entityId: BANKER_ENTITY_ID,
+        headYaw: toProtocolByte(BANKER_POS.yaw)
+      });
+
+      client.write('entity_metadata', {
+        entityId: BANKER_ENTITY_ID,
+        metadata: [{ key: 17, type: 0, value: 127 }]
+      });
+
+      // Hide Vanilla Nametag & Health Indicator in 1.21.1
+      try { client.write('teams', { team: 'npc_banker', mode: 1 }); } catch (_) {}
+      client.write('teams', {
+        team: 'npc_banker',
+        mode: 0,
+        name: nbt.comp({ text: nbt.string('npc_banker') }),
+        friendlyFire: 0,
+        nameTagVisibility: 'never',
+        collisionRule: 'never',
+        formatting: 14,
+        prefix: nbt.comp({ text: nbt.string('') }),
+        suffix: nbt.comp({ text: nbt.string('') }),
+        players: ['BANKER']
+      });
+
+      // Remove from tablist in 1.21.1 after 2 seconds
+      setTimeout(() => {
+        try {
+          client.write('player_remove', {
+            players: [BANKER_UUID]
+          });
+        } catch (_) {}
+      }, 2000);
+
+      // 1.21 Holograms: Authentic Hypixel SkyBlock Style
+      const armorStandType121 = mcData1211.entitiesByName['armor_stand']?.id || 2;
+      client.write('spawn_entity', {
+        entityId: BANKER_HOLO_TITLE_ID,
+        objectUUID: BANKER_HOLO_TITLE_UUID,
+        type: armorStandType121,
+        x: BANKER_POS.x,
+        y: BANKER_POS.y + 2.05,
+        z: BANKER_POS.z,
+        pitch: 0,
+        yaw: 0,
+        headPitch: 0,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+      client.write('entity_metadata', {
+        entityId: BANKER_HOLO_TITLE_ID,
+        metadata: [
+          { key: 0, type: 0, value: 0x20 },
+          { key: 2, type: 5, value: JSON.stringify({ text: '§fBanker' }) },
+          { key: 3, type: 7, value: true },
+          { key: 15, type: 0, value: 0x11 }
+        ]
+      });
+
+      client.write('spawn_entity', {
+        entityId: BANKER_HOLO_CLICK_ID,
+        objectUUID: BANKER_HOLO_CLICK_UUID,
+        type: armorStandType121,
+        x: BANKER_POS.x,
+        y: BANKER_POS.y + 1.75,
+        z: BANKER_POS.z,
+        pitch: 0,
+        yaw: 0,
+        headPitch: 0,
+        objectData: 0,
+        velocity: { x: 0, y: 0, z: 0 }
+      });
+      client.write('entity_metadata', {
+        entityId: BANKER_HOLO_CLICK_ID,
+        metadata: [
+          { key: 0, type: 0, value: 0x20 },
+          { key: 2, type: 5, value: JSON.stringify({ text: '§e§lCLICK' }) },
+          { key: 3, type: 7, value: true },
+          { key: 15, type: 0, value: 0x11 }
+        ]
+      });
+    }
   } catch (_) {}
 }
 
@@ -243,62 +378,49 @@ export function tickBankerNpc(
   players: Map<any, any>,
   toProtocolByte: (deg: number) => number
 ): void {
-  if (!players || players.size === 0) return;
+  if (players.size === 0) return;
 
-  try {
-    const bankerEyeX = BANKER_POS.x;
-    const bankerEyeY = BANKER_POS.y + 1.62;
-    const bankerEyeZ = BANKER_POS.z;
+  const bankerEyeX = BANKER_POS.x;
+  const bankerEyeY = BANKER_POS.y + 1.62;
+  const bankerEyeZ = BANKER_POS.z;
 
-    for (const [_, p] of players) {
-      if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+  for (const [_, p] of players) {
+    if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+    try {
+      const pEyeX = p.x;
+      const pEyeY = p.y + 1.62;
+      const pEyeZ = p.z;
 
-      try {
-        const pEyeX = p.x;
-        const pEyeY = p.y + 1.62;
-        const pEyeZ = p.z;
+      const visible = hasLineOfSight(bankerEyeX, bankerEyeY, bankerEyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
 
-        const visible = hasLineOfSight(bankerEyeX, bankerEyeY, bankerEyeZ, pEyeX, pEyeY, pEyeZ, 50.0);
+      let lookYaw = BANKER_POS.yaw;
+      let lookPitch = BANKER_POS.pitch;
 
-        let lookYaw = BANKER_POS.yaw;
-        let lookPitch = BANKER_POS.pitch;
+      if (visible) {
+        const dx = pEyeX - bankerEyeX;
+        const dy = pEyeY - bankerEyeY;
+        const dz = pEyeZ - bankerEyeZ;
+        const distHoriz = Math.hypot(dx, dz);
 
-        if (visible) {
-          const dx = pEyeX - bankerEyeX;
-          const dy = pEyeY - bankerEyeY;
-          const dz = pEyeZ - bankerEyeZ;
-          const distHoriz = Math.hypot(dx, dz);
+        lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
+        lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
+      }
 
-          lookYaw = Math.atan2(-dx, dz) * (180 / Math.PI);
-          lookPitch = Math.atan2(-dy, Math.max(0.1, distHoriz)) * (180 / Math.PI);
-        }
+      // Rotate head smoothly
+      p.client.write('entity_head_rotation', {
+        entityId: BANKER_ENTITY_ID,
+        headYaw: toProtocolByte(lookYaw)
+      });
 
-        // Delta Throttling: Only send packets if yaw or pitch changed by >= 1.0 degree
-        const lastYaw = (p.client as any)._bankerLastYaw ?? -9999;
-        const lastPitch = (p.client as any)._bankerLastPitch ?? -9999;
-        if (Math.abs(lookYaw - lastYaw) < 1.0 && Math.abs(lookPitch - lastPitch) < 1.0) {
-          continue;
-        }
-
-        (p.client as any)._bankerLastYaw = lookYaw;
-        (p.client as any)._bankerLastPitch = lookPitch;
-
-        // Rotate head smoothly (i8 byte)
-        p.client.write('entity_head_rotation', {
-          entityId: BANKER_ENTITY_ID,
-          headYaw: toProtocolByte(lookYaw)
-        });
-
-        // Rotate body & pitch (i8 byte)
-        p.client.write('entity_look', {
-          entityId: BANKER_ENTITY_ID,
-          yaw: toProtocolByte(lookYaw),
-          pitch: toProtocolByte(lookPitch),
-          onGround: true
-        });
-      } catch (_) {}
-    }
-  } catch (_) {}
+      // Rotate body & pitch
+      p.client.write('entity_look', {
+        entityId: BANKER_ENTITY_ID,
+        yaw: toProtocolByte(lookYaw),
+        pitch: toProtocolByte(lookPitch),
+        onGround: true
+      });
+    } catch (_) {}
+  }
 }
 
 /**

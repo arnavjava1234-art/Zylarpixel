@@ -13,8 +13,7 @@
     "intelligence": 0,
     "maxMana": 100,
     "critChance": 30,
-    "critDamage": 50,
-    "farmingFortune": 0
+    "critDamage": 50
   },
   "skills": {
     "combat": 1,
@@ -75,18 +74,12 @@
                 "value": "VANILLA"
               }
             }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1793980199689,
-  "bankTransactions": [],
-  "merchantDailyPurchases": {},
-  "merchantLastResetDay": 0
+  "lastSeen": 1792246448440,
+  "bankTransactions": []
 }

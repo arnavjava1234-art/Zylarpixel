@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-06T15:49:59.685Z",
+  "lastLogin": "2026-10-17T14:14:08.435Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -24,8 +24,7 @@
     "intelligence": 0,
     "mana": 100,
     "maxMana": 100,
-    "speed": 100,
-    "farmingFortune": 0
+    "speed": 100
   },
   "rankId": "default",
   "purse": 60,
@@ -85,16 +84,10 @@
                 "value": "VANILLA"
               }
             }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
           }
         }
       }
     }
   ],
-  "merchantDailyPurchases": {},
-  "merchantLastResetDay": 0,
-  "lastSeen": 1793980199685
+  "lastSeen": 1792246448435
 }

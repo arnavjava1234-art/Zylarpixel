@@ -8,7 +8,6 @@ import { formatSlotForClient } from '../items';
 import { createGuiItem, openStatsMenu } from './statsMenu';
 import { openBankMainMenu } from './bankMenu';
 import { openCraftingTableMenu } from './craftingTableMenu';
-import { sendWindow } from './guiHelper';
 
 export const SKYBLOCK_MENU_WINDOW_ID = 6;
 export const HOTBAR_NETHER_STAR_SLOT = 44; // Slot index 8 in hotbar (36 + 8)
@@ -52,7 +51,8 @@ export function createNetherStarItem(is119: boolean = true): any {
 
 export function giveNetherStar(client: any): void {
   try {
-    const is119 = (client.protocolVersion === 760 || client.version === '1.19.2');
+    if (!client || client.ended || client.state === 'closed') return;
+    const is119 = true;
     const netherStar = createNetherStarItem(is119);
     client.write('set_slot', {
       windowId: 0,
@@ -66,7 +66,14 @@ export function giveNetherStar(client: any): void {
 export function openSkyBlockMenu(client: any, pSession: any): void {
   pSession.openWindowId = SKYBLOCK_MENU_WINDOW_ID;
 
-  // Base fillers: dark gray / black glass pane
+  // 1. Open 54-slot chest container (inventoryType 5 = 9x6)
+  client.write('open_window', {
+    windowId: SKYBLOCK_MENU_WINDOW_ID,
+    inventoryType: 5,
+    windowTitle: JSON.stringify({ text: '§8SkyBlock Menu' })
+  });
+
+  // 2. Base fillers: dark gray / black glass pane
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
@@ -282,7 +289,16 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
   );
 
   pSession.currentGuiItems = items;
-  sendWindow(client, SKYBLOCK_MENU_WINDOW_ID, 5, '§8SkyBlock Menu', items);
+
+  // 3. Write all window items
+  try {
+    client.write('window_items', {
+      windowId: SKYBLOCK_MENU_WINDOW_ID,
+      stateId: 1,
+      items: items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 export const SKYBLOCK_MENU_FEATURE_SLOTS = new Set([
@@ -294,7 +310,7 @@ export function handleSkyBlockMenuClick(
   pSession: any,
   clickedSlot: number,
   sendSystemMessage: (client: any, msg: string, is119?: boolean) => void,
-  is119?: boolean
+  is119: boolean = true
 ): void {
   if (clickedSlot === 49) {
     // Close button

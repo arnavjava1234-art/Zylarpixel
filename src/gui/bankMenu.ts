@@ -18,7 +18,6 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
-import { sendWindow } from './guiHelper';
 
 export const BANK_MAIN_WINDOW_ID = 7;
 export const BANK_DEPOSIT_WINDOW_ID = 8;
@@ -131,7 +130,14 @@ export function openBankMainMenu(client: any, pData: any): void {
   if (typeof pData.bank !== 'number') pData.bank = 0;
   if (typeof pData.purse !== 'number') pData.purse = 0;
 
-  // 1. Base fillers: Dark Gray / Black Stained Glass Pane
+  // 1. Open 36-slot chest container (inventoryType 3 = generic_9x4)
+  client.write('open_window', {
+    windowId: BANK_MAIN_WINDOW_ID,
+    inventoryType: 3,
+    windowTitle: JSON.stringify({ text: '§8Personal Bank Account' })
+  });
+
+  // 2. Base fillers: Dark Gray / Black Stained Glass Pane
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
@@ -228,8 +234,15 @@ export function openBankMainMenu(client: any, pData: any): void {
 
   pData.currentGuiItems = items;
 
-  // 2. Open window and write items via 1.21.8 Data Components
-  sendWindow(client, BANK_MAIN_WINDOW_ID, 3, '§8Personal Bank Account', items);
+  // 3. Write items to window
+  try {
+    client.write('window_items', {
+      windowId: BANK_MAIN_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 // ==========================================
@@ -240,6 +253,12 @@ export function openBankDepositMenu(client: any, pData: any): void {
 
   if (typeof pData.bank !== 'number') pData.bank = 0;
   if (typeof pData.purse !== 'number') pData.purse = 0;
+
+  client.write('open_window', {
+    windowId: BANK_DEPOSIT_WINDOW_ID,
+    inventoryType: 3,
+    windowTitle: JSON.stringify({ text: '§8Bank Deposit' })
+  });
 
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
@@ -290,7 +309,15 @@ export function openBankDepositMenu(client: any, pData: any): void {
   items[31] = createGuiItem('arrow', 1, '§aGo Back', ['§7To Personal Bank Account']);
 
   pData.currentGuiItems = items;
-  sendWindow(client, BANK_DEPOSIT_WINDOW_ID, 3, '§8Bank Deposit', items);
+
+  try {
+    client.write('window_items', {
+      windowId: BANK_DEPOSIT_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 // ==========================================
@@ -301,6 +328,12 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
 
   if (typeof pData.bank !== 'number') pData.bank = 0;
   if (typeof pData.purse !== 'number') pData.purse = 0;
+
+  client.write('open_window', {
+    windowId: BANK_WITHDRAW_WINDOW_ID,
+    inventoryType: 3,
+    windowTitle: JSON.stringify({ text: '§8Bank Withdrawal' })
+  });
 
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
@@ -365,7 +398,15 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
   items[31] = createGuiItem('arrow', 1, '§aGo Back', ['§7To Personal Bank Account']);
 
   pData.currentGuiItems = items;
-  sendWindow(client, BANK_WITHDRAW_WINDOW_ID, 3, '§8Bank Withdrawal', items);
+
+  try {
+    client.write('window_items', {
+      windowId: BANK_WITHDRAW_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 // ==========================================
@@ -373,6 +414,12 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
 // ==========================================
 export function openBankUpgradesMenu(client: any, pData: any): void {
   pData.openWindowId = BANK_UPGRADES_WINDOW_ID;
+
+  client.write('open_window', {
+    windowId: BANK_UPGRADES_WINDOW_ID,
+    inventoryType: 3,
+    windowTitle: JSON.stringify({ text: '§8Bank Account Upgrades' })
+  });
 
   const items = new Array(36).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
@@ -498,7 +545,15 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
   items[31] = createGuiItem('arrow', 1, '§aGo Back', ['§7To Personal Bank Account']);
 
   pData.currentGuiItems = items;
-  sendWindow(client, BANK_UPGRADES_WINDOW_ID, 3, '§8Bank Account Upgrades', items);
+
+  try {
+    client.write('window_items', {
+      windowId: BANK_UPGRADES_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 // ==========================================

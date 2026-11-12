@@ -4,15 +4,12 @@
  */
 
 import { mcData1192 } from '../world/worldManager';
-import { formatSlotForClient } from '../items';
-import { sendWindow } from './guiHelper';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
-  if (!itemName || count <= 0) return { itemCount: 0 };
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
 
-  return formatSlotForClient({
+  return {
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -35,7 +32,7 @@ export function createGuiItem(itemName: string, count: number, displayName: stri
         }
       }
     }
-  }, false);
+  };
 }
 
 export function createAdminBaseSlots(totalSlots: number = 54): any[] {
@@ -57,7 +54,14 @@ export function createAdminBaseSlots(totalSlots: number = 54): any[] {
 export function openAdminMenu(client: any, pData: any): void {
   pData.openWindowId = 1;
 
-  // Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  // 1. Open 54-slot chest window
+  client.write('open_window', {
+    windowId: 1,
+    inventoryType: 5, // generic_9x6
+    windowTitle: JSON.stringify({ text: '§8ZylarPixel Admin Control Panel' })
+  });
+
+  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
   const items = createAdminBaseSlots(54);
 
   // Slot 8: Server Restart Tool (Redstone Block, Top-Right Corner)
@@ -136,5 +140,11 @@ export function openAdminMenu(client: any, pData: any): void {
   );
 
   pData.currentGuiItems = items;
-  sendWindow(client, 1, 5, '§8ZylarPixel Admin Control Panel', items);
+
+  client.write('window_items', {
+    windowId: 1,
+    stateId: 1,
+    items,
+    carriedItem: { present: false }
+  });
 }

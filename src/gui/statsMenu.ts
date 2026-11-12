@@ -6,8 +6,6 @@
 import { mcData1192 } from '../world/worldManager';
 import { PlayerSession } from '../types';
 import { calculateEHP } from '../stats/statsManager';
-import { formatSlotForClient } from '../items';
-import { sendWindow } from './guiHelper';
 
 export function createGuiItem(
   itemName: string,
@@ -15,13 +13,10 @@ export function createGuiItem(
   displayName: string,
   loreArray: string[] = []
 ): any {
-  if (!itemName || count <= 0) {
-    return { itemCount: 0 };
-  }
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
 
-  return formatSlotForClient({
+  return {
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -44,13 +39,20 @@ export function createGuiItem(
         }
       }
     }
-  }, false);
+  };
 }
 
 export function openStatsMenu(client: any, pData: PlayerSession): void {
   pData.openWindowId = 5; // Window ID 5 = Stats Menu
 
-  // Fill background with dark gray glass panes (premium dark theme)
+  // 1. Open 54-slot generic chest (inventoryType 5 = 9x6)
+  client.write('open_window', {
+    windowId: 5,
+    inventoryType: 5,
+    windowTitle: JSON.stringify({ text: '§8Your SkyBlock Stats' })
+  });
+
+  // 2. Fill background with dark gray glass panes (premium dark theme)
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§7', [])
   );
@@ -225,6 +227,13 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
     ['§7Click to close this stats menu.']
   );
 
+  // 3. Send window items to client
+  client.write('window_items', {
+    windowId: 5,
+    stateId: 1,
+    items,
+    carriedItem: { present: false }
+  });
+
   (pData as any).currentGuiItems = items;
-  sendWindow(client, 5, 5, '§8Your SkyBlock Stats', items);
 }

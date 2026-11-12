@@ -2,7 +2,7 @@
   "username": "arnavjava",
   "rank": "mvp_plus_plus",
   "isOp": true,
-  "coins": 99999999913,
+  "coins": 100000000162,
   "bank": 50000000,
   "stats": {
     "health": 100,
@@ -61,66 +61,6 @@
               "id": {
                 "type": "string",
                 "value": "WHEAT_SEEDS"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 36,
-      "name": "wheat",
-      "itemId": 772,
-      "count": 64,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT"
               },
               "rarity": {
                 "type": "string",
@@ -204,66 +144,6 @@
       }
     },
     {
-      "slot": 39,
-      "name": "wheat",
-      "itemId": 772,
-      "count": 49,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
       "slot": 40,
       "name": "wheat_seeds",
       "itemId": 771,
@@ -301,66 +181,6 @@
               "id": {
                 "type": "string",
                 "value": "WHEAT_SEEDS"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 41,
-      "name": "potato",
-      "itemId": 991,
-      "count": 23,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fPotato\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "POTATO"
               },
               "rarity": {
                 "type": "string",
@@ -455,7 +275,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794288854407,
+  "lastSeen": 1794460465207,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -552,9 +372,6 @@
     "Speed Boost": 1793888060767
   },
   "activeBuffs": {},
-  "merchantDailyPurchases": {
-    "pumpkin": 1,
-    "brown_mushroom": 36
-  },
-  "merchantLastResetDay": 20762
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 20769
 }

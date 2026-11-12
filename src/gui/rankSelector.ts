@@ -9,7 +9,6 @@
 
 import { createGuiItem, createAdminBaseSlots } from './adminMenu';
 import { RANKS } from '../config/ranks';
-import { sendWindow } from './guiHelper';
 
 export const RANK_SLOT_MAP: Record<number, string> = {
   // Staff Tiers (Centered in Row 1)
@@ -35,7 +34,14 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
 
   const title = `§8Rank: ${target.username}`;
 
-  // Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
+  // 1. Open 54-slot chest window
+  client.write('open_window', {
+    windowId: 2,
+    inventoryType: 5, // generic_9x6
+    windowTitle: JSON.stringify({ text: title })
+  });
+
+  // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
   const items = createAdminBaseSlots(54);
 
   // Populate Staff & Player Ranks
@@ -83,5 +89,11 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
 
   // Cache items on session so clicks can never alter or steal them
   pData.currentGuiItems = items;
-  sendWindow(client, 2, 5, title, items);
+
+  client.write('window_items', {
+    windowId: 2,
+    stateId: 1,
+    items,
+    carriedItem: { present: false }
+  });
 }

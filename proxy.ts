@@ -12,14 +12,12 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as net from 'net';
-import * as nbt from 'prismarine-nbt';
-import { mcData1218, sanitizedDimensionCodec1218 } from './src/world/worldManager';
-import { tagRegistryManager } from './src/world/tagRegistryManager';
+import { mcData1192 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
 
 const Vec3 = require('vec3');
-const Chunk1218 = require('prismarine-chunk')('1.21.8');
+const Chunk1192 = require('prismarine-chunk')('1.19.2');
 
 const PROXY_PORT = 25565;
 const HUB_PORT = 25566;
@@ -49,12 +47,28 @@ const proxyServer = (mc as any).createServer({
   encryption: false,
   host: '0.0.0.0',
   port: PROXY_PORT,
-  version: '1.21.8',
-  maxPlayers: 250,
+  version: '1.19.2',
+  maxPlayers: 100,
   motd: '§d§lZYLARPIXEL §7[Proxy Network] ⚡ Hypixel SkyBlock',
-  registryCodec: sanitizedDimensionCodec1218,
-  tags: tagRegistryManager.getTagPacketData()
+  registryCodec: mcData1192.loginPacket.dimensionCodec
 } as any);
+
+proxyServer.on('error', (err: any) => {
+  log('ERROR', `Proxy server socket error:`, err?.message || err);
+});
+
+proxyServer.on('connection', (client: any) => {
+  const preJoinErrorHandler = (err: any) => {
+    const code = err?.code || '';
+    if (code === 'ECONNRESET' || code === 'EPIPE' || code === 'ETIMEDOUT') {
+      log('WARN', `Proxy client socket closed before join (${code}):`, err?.message || err);
+      return;
+    }
+    log('WARN', `Proxy client pre-join error:`, err?.message || err);
+  };
+  client._proxyPreJoinErrorHandler = preJoinErrorHandler;
+  client.on('error', preJoinErrorHandler);
+});
 
 // Limbo Void coordinates (deep space, zero chunk collisions, zero chunk streaming)
 const LIMBO_X = 500000.5;
@@ -97,57 +111,61 @@ function generateOfflineUuid(username: string): string {
 
 const SERVER_SIDE_HUB_BOTS: any[] = [];
 
-let tablistDebounceTimer: NodeJS.Timeout | null = null;
-function queueGlobalProxyTablist(): void {
-  if (tablistDebounceTimer) return;
-  tablistDebounceTimer = setTimeout(() => {
-    tablistDebounceTimer = null;
-    broadcastGlobalProxyTablist();
-  }, 120);
-}
-
 function broadcastGlobalProxyTablist(): void {
   const activeSessions = Array.from(sessions.values()).filter(s => s.client && s.client.state === mc.states.PLAY);
   if (activeSessions.length === 0) return;
 
-  const entries = activeSessions.map(target => {
-    const formatted = getNetworkDisplayName(target);
-    return {
-      uuid: target.client.uuid,
-      player: { name: target.username.substring(0, 16), properties: [] },
-      gamemode: 0,
-      listed: 1,
-      latency: 1,
-      displayName: nbt.comp({ text: nbt.string(formatted) }),
-      showHat: true
-    };
-  });
-
-  const tablistPacket = {
-    action: {
-      add_player: true,
-      initialize_chat: false,
-      update_game_mode: true,
-      update_listed: true,
-      update_latency: true,
-      update_display_name: true,
-      update_hat: true,
-      update_list_order: false
-    },
-    data: entries
-  };
-
   for (const observer of activeSessions) {
+    for (const target of activeSessions) {
+      const formatted = getNetworkDisplayName(target);
+
+      try {
+        observer.client.write('player_info', {
+          action: 'add_player',
+          data: [{
+            uuid: target.client.uuid,
+            name: target.username.substring(0, 16),
+            properties: [],
+            gamemode: 0,
+            ping: 1,
+            displayName: JSON.stringify({ text: formatted }),
+            crypto: undefined
+          }]
+        });
+      } catch (_) {}
+
+      try {
+        observer.client.write('player_info', {
+          action: 'update_display_name',
+          data: [{
+            uuid: target.client.uuid,
+            displayName: JSON.stringify({ text: formatted })
+          }]
+        });
+      } catch (_) {}
+    }
+
+    // Purge any lingering dummy bots or NPC player entries from Tablist
     try {
-      observer.client.write('player_info', tablistPacket);
+      observer.client.write('player_info', {
+        action: 'remove_player',
+        data: [
+          { uuid: generateOfflineUuid('Village_Alex') },
+          { uuid: generateOfflineUuid('Village_Kai') },
+          { uuid: generateOfflineUuid('Village_Sam') },
+          { uuid: generateOfflineUuid('Village_Leo') },
+          { uuid: generateOfflineUuid('Village_Mia') },
+          { uuid: '8b61a1a6-a2a2-4c10-9977-e1a3fc82e38f' } // Banker UUID
+        ]
+      });
     } catch (_) {}
 
     try {
       const currentLoc = observer.isInLimbo ? '§dTemporary Limbo (Proxy Host)' : (observer.currentServer === 'hub' ? '§6Village Hub' : '§aPrivate Island');
       observer.client.write('playerlist_header', {
-        header: nbt.comp({ text: nbt.string('\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n') }),
-        footer: nbt.comp({
-          text: nbt.string(`\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a250\n§eType §f/hub §eor §f/is §eto switch servers!\n`)
+        header: JSON.stringify({ text: '\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n' }),
+        footer: JSON.stringify({
+          text: `\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n`
         })
       });
     } catch (_) {}
@@ -156,7 +174,22 @@ function broadcastGlobalProxyTablist(): void {
 
 setInterval(() => {
   broadcastGlobalProxyTablist();
-}, 3000);
+}, 2500);
+
+function detachBackend(session: ProxySession): void {
+  if (!session.backend) return;
+  const oldBackend = session.backend;
+  session.backend = null;
+  oldBackend._proxyDetached = true;
+  try {
+    // Preserve internal minecraft-protocol 'end' listeners (e.g. keepalive timeout cleanup)
+    // while keeping an error guard attached so lingering socket events never throw.
+    if (oldBackend.listenerCount('error') === 0) {
+      oldBackend.on('error', () => {});
+    }
+    oldBackend.end();
+  } catch (_) {}
+}
 
 function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   if (session.isInLimbo) return;
@@ -169,15 +202,7 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
 
   log('INFO', `[Limbo] Moving ${session.username} to Temporary Limbo Host (Backend ${lastServer} dropped/restarting)`);
 
-  if (session.backend) {
-    try {
-      const oldBackend = session.backend;
-      session.backend = null;
-      oldBackend.removeAllListeners();
-      oldBackend.on('error', () => {});
-      oldBackend.end();
-    } catch (_) {}
-  }
+  detachBackend(session);
 
   try {
     // 1. Put player in Spectator mode (gamemode: 3) so player cannot fall, take void damage, or die
@@ -190,16 +215,13 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
     const limboChunkCoord = Math.floor(LIMBO_X / 16);
     session.client.write('update_view_position', { chunkX: limboChunkCoord, chunkZ: limboChunkCoord });
     session.client.write('position', {
-      teleportId: 99999,
       x: LIMBO_X,
       y: LIMBO_Y,
       z: LIMBO_Z,
-      dx: 0,
-      dy: 0,
-      dz: 0,
       yaw: 0,
       pitch: 0,
-      flags: { _value: 0 }
+      flags: 0x00,
+      teleportId: 99999
     });
 
     // 3. Invulnerable flying abilities in void
@@ -211,10 +233,10 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
 
     // 5. Notify player: clear title, subtitle, and informative chat
     session.client.write('set_title_text', {
-      text: nbt.comp({ text: nbt.string('§d§lZYLARPIXEL LIMBO') })
+      text: JSON.stringify({ text: '§d§lZYLARPIXEL LIMBO' })
     });
     session.client.write('set_title_subtitle', {
-      text: nbt.comp({ text: nbt.string('§eServer is restarting... Reconnecting soon!') })
+      text: JSON.stringify({ text: '§eServer is restarting... Reconnecting soon!' })
     });
     session.client.write('set_title_time', {
       fadeIn: 10,
@@ -223,10 +245,10 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
     });
 
     session.client.write('system_chat', {
-      content: nbt.comp({
-        text: nbt.string('\n§8-----------------------------------------------------\n§c§l[ZylarPixel Network] §eGame server is restarting for an update!\n§7You have been temporarily transferred to the §dProxy Limbo Host§7.\n§aHolding your connection safe... Reconnecting in a few seconds!\n§8-----------------------------------------------------\n')
+      content: JSON.stringify({
+        text: '\n§8-----------------------------------------------------\n§c§l[ZylarPixel Network] §eGame server is restarting for an update!\n§7You have been temporarily transferred to the §dProxy Limbo Host§7.\n§aHolding your connection safe... Reconnecting in a few seconds!\n§8-----------------------------------------------------\n'
       }),
-      isActionBar: false
+      isOverlay: false
     });
 
     session.client.write('named_sound_effect', {
@@ -244,7 +266,7 @@ function enterLimbo(session: ProxySession, lastServer: 'hub' | 'islands') {
   }
 
   startLimboPoller(session);
-  queueGlobalProxyTablist();
+  broadcastGlobalProxyTablist();
 }
 
 function startLimboPoller(session: ProxySession) {
@@ -272,8 +294,8 @@ function startLimboPoller(session: ProxySession) {
     try {
       const dots = '.'.repeat((attempts % 3) + 1);
       session.client.write('action_bar', {
-        text: nbt.comp({
-          text: nbt.string(`§e⚡ Holding in Proxy Limbo... Checking ${targetServer === 'hub' ? 'Village Hub' : 'Private Island'}${dots}`)
+        text: JSON.stringify({
+          text: `§e⚡ Holding in Proxy Limbo... Checking ${targetServer === 'hub' ? 'Village Hub' : 'Private Island'}${dots}`
         })
       });
     } catch (_) {}
@@ -281,6 +303,7 @@ function startLimboPoller(session: ProxySession) {
     // TCP Probe
     const socket = net.createConnection({ host: '127.0.0.1', port: targetPort, timeout: 800 }, () => {
       socket.destroy();
+      if (!session.isInLimbo || !session.client || session.client.state !== mc.states.PLAY) return;
       if (session.limboRetryTimer) {
         clearInterval(session.limboRetryTimer);
         session.limboRetryTimer = undefined;
@@ -289,28 +312,28 @@ function startLimboPoller(session: ProxySession) {
 
       try {
         session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string(`§a✔ Backend server is back online! Reconnecting you now...`) }),
-          isActionBar: false
+          content: JSON.stringify({ text: `§a✔ Backend server is back online! Reconnecting you now...` }),
+          isOverlay: false
         });
       } catch (_) {}
 
-      session.isSwitching = true;
       connectToBackend(session, targetServer);
     });
 
     socket.on('error', () => {
       socket.destroy();
+      if (!session.isInLimbo || !session.client || session.client.state !== mc.states.PLAY) return;
       // If island server is down for >15s, probe Hub as fallback
       if (attempts > 15 && targetServer === 'islands') {
         const hubSocket = net.createConnection({ host: '127.0.0.1', port: HUB_PORT, timeout: 800 }, () => {
           hubSocket.destroy();
+          if (!session.isInLimbo || !session.client || session.client.state !== mc.states.PLAY) return;
           if (session.limboRetryTimer) {
             clearInterval(session.limboRetryTimer);
             session.limboRetryTimer = undefined;
           }
           log('INFO', `[Limbo] Islands took long, falling back to Hub for ${session.username}...`);
           session.previousServer = 'hub';
-          session.isSwitching = true;
           connectToBackend(session, 'hub');
         });
         hubSocket.on('error', () => hubSocket.destroy());
@@ -324,54 +347,58 @@ function startLimboPoller(session: ProxySession) {
 }
 
 function connectToBackend(session: ProxySession, target: 'hub' | 'islands', initialCommand?: string) {
+  if (!session.client || session.client.state !== mc.states.PLAY) return;
+
   const targetPort = target === 'hub' ? HUB_PORT : ISLANDS_PORT;
   log('INFO', `Connecting ${session.username} to backend ${target} (: ${targetPort})...`);
 
   session.pendingCommand = initialCommand;
-
-  if (session.backend) {
-    try {
-      const oldBackend = session.backend;
-      session.backend = null;
-      oldBackend.removeAllListeners();
-      oldBackend.on('error', () => {}); // Catch lingering keepalive timeouts!
-      oldBackend.end();
-    } catch (_) {}
-  }
-
-  session.isSwitching = session.hasInitialJoined;
+  // Set isSwitching BEFORE detaching oldBackend so transient socket teardown never triggers false Limbo.
+  session.isSwitching = session.hasInitialJoined || Boolean(session.isInLimbo);
   session.currentServer = target;
+
+  detachBackend(session);
 
   const backendClient = (mc as any).createClient({
     host: '127.0.0.1',
     port: targetPort,
     username: session.username,
-    version: '1.21.8',
+    version: '1.19.2',
     auth: 'offline',
     checkTimeoutInterval: 120000
   });
 
   session.backend = backendClient;
 
+  const isStaleBackend = () => Boolean((backendClient as any)._proxyDetached || session.backend !== backendClient);
+
   backendClient.on('error', (err: any) => {
-    log('WARN', `Backend ${target} error for ${session.username}:`, err.message);
+    if (isStaleBackend()) return;
+    log('WARN', `Backend ${target} error for ${session.username}:`, err?.message || err);
     if (!session.isInLimbo) {
       enterLimbo(session, target);
+    } else if (!session.limboRetryTimer && session.client && session.client.state === mc.states.PLAY) {
+      startLimboPoller(session);
     }
   });
 
   backendClient.on('connect', () => {
+    if (isStaleBackend()) return;
     log('INFO', `Backend connection opened for ${session.username} on : ${targetPort}`);
   });
 
-  // Auto-respond to backend keepalive so backend NEVER kicks backendClient for KeepAliveTimeout
+  // Decoupled Keep-Alive Auto-Responder + proxy custom payload communication from backend
   backendClient.on('packet', (data: any, meta: any) => {
-    if (meta.name === 'keep_alive' && data && data.keepAliveId !== undefined) {
+    if (isStaleBackend()) return;
+
+    if (meta && meta.name === 'keep_alive' && data && data.keepAliveId !== undefined) {
       try {
         backendClient.write('keep_alive', { keepAliveId: data.keepAliveId });
       } catch (_) {}
+      return;
     }
-    if (meta.name === 'custom_payload' && data && data.channel === 'zylarpixel:proxy') {
+
+    if (meta && meta.name === 'custom_payload' && data && data.channel === 'zylarpixel:proxy') {
       const action = (Buffer.isBuffer(data.data) ? data.data : Buffer.from(data.data || '')).toString('utf-8');
       log('INFO', `Received backend proxy command for ${session.username}: ${action}`);
       if (action === 'connect:hub' && session.currentServer !== 'hub') {
@@ -384,10 +411,22 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
 
   // Forward packets from backend to the player client
   backendClient.on('raw', (buffer: Buffer, meta: any) => {
-    if (session.client.state !== mc.states.PLAY) return;
+    if (isStaleBackend()) return;
+    if (!session.client || session.client.state !== mc.states.PLAY) return;
 
-    // Suppress non-play state packets (login, configuration, etc.), duplicate server_data, proxy internal channels, and backend keepalive
-    if (meta.state !== mc.states.PLAY && meta.state !== 'play') {
+    // Intercept and suppress kick/disconnect packets from backend so player is NEVER kicked to multiplayer menu!
+    if (meta && (meta.name === 'kick_disconnect' || meta.name === 'disconnect')) {
+      log('INFO', `[Proxy] Intercepted backend ${target} disconnect/kick for ${session.username} - redirecting to Limbo!`);
+      if (!session.isInLimbo) {
+        enterLimbo(session, target);
+      } else if (!session.limboRetryTimer) {
+        startLimboPoller(session);
+      }
+      return;
+    }
+
+    // Suppress non-play packets (login, compress, success), duplicate server_data, keep_alive, and proxy internal channels
+    if (!meta || meta.state === 'login' || meta.state !== mc.states.PLAY) {
       return;
     }
     if (meta.name === 'compress' || meta.name === 'success' || meta.name === 'server_data' || meta.name === 'keep_alive') {
@@ -397,23 +436,10 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
       return;
     }
 
-    // Intercept and suppress kick/disconnect packets from backend so player is NEVER kicked to multiplayer menu!
-    if (meta.name === 'kick_disconnect' || meta.name === 'disconnect') {
-      let reasonText = '';
-      try {
-        reasonText = buffer.toString('utf8');
-      } catch (_) {}
-      log('INFO', `[Proxy] Intercepted backend ${target} disconnect/kick for ${session.username} - Reason: ${reasonText} - redirecting to Limbo!`);
-      if (!session.isInLimbo) {
-        enterLimbo(session, target);
-      }
-      return;
-    }
-
     if (meta.name === 'login') {
       log('INFO', `Backend login received for ${session.username} on ${target}`);
       session.lastPortalWarp = Date.now() + 3500;
-      const wasInLimbo = session.isInLimbo;
+      const wasInLimbo = Boolean(session.isInLimbo);
       if (session.isSwitching || wasInLimbo) {
         session.isSwitching = false;
         session.isInLimbo = false;
@@ -427,34 +453,26 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
           // completely clears chunk cache BEFORE backend sends new chunks and position!
           try {
             session.client.write('respawn', {
-              worldState: {
-                dimension: 3, // In 1.21.8 dimensionCodec: 0=overworld, 1=overworld_caves, 2=the_end, 3=the_nether
-                name: 'minecraft:the_nether',
-                hashedSeed: [0, 0],
-                gamemode: 'survival',
-                previousGamemode: 255,
-                isDebug: false,
-                isFlat: false,
-                death: undefined,
-                portalCooldown: 0,
-                seaLevel: 63
-              },
-              copyMetadata: 0
+              dimension: 'minecraft:the_nether',
+              worldName: 'minecraft:the_nether',
+              hashedSeed: [0, 0],
+              gamemode: 0,
+              previousGamemode: 255,
+              isDebug: false,
+              isFlat: false,
+              copyMetadata: false,
+              death: undefined
             });
             session.client.write('respawn', {
-              worldState: {
-                dimension: 0,
-                name: 'minecraft:overworld',
-                hashedSeed: [0, 0],
-                gamemode: 'survival',
-                previousGamemode: 255,
-                isDebug: false,
-                isFlat: false,
-                death: undefined,
-                portalCooldown: 0,
-                seaLevel: 63
-              },
-              copyMetadata: 0
+              dimension: 'minecraft:overworld',
+              worldName: 'minecraft:overworld',
+              hashedSeed: [0, 0],
+              gamemode: 0,
+              previousGamemode: 255,
+              isDebug: false,
+              isFlat: false,
+              copyMetadata: false,
+              death: undefined
             });
             // Ensure client gamemode is immediately synced to Survival (0)
             session.client.write('game_state_change', {
@@ -467,59 +485,67 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
           }
         } else {
           session.hasInitialJoined = true;
+          if (wasInLimbo) {
+            try {
+              session.client.write('game_state_change', {
+                reason: 3,
+                gameMode: 0
+              });
+            } catch (_) {}
+          }
         }
 
         if (wasInLimbo) {
           try {
             session.client.write('set_title_text', {
-              text: nbt.comp({ text: nbt.string('§a§lRECONNECTED!') })
+              text: JSON.stringify({ text: '§a§lRECONNECTED!' })
             });
             session.client.write('set_title_subtitle', {
-              text: nbt.comp({ text: nbt.string(`§7Welcome back to ${target === 'hub' ? 'Village Hub' : 'Private Island'}`) })
+              text: JSON.stringify({ text: `§7Welcome back to ${target === 'hub' ? 'Village Hub' : 'Private Island'}` })
             });
             session.client.write('set_title_time', {
               fadeIn: 5,
               stay: 40,
               fadeOut: 15
             });
+            session.client.write('named_sound_effect', {
+              soundName: 'entity.player.levelup',
+              soundCategory: 0,
+              x: 0,
+              y: 70 * 8,
+              z: 0,
+              volume: 0.8,
+              pitch: 1.2,
+              seed: [0, 0]
+            });
           } catch (_) {}
         }
-
-        if (session.pendingCommand) {
-          const cmdToExec = session.pendingCommand;
-          session.pendingCommand = undefined;
-          setTimeout(() => {
-            try {
-              const cleanCmd = cmdToExec.startsWith('/') ? cmdToExec.slice(1) : cmdToExec;
-              backendClient.write('chat_command', {
-                command: cleanCmd
-              });
-              log('INFO', `Dispatched pending command for ${session.username}: ${cleanCmd}`);
-            } catch (cmdErr: any) {
-              log('WARN', `Error executing pending command:`, cmdErr.message);
-            }
-          }, 650);
-        }
-        setTimeout(() => queueGlobalProxyTablist(), 200);
       } else {
         session.hasInitialJoined = true;
-        if (session.pendingCommand) {
-          const cmdToExec = session.pendingCommand;
-          session.pendingCommand = undefined;
-          setTimeout(() => {
-            try {
-              const cleanCmd = cmdToExec.startsWith('/') ? cmdToExec.slice(1) : cmdToExec;
-              backendClient.write('chat_command', {
-                command: cleanCmd
-              });
-              log('INFO', `Dispatched pending command for ${session.username}: ${cleanCmd}`);
-            } catch (cmdErr: any) {
-              log('WARN', `Error executing pending command:`, cmdErr.message);
-            }
-          }, 650);
-        }
-        setTimeout(() => queueGlobalProxyTablist(), 200);
       }
+
+      if (session.pendingCommand) {
+        const cmdToExec = session.pendingCommand;
+        session.pendingCommand = undefined;
+        setTimeout(() => {
+          if (isStaleBackend() || backendClient.state !== mc.states.PLAY) return;
+          try {
+            const cleanCmd = cmdToExec.startsWith('/') ? cmdToExec.slice(1) : cmdToExec;
+            backendClient.write('chat_command', {
+              command: cleanCmd,
+              timestamp: BigInt(Date.now()),
+              salt: 0n,
+              argumentSignatures: [],
+              signedPreview: false,
+              previousMessages: []
+            });
+            log('INFO', `Dispatched pending command for ${session.username}: ${cleanCmd}`);
+          } catch (cmdErr: any) {
+            log('WARN', `Error executing pending command:`, cmdErr.message);
+          }
+        }, 650);
+      }
+      setTimeout(() => broadcastGlobalProxyTablist(), 700);
       return;
     }
 
@@ -531,16 +557,53 @@ function connectToBackend(session: ProxySession, target: 'hub' | 'islands', init
   });
 
   backendClient.on('end', () => {
+    if (isStaleBackend()) return;
     log('INFO', `Backend ${target} disconnected for ${session.username}`);
-    if (!session.isSwitching && !session.isInLimbo) {
+    if (!session.isInLimbo) {
       enterLimbo(session, target);
+    } else if (!session.limboRetryTimer && session.client && session.client.state === mc.states.PLAY) {
+      startLimboPoller(session);
     }
   });
 }
 
+function sendProxySystemChat(client: any, text: string): void {
+  try {
+    if (client && client.state === mc.states.PLAY) {
+      client.write('system_chat', {
+        content: JSON.stringify({ text }),
+        isOverlay: false
+      });
+    }
+  } catch (_) {}
+}
+
 proxyServer.on('playerJoin', (client: any) => {
   const username = client.username;
+  if (client._proxyPreJoinErrorHandler) {
+    client.removeListener('error', client._proxyPreJoinErrorHandler);
+    delete client._proxyPreJoinErrorHandler;
+  }
+  client.on('error', (err: any) => {
+    const code = err?.code || '';
+    if (code === 'ECONNRESET' || code === 'EPIPE' || code === 'ETIMEDOUT') {
+      log('WARN', `Proxy Client socket disconnected (${code}) for ${username}:`, err?.message || err);
+      return;
+    }
+    log('ERROR', `Proxy Client error for ${username}:`, err?.message || err);
+  });
+
   log('INFO', `[+] Player connected to Proxy: ${username} [Version: ${client.version}]`);
+
+  const existingSession = sessions.get(username.toLowerCase());
+  if (existingSession) {
+    if (existingSession.limboRetryTimer) {
+      clearInterval(existingSession.limboRetryTimer);
+      existingSession.limboRetryTimer = undefined;
+    }
+    detachBackend(existingSession);
+    try { existingSession.client?.end('Logged in from another location'); } catch (_) {}
+  }
 
   const session: ProxySession = {
     client,
@@ -557,26 +620,21 @@ proxyServer.on('playerJoin', (client: any) => {
     client.write('login', {
       entityId: 99999,
       isHardcore: false,
+      gameMode: 0,
+      previousGameMode: -1,
       worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
-      maxPlayers: 250,
+      dimensionCodec: mcData1192.loginPacket.dimensionCodec,
+      worldType: 'minecraft:overworld',
+      worldName: 'minecraft:overworld',
+      hashedSeed: [0, 0],
+      maxPlayers: 100,
       viewDistance: 12,
       simulationDistance: 12,
       reducedDebugInfo: false,
       enableRespawnScreen: true,
-      doLimitedCrafting: false,
-      worldState: {
-        dimension: 0,
-        name: 'minecraft:overworld',
-        hashedSeed: [0, 0],
-        gamemode: 'survival',
-        previousGamemode: 255,
-        isDebug: false,
-        isFlat: false,
-        death: undefined,
-        portalCooldown: 0,
-        seaLevel: 63
-      },
-      enforcesSecureChat: false
+      isDebug: false,
+      isFlat: false,
+      death: undefined
     });
   } catch (err: any) {
     log('WARN', `Error sending proxy login packet:`, err.message);
@@ -585,10 +643,7 @@ proxyServer.on('playerJoin', (client: any) => {
   // High-level navigation command interceptor at the Master Proxy layer
   const handleProxyCommand = (rawText: string) => {
     if (session.isInLimbo) {
-      session.client.write('system_chat', {
-        content: nbt.comp({ text: nbt.string('§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!') }),
-        isActionBar: false
-      });
+      sendProxySystemChat(session.client, '§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!');
       return true;
     }
 
@@ -596,12 +651,23 @@ proxyServer.on('playerJoin', (client: any) => {
     const cmdParts = cmdText.split(/\s+/);
     const cmdBase = cmdParts[0];
 
+    const isNavigationCmd =
+      cmdBase === 'hub' ||
+      cmdBase === 'warphub' ||
+      cmdBase === 'spawn' ||
+      (cmdBase === 'warp' && cmdParts[1] === 'hub') ||
+      cmdBase === 'is' ||
+      cmdBase === 'island' ||
+      cmdBase === 'visit';
+
+    if (session.isSwitching && isNavigationCmd) {
+      sendProxySystemChat(session.client, '§e[Proxy] Server switch already in progress, please wait...');
+      return true;
+    }
+
     if (cmdBase === 'hub' || cmdBase === 'warphub' || cmdBase === 'spawn' || (cmdBase === 'warp' && cmdParts[1] === 'hub')) {
       if (session.currentServer !== 'hub') {
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string('§a[Proxy] Connecting you to the Hub Server...') }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, '§a[Proxy] Connecting you to the Hub Server...');
         connectToBackend(session, 'hub');
         return true;
       }
@@ -611,10 +677,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
     if (cmdBase === 'is' || cmdBase === 'island') {
       if (session.currentServer !== 'islands') {
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string('§a[Proxy] Connecting you to your Private Island...') }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, '§a[Proxy] Connecting you to your Private Island...');
         connectToBackend(session, 'islands');
         return true;
       }
@@ -625,17 +688,11 @@ proxyServer.on('playerJoin', (client: any) => {
     if (cmdBase === 'visit') {
       const targetPlayer = cmdParts[1];
       if (!targetPlayer) {
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string('§eUsage: §f/visit <player>') }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, '§eUsage: §f/visit <player>');
         return true;
       }
       if (session.currentServer !== 'islands') {
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string(`§a[Proxy] Connecting you to the Islands Server to visit §f${targetPlayer}§a...`) }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, `§a[Proxy] Connecting you to the Islands Server to visit §f${targetPlayer}§a...`);
         connectToBackend(session, 'islands', `/visit ${targetPlayer}`);
         return true;
       }
@@ -674,20 +731,14 @@ proxyServer.on('playerJoin', (client: any) => {
 
       if (inPortalX && inPortalY && inPortalZ) {
         session.lastPortalWarp = now + 4000;
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string('§a[Portal] Warping you to the Village Hub...') }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, '§a[Portal] Warping you to the Village Hub...');
         connectToBackend(session, 'hub');
       }
     } else if (session.currentServer === 'hub') {
       const inHubPortal = (x >= -5.0 && x <= 0.0 && y >= 69.0 && y <= 72.0 && z >= -65.0 && z <= -61.0);
       if (inHubPortal) {
         session.lastPortalWarp = now + 4000;
-        session.client.write('system_chat', {
-          content: nbt.comp({ text: nbt.string('§a[Portal] Warping you to your Private Island...') }),
-          isActionBar: false
-        });
+        sendProxySystemChat(session.client, '§a[Portal] Warping you to your Private Island...');
         connectToBackend(session, 'islands');
       }
     }
@@ -697,16 +748,13 @@ proxyServer.on('playerJoin', (client: any) => {
     if (session.isInLimbo && packet && typeof packet.y === 'number' && packet.y < 100) {
       try {
         session.client.write('position', {
-          teleportId: Math.floor(Math.random() * 10000),
           x: LIMBO_X,
           y: LIMBO_Y,
           z: LIMBO_Z,
-          dx: 0,
-          dy: 0,
-          dz: 0,
           yaw: 0,
           pitch: 0,
-          flags: { _value: 0 }
+          flags: 0x00,
+          teleportId: Math.floor(Math.random() * 10000)
         });
       } catch (_) {}
     }
@@ -726,9 +774,9 @@ proxyServer.on('playerJoin', (client: any) => {
     }
   });
 
-  // Forward packets from player client to backend (excluding keep_alive which is managed independently)
+  // Forward packets from player client to backend (keep_alive is decoupled per connection)
   client.on('raw', (buffer: Buffer, meta: any) => {
-    if (session.isInLimbo) return;
+    if (session.isInLimbo || session.isSwitching) return;
     if (meta && meta.name === 'keep_alive') return;
     if (session.backend && session.backend.state === mc.states.PLAY) {
       try {
@@ -741,7 +789,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Default initial server: Hub
   connectToBackend(session, 'hub');
-  setTimeout(() => queueGlobalProxyTablist(), 250);
+  setTimeout(() => broadcastGlobalProxyTablist(), 800);
 
   client.on('end', () => {
     log('INFO', `[-] Player disconnected from Proxy: ${username}`);
@@ -749,32 +797,23 @@ proxyServer.on('playerJoin', (client: any) => {
       clearInterval(session.limboRetryTimer);
       session.limboRetryTimer = undefined;
     }
-    if (session.backend) {
-      try {
-        const oldBackend = session.backend;
-        session.backend = null;
-        oldBackend.removeAllListeners();
-        oldBackend.on('error', () => {});
-        oldBackend.end();
-      } catch (_) {}
+    detachBackend(session);
+    if (sessions.get(username.toLowerCase()) === session) {
+      sessions.delete(username.toLowerCase());
     }
-    sessions.delete(username.toLowerCase());
 
     // Broadcast remove_player for disconnected player to all remaining players
     for (const remaining of sessions.values()) {
       if (remaining.client && remaining.client.state === mc.states.PLAY) {
         try {
-          remaining.client.write('player_remove', {
-            players: [client.uuid]
+          remaining.client.write('player_info', {
+            action: 'remove_player',
+            data: [{ uuid: client.uuid }]
           });
         } catch (_) {}
       }
     }
-    queueGlobalProxyTablist();
-  });
-
-  client.on('error', (err: any) => {
-    log('ERROR', `Proxy Client error for ${username}:`, err.message);
+    broadcastGlobalProxyTablist();
   });
 });
 

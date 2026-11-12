@@ -12,11 +12,10 @@
  */
 
 import { createGuiItem, openAdminMenu, createAdminBaseSlots } from './adminMenu';
-import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition, formatSlotForClient } from '../items';
+import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition } from '../items';
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { playSound } from './bankMenu';
-import { sendWindow } from './guiHelper';
 
 export const ADMIN_ITEM_SPAWNER_WINDOW_ID = 13;
 export const ITEMS_PER_PAGE = 28;
@@ -39,6 +38,16 @@ export function openAdminItemSpawner(
   const allItems = getAllRegisteredItems();
   const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
   const currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+  client.write('open_window', {
+    windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
+    inventoryType: 5, // generic_9x6 (54 slots)
+    windowTitle: JSON.stringify({
+      text: totalPages > 1
+        ? `§8Item Spawner (${currentPage + 1}/${totalPages})`
+        : '§8Item & Combat Spawner'
+    })
+  });
 
   // 1. Fill slots: Outer border = Black Stained Glass, Inner = Gray Stained Glass
   const items = createAdminBaseSlots(54);
@@ -129,10 +138,14 @@ export function openAdminItemSpawner(
     slotItemMap
   };
 
-  const title = totalPages > 1
-    ? `§8Item Spawner (${currentPage + 1}/${totalPages})`
-    : '§8Item & Combat Spawner';
-  sendWindow(client, ADMIN_ITEM_SPAWNER_WINDOW_ID, 5, title, items);
+  try {
+    client.write('window_items', {
+      windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 export function handleAdminItemSpawnerClick(
@@ -211,7 +224,7 @@ export function handleAdminItemSpawnerClick(
         windowId: 0,
         stateId: 1,
         slot: targetSlot,
-        item: formatSlotForClient(itemStack, false)
+        item: itemStack
       });
       client.write('named_sound_effect', {
         soundName: 'entity.item.pickup',

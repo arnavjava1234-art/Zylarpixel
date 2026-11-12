@@ -405,9 +405,10 @@ export function tagVanillaItemStack(itemStack: any, is119: boolean = true): any 
 
 /**
  * Ensures item stack is formatted correctly for the target protocol version:
- * - 1.21.8 (Protocol 772): SlotComponent format with Data Components
+ * - 1.19.2: { present: boolean, itemId?: number, itemCount?: number, nbtData?: any }
+ * - 1.21.1: SlotComponent format { itemCount: number, itemId?: number, addedComponentCount: number, removedComponentCount: number, components: any[], removeComponents: any[] }
  */
-export function formatSlotForClient(item: any, is119: boolean = false): any {
+export function formatSlotForClient(item: any, is119: boolean = true): any {
   if (
     !item ||
     item.present === false ||
@@ -417,7 +418,17 @@ export function formatSlotForClient(item: any, is119: boolean = false): any {
     return is119 ? { present: false } : { itemCount: 0 };
   }
 
-  // If already formatted in modern SlotComponent format, return directly
+  if (is119) {
+    if (item.present !== undefined) return item;
+    return {
+      present: true,
+      itemId: item.itemId,
+      itemCount: item.itemCount || item.count || 1,
+      nbtData: item.nbtData
+    };
+  }
+
+  // 1.21.1 SlotComponent format: if already formatted, return directly
   if (item.addedComponentCount !== undefined && Array.isArray(item.components)) {
     return item;
   }
@@ -425,7 +436,7 @@ export function formatSlotForClient(item: any, is119: boolean = false): any {
   const count = item.itemCount || item.count || 1;
   let targetItemId = item.itemId;
 
-  // Resolve target item ID
+  // If itemId was resolved from 1.19.2, translate to 1.21.1
   if (typeof targetItemId === 'number') {
     const def119 = mcData1192.items[targetItemId];
     if (def119) {
@@ -440,48 +451,26 @@ export function formatSlotForClient(item: any, is119: boolean = false): any {
   if (item.nbtData?.value) {
     const val = item.nbtData.value;
 
-    // 1. Custom Name (anonymousNbt)
+    // 1. Custom Name
     if (val.display?.value?.Name?.value) {
-      let nameStr = val.display.value.Name.value;
-      if (typeof nameStr === 'string' && nameStr.startsWith('{')) {
-        try {
-          const parsed = JSON.parse(nameStr);
-          if (parsed.text !== undefined) nameStr = parsed.text;
-        } catch (_) {}
-      }
       components.push({
         type: 'custom_name',
         data: {
-          type: 'compound',
-          name: '',
-          value: {
-            text: { type: 'string', value: String(nameStr) }
-          }
+          type: 'string',
+          value: val.display.value.Name.value
         }
       });
     }
 
-    // 2. Lore (array of anonymousNbt)
+    // 2. Lore
     const rawLore = val.display?.value?.Lore?.value?.value;
     if (Array.isArray(rawLore) && rawLore.length > 0) {
       components.push({
         type: 'lore',
-        data: rawLore.map((line: any) => {
-          let textStr = line;
-          if (typeof line === 'string' && line.startsWith('{')) {
-            try {
-              const parsed = JSON.parse(line);
-              if (parsed.text !== undefined) textStr = parsed.text;
-            } catch (_) {}
-          }
-          return {
-            type: 'compound',
-            name: '',
-            value: {
-              text: { type: 'string', value: String(textStr) }
-            }
-          };
-        })
+        data: rawLore.map((line: any) => ({
+          type: 'string',
+          value: typeof line === 'string' ? line : JSON.stringify(line)
+        }))
       });
     }
 

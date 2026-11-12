@@ -15,7 +15,7 @@ import { createDefaultStats } from '../stats/statsManager';
 
 export const players = new Map<number, any>();
 
-export function createPlayerSession(client: any, is119: boolean): any {
+export function createPlayerSession(client: any, is119: boolean = true): any {
   const username = client.username;
   const isMasterUser = (username.toLowerCase() === 'arnavjava');
 
@@ -136,14 +136,14 @@ export function persistPlayerSession(pData: any): void {
 
   savePlayerData(pData.username, {
     username: pData.username,
-    uuid: pData.client?.uuid || '',
-    rank: pData.rank?.id || 'default',
+    uuid: pData.client.uuid,
+    rank: pData.rank.id,
     isOp: pData.isOp,
     island: pData.island,
     lastLogin: new Date().toISOString(),
     stats: statsToPersist,
     ...( {
-      rankId: pData.rank?.id || 'default',
+      rankId: pData.rank.id,
       purse: pData.purse,
       bank: pData.bank,
       bankTransactions: pData.bankTransactions,
@@ -283,12 +283,20 @@ export function setOfflinePlayerRank(username: string, newRank: RankDefinition):
   return data;
 }
 
-export function sendSystemMessage(client: any, text: string, _is119?: boolean): void {
+export function sendSystemMessage(client: any, text: string, is119: boolean = true): void {
+  if (!client || client.ended || client.state === 'closed') return;
   try {
-    client.write('system_chat', {
-      content: nbt.comp({ text: nbt.string(text) }),
-      isActionBar: false
-    });
+    if (is119) {
+      client.write('system_chat', {
+        content: JSON.stringify({ text }),
+        isActionBar: false
+      });
+    } else {
+      client.write('system_chat', {
+        content: nbt.comp({ text: nbt.string(text) }),
+        isActionBar: false
+      });
+    }
   } catch (e) {}
 }
 

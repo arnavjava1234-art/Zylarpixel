@@ -367,12 +367,9 @@ function startServerInstance() {
         x: spawnX,
         y: spawnY,
         z: spawnZ,
-        dx: 0,
-        dy: 0,
-        dz: 0,
         yaw: 0.0,
         pitch: 0.0,
-        flags: { _value: 0 },
+        flags: 0x00,
         teleportId: ++teleportCounter,
         dismountVehicle: false
       });
@@ -482,12 +479,9 @@ function startServerInstance() {
         x: spawnX,
         y: spawnY,
         z: spawnZ,
-        dx: 0,
-        dy: 0,
-        dz: 0,
         yaw: 0.0,
         pitch: 0.0,
-        flags: { _value: 0 },
+        flags: {},
         teleportId: ++teleportCounter,
         dismountVehicle: false
       });
@@ -966,12 +960,8 @@ function startServerInstance() {
               x: data.x,
               y: data.y,
               z: data.z,
-              dx: 0,
-              dy: 0,
-              dz: 0,
               yaw: yawByte,
               pitch: pitchByte,
-              flags: { _value: 0 },
               onGround: true
             });
             other.client.write('entity_head_rotation', {

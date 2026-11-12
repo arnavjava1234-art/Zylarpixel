@@ -5,7 +5,6 @@
  */
 
 import * as crypto from 'crypto';
-const nbt = require('prismarine-nbt');
 
 let nextDamageIndicatorId = 30000;
 
@@ -42,14 +41,14 @@ export function spawnDamageIndicator(
   let posY = y + 1.2 + Math.random() * 0.3;
   let posZ = z + (Math.random() - 0.5) * 0.6;
 
-  // 1. Broadcast spawn_entity (text_display = 126 in 1.21.8) & entity_metadata to all observers
+  // 1. Broadcast spawn_entity & entity_metadata to all observers
   for (const observer of observers) {
     try {
       const client = observer.client || observer;
       client.write('spawn_entity', {
         entityId,
         objectUUID: uuid,
-        type: 126, // text_display in 1.21.8
+        type: 2, // armor_stand in 1.19.2
         x: posX,
         y: posY,
         z: posZ,
@@ -63,9 +62,10 @@ export function spawnDamageIndicator(
       client.write('entity_metadata', {
         entityId,
         metadata: [
-          { key: 15, type: 'byte', value: 3 }, // Center billboard mode (faces camera)
-          { key: 23, type: 'component', value: nbt.comp({ text: nbt.string(displayText) }) },
-          { key: 27, type: 'byte', value: 1 } // Shadow
+          { key: 0, type: 0, value: 0x20 }, // Invisible
+          { key: 2, type: 5, value: JSON.stringify({ text: displayText }) }, // CustomName
+          { key: 3, type: 7, value: true }, // CustomNameVisible
+          { key: 15, type: 0, value: 0x11 } // Small & Marker
         ]
       });
     } catch (_) {}
@@ -75,40 +75,32 @@ export function spawnDamageIndicator(
   let ticks = 0;
   const maxTicks = 16;
   const interval = setInterval(() => {
-    try {
-      ticks++;
-      posY += 0.035;
+    ticks++;
+    posY += 0.035;
 
+    for (const observer of observers) {
+      try {
+        const client = observer.client || observer;
+        client.write('entity_teleport', {
+          entityId,
+          x: posX,
+          y: posY,
+          z: posZ,
+          yaw: 0,
+          pitch: 0,
+          onGround: false
+        });
+      } catch (_) {}
+    }
+
+    if (ticks >= maxTicks) {
+      clearInterval(interval);
+      // 3. Despawn entity
       for (const observer of observers) {
         try {
           const client = observer.client || observer;
-          if (!client || client.ended || client.state === 'closed') continue;
-          client.write('entity_teleport', {
-            entityId,
-            x: posX,
-            y: posY,
-            z: posZ,
-            dx: 0,
-            dy: 0,
-            dz: 0,
-            yaw: 0,
-            pitch: 0,
-            flags: { _value: 0 },
-            onGround: false
-          });
+          client.write('entity_destroy', { entityIds: [entityId] });
         } catch (_) {}
-      }
-    } catch (_) {} finally {
-      if (ticks >= maxTicks) {
-        clearInterval(interval);
-        // 3. Despawn entity
-        for (const observer of observers) {
-          try {
-            const client = observer.client || observer;
-            if (!client || client.ended || client.state === 'closed') continue;
-            client.write('entity_destroy', { entityIds: [entityId] });
-          } catch (_) {}
-        }
       }
     }
   }, 50);

@@ -25,7 +25,7 @@
  * - Hydrated Farmland (farmland[moisture=7]) & Trample Auto-Repair.
  */
 
-import { mcData1192, mcData1211, playSoundEffect } from './worldManager';
+import { mcData1192, mcData1211 } from './worldManager';
 import { tagVanillaItemStack, formatSlotForClient } from '../items/engine/itemBuilder';
 import { setHubBlockStateId } from './hubRegionProvider';
 import { players, sendSystemMessage } from '../players/playerManager';
@@ -314,30 +314,67 @@ export function calculateFortuneMultiplier(fortune: number = 0): number {
 /**
  * Creates authentic Golden Sun player skull item with proper 4-integer array UUID
  */
-function createGoldenSunSkullItem(_is119?: boolean): any {
-  const itemId = mcData1211.itemsByName['player_head']?.id || 1185;
-  return {
-    itemCount: 1,
-    itemId,
-    addedComponentCount: 1,
-    removedComponentCount: 0,
-    components: [
-      {
-        type: 'profile',
-        data: {
-          name: 'SunGuardian',
-          properties: [
-            {
-              name: 'textures',
-              value: SUN_SKULL_TEXTURE,
-              signature: undefined
+function createGoldenSunSkullItem(is119: boolean): any {
+  const itemId = is119 ? 998 : 1105; // player_head item ID
+  if (is119) {
+    return {
+      present: true,
+      itemId,
+      itemCount: 1,
+      nbtData: {
+        type: 'compound',
+        name: '',
+        value: {
+          SkullOwner: {
+            type: 'compound',
+            value: {
+              Id: { type: 'intArray', value: SUN_SKULL_INT_UUID },
+              Name: { type: 'string', value: 'SunGuardian' },
+              Properties: {
+                type: 'compound',
+                value: {
+                  textures: {
+                    type: 'list',
+                    value: {
+                      type: 'compound',
+                      value: [
+                        { Value: { type: 'string', value: SUN_SKULL_TEXTURE } }
+                      ]
+                    }
+                  }
+                }
+              }
             }
-          ]
+          }
         }
       }
-    ],
-    removeComponents: []
-  };
+    };
+  } else {
+    // 1.21.1 Profile Component
+    return {
+      itemCount: 1,
+      itemId,
+      addedComponentCount: 1,
+      removedComponentCount: 0,
+      components: [
+        {
+          type: 'profile',
+          data: {
+            name: 'SunGuardian',
+            id: SUN_SKULL_INT_UUID,
+            properties: [
+              {
+                name: 'textures',
+                value: SUN_SKULL_TEXTURE,
+                signature: undefined
+              }
+            ]
+          }
+        }
+      ],
+      removeComponents: []
+    };
+  }
 }
 
 /**
@@ -345,13 +382,13 @@ function createGoldenSunSkullItem(_is119?: boolean): any {
  */
 export function spawnSingleProtector(
   client: any,
-  _is119: boolean,
+  is119: boolean,
   protector: CropProtector,
   toProtocolByte: (deg: number) => number
 ): void {
   try {
-    const armorStandType = 5; // armor_stand in 1.21.8
-    const headItem = createGoldenSunSkullItem();
+    const armorStandType = is119 ? 2 : (mcData1211.entitiesByName['armor_stand']?.id || 2);
+    const headItem = createGoldenSunSkullItem(is119);
 
     // 1. Invisible Small Marker Armor Stand
     client.write('spawn_entity', {
@@ -372,8 +409,8 @@ export function spawnSingleProtector(
     client.write('entity_metadata', {
       entityId: protector.id,
       metadata: [
-        { key: 0, type: 'byte', value: 0x20 },
-        { key: 15, type: 'byte', value: 0x19 }
+        { key: 0, type: 0, value: 0x20 },
+        { key: 15, type: 0, value: 0x19 }
       ]
     });
 
@@ -412,86 +449,78 @@ export function tickCropGuardians(
   playerMap: Map<any, any>,
   toProtocolByte: (deg: number) => number
 ): void {
-  try {
-    const now = Date.now();
-    // Fast 1.5-second sinusoidal bobbing cycle (±0.2 blocks)
-    const bobOffset = Math.sin((now / 1500) * Math.PI * 2) * 0.2;
+  const now = Date.now();
+  // Fast 1.5-second sinusoidal bobbing cycle (±0.2 blocks)
+  const bobOffset = Math.sin((now / 1500) * Math.PI * 2) * 0.2;
 
-    for (const protector of CROP_PROTECTORS) {
-      try {
-        // 1. Continuous 24/7 Animation
-        protector.yaw = (protector.yaw + 3) % 360;
-        protector.currentY = protector.basePos.y + bobOffset;
-        const yawByte = toProtocolByte(protector.yaw);
+  for (const protector of CROP_PROTECTORS) {
+    // 1. Continuous 24/7 Animation
+    protector.yaw = (protector.yaw + 3) % 360;
+    protector.currentY = protector.basePos.y + bobOffset;
+    const yawByte = toProtocolByte(protector.yaw);
 
-        // Broadcast smooth head rotation, vertical hover bobbing, and dynamic range tracking
-        for (const [_, p] of playerMap) {
-          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
-          p._spawnedProtectors = p._spawnedProtectors || new Set<number>();
-          const dist = Math.hypot((p.x || 0) - protector.basePos.x, (p.z || 0) - protector.basePos.z);
+    // Broadcast smooth head rotation, vertical hover bobbing, and dynamic range tracking
+    for (const [_, p] of playerMap) {
+      if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+      p._spawnedProtectors = p._spawnedProtectors || new Set<number>();
+      const dist = Math.hypot((p.x || 0) - protector.basePos.x, (p.z || 0) - protector.basePos.z);
 
-          // Within tracking range (85 blocks):
-          if (dist <= 85.0) {
-            if (!p._spawnedProtectors.has(protector.id)) {
-              spawnSingleProtector(p.client, p.is119, protector, toProtocolByte);
-              p._spawnedProtectors.add(protector.id);
-            }
-
-            try {
-              p.client.write('entity_teleport', {
-                entityId: protector.id,
-                x: protector.basePos.x,
-                y: protector.currentY,
-                z: protector.basePos.z,
-                dx: 0,
-                dy: 0,
-                dz: 0,
-                yaw: protector.yaw, // 1.21.8 schema: float32 degrees
-                pitch: 0,
-                flags: { _value: 0 },
-                onGround: false
-              });
-              p.client.write('entity_head_rotation', {
-                entityId: protector.id,
-                headYaw: yawByte // 1.21.8 schema: int8 protocol byte
-              });
-            } catch (_) {}
-          } else if (dist > 105.0) {
-            if (p._spawnedProtectors.has(protector.id)) {
-              try {
-                p.client.write('entity_destroy', {
-                  entityIds: [protector.id]
-                });
-              } catch (_) {}
-              p._spawnedProtectors.delete(protector.id);
-            }
-          }
+      // Within tracking range (85 blocks):
+      if (dist <= 85.0) {
+        if (!p._spawnedProtectors.has(protector.id)) {
+          spawnSingleProtector(p.client, p.is119, protector, toProtocolByte);
+          p._spawnedProtectors.add(protector.id);
         }
 
-        // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
-        if (protector.currentTask) {
-          const task = protector.currentTask;
-
-          // Check if beam cycle (0.8s = 800ms) has completed
-          if (now >= protector.taskEndTime) {
-            // Impact & Complete Regrowth!
-            completeCropRegrowth(playerMap, task);
-            protector.currentTask = null;
-            protector.lastBeamRenderTime = 0;
-          } else {
-            // While active: Render continuous solid white end_rod laser beam from head to soil
-            renderRegrowthLaserBeam(playerMap, protector, task);
-          }
-        } else if (protector.queue.length > 0) {
-          // Pop the next task in FIFO order
-          const nextTask = protector.queue.shift()!;
-          protector.currentTask = nextTask;
-          protector.taskStartTime = now;
-          protector.taskEndTime = now + 800; // 0.8-second continuous beam hold
+        try {
+          p.client.write('entity_teleport', {
+            entityId: protector.id,
+            x: protector.basePos.x,
+            y: protector.currentY,
+            z: protector.basePos.z,
+            yaw: yawByte,
+            pitch: 0,
+            onGround: false
+          });
+          p.client.write('entity_head_rotation', {
+            entityId: protector.id,
+            headYaw: yawByte
+          });
+        } catch (_) {}
+      } else if (dist > 105.0) {
+        if (p._spawnedProtectors.has(protector.id)) {
+          try {
+            p.client.write('entity_destroy', {
+              entityIds: [protector.id]
+            });
+          } catch (_) {}
+          p._spawnedProtectors.delete(protector.id);
         }
-      } catch (_) {}
+      }
     }
-  } catch (_) {}
+
+    // 2. Sequential 1-by-1 FIFO Regrowth Queue Processing
+    if (protector.currentTask) {
+      const task = protector.currentTask;
+
+      // Check if beam cycle (0.8s = 800ms) has completed
+      if (now >= protector.taskEndTime) {
+        // Impact & Complete Regrowth!
+        completeCropRegrowth(playerMap, task);
+        protector.currentTask = null;
+        protector.lastBeamRenderTime = 0;
+      } else {
+        // While active: Render continuous solid white end_rod laser beam from head to soil
+        renderRegrowthLaserBeam(playerMap, protector, task);
+      }
+    } else if (protector.queue.length > 0) {
+      // Pop the next task in FIFO order
+      const nextTask = protector.queue.shift()!;
+      protector.currentTask = nextTask;
+      protector.taskStartTime = now;
+      protector.taskEndTime = now + 800; // 0.8-second continuous beam hold
+    }
+  }
 }
 
 /**
@@ -556,7 +585,7 @@ function renderRegrowthLaserBeam(
   protector.lastBeamRenderTime = now;
 
   for (const [_, p] of playerMap) {
-    if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+    if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
     const pDist = Math.hypot((p.x || 0) - task.x, (p.z || 0) - task.z);
     if (pDist > 96.0) continue;
 
@@ -579,7 +608,6 @@ function renderRegrowthLaserBeam(
         } else {
           p.client.write('world_particles', {
             longDistance: true,
-            alwaysShow: true,
             x: pt.x,
             y: pt.y,
             z: pt.z,
@@ -611,7 +639,7 @@ function completeCropRegrowth(
   const fullyGrown = FULLY_GROWN_CROP_STATES[cropName];
 
   for (const [_, p] of playerMap) {
-    if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+    if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
     const pDist = Math.hypot((p.x || 0) - x, (p.z || 0) - z);
     if (pDist > 96.0) continue;
 
@@ -635,7 +663,6 @@ function completeCropRegrowth(
       } else {
         p.client.write('world_particles', {
           longDistance: true,
-          alwaysShow: true,
           x: x + 0.5,
           y: y + 0.35,
           z: z + 0.5,
@@ -651,7 +678,16 @@ function completeCropRegrowth(
 
     // 2. Crisp Fertilizer Chime Sound (item.bone_meal.use)
     try {
-      playSoundEffect(p.client, 'item.bone_meal.use', x, y, z, 1.0, 1.25, 'block', is119);
+      p.client.write('named_sound_effect', {
+        soundName: 'item.bone_meal.use',
+        soundCategory: 0,
+        x: Math.floor(x * 8),
+        y: Math.floor(y * 8),
+        z: Math.floor(z * 8),
+        volume: 1.0,
+        pitch: 1.25,
+        seed: [0, 0]
+      });
     } catch (_) {}
 
     // 3. Hydrate farmland underneath if not nether_wart
@@ -720,7 +756,16 @@ export function handleHubCropHarvest(
 
     // Cancel silently with a dull thud sound and keep wheat intact (zero drops)
     try {
-      playSoundEffect(pData.client, 'block.wood.hit', x, y, z, 0.8, 0.8, 'block', pData.is119);
+      pData.client.write('named_sound_effect', {
+        soundName: 'block.wood.hit',
+        soundCategory: 0,
+        x: Math.floor(x * 8),
+        y: Math.floor(y * 8),
+        z: Math.floor(z * 8),
+        volume: 0.8,
+        pitch: 0.8,
+        seed: [0, 0]
+      });
     } catch (_) {}
 
     if (typeof sequence === 'number') {
@@ -757,7 +802,16 @@ export function handleHubCropHarvest(
 
   // 3. Play crisp crop break crunch sound
   try {
-    playSoundEffect(pData.client, 'block.crop.break', x, y, z, 1.0, 1.0, 'block', pData.is119);
+    pData.client.write('named_sound_effect', {
+      soundName: 'block.crop.break',
+      soundCategory: 0,
+      x: Math.floor(x * 8),
+      y: Math.floor(y * 8),
+      z: Math.floor(z * 8),
+      volume: 1.0,
+      pitch: 1.0,
+      seed: [0, 0]
+    });
   } catch (_) {}
 
   // 4. Drop table calculation scaled by Farming Fortune (Authentic Hypixel Additive Formula)
@@ -790,7 +844,16 @@ export function handleHubCropHarvest(
 
       // Authentic Hypixel Blue Rare Drop alert (§9§lRARE DROP!) + pitch 2.0 ding
       try {
-        playSoundEffect(pData.client, 'entity.player.levelup', pData.x, pData.y, pData.z, 1.0, 2.0, 'player', pData.is119);
+        pData.client.write('named_sound_effect', {
+          soundName: 'entity.player.levelup',
+          soundCategory: 0,
+          x: Math.floor(pData.x * 8),
+          y: Math.floor(pData.y * 8),
+          z: Math.floor(pData.z * 8),
+          volume: 1.0,
+          pitch: 2.0,
+          seed: [0, 0]
+        });
       } catch (_) {}
 
       try {
@@ -828,7 +891,7 @@ export function handleHubCropHarvest(
 
   // 6. Set block visually to broken (bare moist Farmland underneath)
   for (const [_, observer] of players) {
-    if (!observer.client) continue;
+    if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
     const obsDist = Math.hypot((observer.x || 0) - x, (observer.z || 0) - z);
     if (obsDist > 96.0) continue;
 

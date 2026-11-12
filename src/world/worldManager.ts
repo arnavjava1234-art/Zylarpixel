@@ -4,154 +4,52 @@
  */
 
 const Vec3: any = require('vec3');
-import * as fs from 'fs';
-import * as path from 'path';
 import { savePlayerIslandBlock } from '../storage/diskStorage';
 
-const Chunk1218 = require('prismarine-chunk')('1.21.8');
-export const mcData1218 = require('minecraft-data')('1.21.8');
-export const mcData = mcData1218;
-export const mcData1192 = mcData1218;
-export const mcData1211 = mcData1218;
+const Chunk1192 = require('prismarine-chunk')('1.19.2');
+const Chunk1211 = require('prismarine-chunk')('1.21.1');
+export const mcData1192 = require('minecraft-data')('1.19.2');
+export const mcData1211 = require('minecraft-data')('1.21.1');
 
-function jsonToNbtCompound(val: any, propName?: string): any {
-  if (val === null || val === undefined) return null;
-  if (typeof val === 'string') return { type: 'string', value: val };
-  if (typeof val === 'number') {
-    if (propName === 'downfall' || propName === 'temperature' || propName === 'length_in_seconds' || propName === 'probability' || propName === 'range') {
-      return { type: 'float', value: val };
-    }
-    if (propName === 'offset') {
-      return { type: 'double', value: val };
-    }
-    return Number.isInteger(val) ? { type: 'int', value: val } : { type: 'float', value: val };
+// 1. Pre-Baked Heightmaps for Y = 105 Surface
+const surfaceHeight = 175n; // y = 111 in 384-height world (-64..320)
+const heightmapLongs: bigint[] = [];
+let currentLong = 0n;
+let countInLong = 0;
+
+for (let i = 0; i < 256; i++) {
+  currentLong |= (surfaceHeight << BigInt(countInLong * 9));
+  countInLong++;
+  if (countInLong === 7 || i === 255) {
+    heightmapLongs.push(currentLong);
+    currentLong = 0n;
+    countInLong = 0;
   }
-  if (typeof val === 'boolean') return { type: 'byte', value: val ? 1 : 0 };
-  if (Array.isArray(val)) {
-    if (val.length === 0) return { type: 'list', value: { type: 'end', value: [] } };
-    const converted = val.map((item: any) => jsonToNbtCompound(item, propName));
-    const childType = converted[0].type;
-    return {
-      type: 'list',
-      value: {
-        type: childType,
-        value: converted.map((c: any) => c.value)
-      }
-    };
-  }
-  if (typeof val === 'object') {
-    const res: any = {};
-    for (const k of Object.keys(val)) {
-      const child = jsonToNbtCompound(val[k], k);
-      if (child !== null) res[k] = child;
-    }
-    return { type: 'compound', value: res };
-  }
-  return null;
 }
 
-// 1.21.8 Registry Codec Sanitizer (Complete 21-Registry Mojang 1.21.8 Synchronized Suite)
-export const sanitizedDimensionCodec1218 = (() => {
-  const codec = JSON.parse(JSON.stringify(mcData1218.loginPacket.dimensionCodec));
-
-  // 1. Sanitize Biomes: Omit optional music tag to bypass Mojang 1.21.8 WeightedList validation
-  const biomes = codec['minecraft:worldgen/biome']?.entries;
-  if (Array.isArray(biomes)) {
-    for (const entry of biomes) {
-      const eff = entry?.value?.value?.effects?.value;
-      if (eff && eff.music) {
-        delete eff.music;
-      }
-    }
-  }
-
-  // 2. Sanitize Wolf Variants: Wrap flat textures into 1.21.8 assets compound { wild, tame, angry }
-  const wolves = codec['minecraft:wolf_variant']?.entries;
-  if (Array.isArray(wolves)) {
-    for (const entry of wolves) {
-      const val = entry?.value?.value;
-      if (val && val.wild_texture && !val.assets) {
-        const wild = val.wild_texture.value;
-        const tame = val.tame_texture ? val.tame_texture.value : wild;
-        const angry = val.angry_texture ? val.angry_texture.value : wild;
-        entry.value = {
-          type: 'compound',
-          value: {
-            assets: {
-              type: 'compound',
-              value: {
-                wild: { type: 'string', value: wild },
-                tame: { type: 'string', value: tame },
-                angry: { type: 'string', value: angry }
-              }
-            }
-          }
-        };
-      }
-    }
-  }
-
-  // 3. Inject and merge 1.21.8 synchronized registries (wolf_sound_variant, cat, frog, chicken, cow, pig, dialog, test, pale_garden, dennis, resin, music)
-  try {
-    const candidatePaths = [
-      path.join(__dirname, 'additionalRegistries1218.json'),
-      path.join(__dirname, '../../src/world/additionalRegistries1218.json'),
-      path.join(__dirname, '../../../src/world/additionalRegistries1218.json'),
-      path.join(process.cwd(), 'src/world/additionalRegistries1218.json'),
-      path.join(process.cwd(), 'dist/src/world/additionalRegistries1218.json')
-    ];
-    const addFile = candidatePaths.find(p => fs.existsSync(p));
-    if (addFile) {
-      const addData = JSON.parse(fs.readFileSync(addFile, 'utf8'));
-      for (const regName of Object.keys(addData)) {
-        const rawEntries = addData[regName];
-        if (Array.isArray(rawEntries)) {
-          if (!codec[regName]) {
-            codec[regName] = {
-              id: regName,
-              entries: []
-            };
-          }
-          const existingKeys = new Set((codec[regName].entries || []).map((e: any) => e.key));
-          for (const e of rawEntries) {
-            if (!existingKeys.has(e.key)) {
-              codec[regName].entries.push({
-                key: e.key,
-                value: jsonToNbtCompound(JSON.parse(e.jsonText))
-              });
-              existingKeys.add(e.key);
-            }
-          }
-        }
-      }
-    }
-  } catch (err: any) {
-    console.error('Failed to load additional 1.21.8 registries:', err?.message || err);
-  }
-
-  return codec;
-})();
-
-// 1. Pre-Baked Heightmaps
+const motionBlockingData = heightmapLongs.map(l => [Number(l >> 32n), Number(l & 0xFFFFFFFFn)]);
 const heightmapNbt = {
   type: 'compound',
   name: '',
-  value: {}
+  value: {
+    MOTION_BLOCKING: { type: 'longArray', value: motionBlockingData },
+    WORLD_SURFACE: { type: 'longArray', value: motionBlockingData }
+  }
 };
 
-// 2. High-Performance 1.21.8 Chunk Storage
-const worldChunks = new Map<string, any>();
-const chunkPacketCache = new Map<string, any>();
+// 2. Multi-Version Chunk Storage
+const worldChunks119 = new Map<string, any>();
+const worldChunks121 = new Map<string, any>();
 
-// Backwards-compatible references
-const worldChunks119 = worldChunks;
-const worldChunks121 = worldChunks;
-const chunkPacketCache119 = chunkPacketCache;
-const chunkPacketCache121 = chunkPacketCache;
+// Memoized packet cache: 'cx,cz' -> map_chunk packet payload (0ms streaming!)
+const chunkPacketCache119 = new Map<string, any>();
+const chunkPacketCache121 = new Map<string, any>();
 
 export function clearWorldChunks(): void {
-  worldChunks.clear();
-  chunkPacketCache.clear();
+  worldChunks119.clear();
+  worldChunks121.clear();
+  chunkPacketCache119.clear();
+  chunkPacketCache121.clear();
 }
 
 export function clearIslandChunks(originX: number, originZ: number): void {
@@ -160,35 +58,45 @@ export function clearIslandChunks(originX: number, originZ: number): void {
   for (let cx = baseChunkX - 3; cx <= baseChunkX + 3; cx++) {
     for (let cz = baseChunkZ - 2; cz <= baseChunkZ + 4; cz++) {
       const key = `${cx},${cz}`;
-      worldChunks.delete(key);
-      chunkPacketCache.delete(key);
+      worldChunks119.delete(key);
+      worldChunks121.delete(key);
+      chunkPacketCache119.delete(key);
+      chunkPacketCache121.delete(key);
     }
   }
 }
 
-export function getOrCreateChunk(cx: number, cz: number, _is119?: boolean): any {
+export function getOrCreateChunk(cx: number, cz: number, is119: boolean = true): any {
   const key = `${cx},${cz}`;
-  if (!worldChunks.has(key)) {
-    const chunk = new Chunk1218();
-    worldChunks.set(key, chunk);
+  const store = is119 ? worldChunks119 : worldChunks121;
+  if (!store.has(key)) {
+    const chunk = is119 ? new Chunk1192() : new Chunk1211();
+    store.set(key, chunk);
   }
-  return worldChunks.get(key);
+  return store.get(key);
 }
 
 export function setWorldBlock(x: number, y: number, z: number, blockName: string, persist: boolean = false, username?: string): void {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache.delete(key);
+  chunkPacketCache119.delete(key);
+  chunkPacketCache121.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const block = mcData1218.blocksByName[blockName];
-  if (block) {
-    const chunk = getOrCreateChunk(cx, cz);
-    chunk.setBlockStateId(pos, block.defaultState);
+  const block119 = mcData1192.blocksByName[blockName];
+  if (block119) {
+    const chunk = getOrCreateChunk(cx, cz, true);
+    chunk.setBlockStateId(pos, block119.defaultState);
+  }
+
+  const block121 = mcData1211.blocksByName[blockName];
+  if (block121) {
+    const chunk = getOrCreateChunk(cx, cz, false);
+    chunk.setBlockStateId(pos, block121.defaultState);
   }
 
   if (persist && username) {
@@ -200,25 +108,29 @@ export function setWorldBlockStateId(x: number, y: number, z: number, stateId119
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache.delete(key);
+  chunkPacketCache119.delete(key);
+  chunkPacketCache121.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const targetState = stateId121 || stateId119;
-  const chunk = getOrCreateChunk(cx, cz);
-  chunk.setBlockStateId(pos, targetState);
+  const chunk119 = getOrCreateChunk(cx, cz, true);
+  chunk119.setBlockStateId(pos, stateId119);
+
+  const chunk121 = getOrCreateChunk(cx, cz, false);
+  chunk121.setBlockStateId(pos, stateId121 || stateId119);
 }
 
-export function getWorldBlockName(x: number, y: number, z: number, _is119?: boolean): string {
+export function getWorldBlockName(x: number, y: number, z: number, is119: boolean = true): string {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const key = `${cx},${cz}`;
-  if (!worldChunks.has(key)) return 'air';
-  const block = worldChunks.get(key).getBlock(new Vec3(rx, y, rz));
+  const store = is119 ? worldChunks119 : worldChunks121;
+  if (!store.has(key)) return 'air';
+  const block = store.get(key).getBlock(new Vec3(rx, y, rz));
   return block ? block.name : 'air';
 }
 
@@ -226,15 +138,21 @@ export function setWorldBlockLight(x: number, y: number, z: number, lightLevel: 
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  chunkPacketCache.delete(key);
+  chunkPacketCache119.delete(key);
+  chunkPacketCache121.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const chunk = getOrCreateChunk(cx, cz);
-  if (lightLevel > chunk.getBlockLight(pos)) {
-    chunk.setBlockLight(pos, lightLevel);
+  const chunk119 = getOrCreateChunk(cx, cz, true);
+  if (lightLevel > chunk119.getBlockLight(pos)) {
+    chunk119.setBlockLight(pos, lightLevel);
+  }
+
+  const chunk121 = getOrCreateChunk(cx, cz, false);
+  if (lightLevel > chunk121.getBlockLight(pos)) {
+    chunk121.setBlockLight(pos, lightLevel);
   }
 }
 
@@ -252,22 +170,32 @@ export function emitLightSource(lx: number, ly: number, lz: number, maxLevel: nu
   }
 }
 
-export function dumpChunkPacket(cx: number, cz: number, _is119?: boolean): any {
+export function dumpChunkPacket(cx: number, cz: number, is119: boolean = true): any {
   const key = `${cx},${cz}`;
-  const cached = chunkPacketCache.get(key);
+  const packetCache = is119 ? chunkPacketCache119 : chunkPacketCache121;
+  const cached = packetCache.get(key);
   if (cached) return cached;
 
-  const chunk = getOrCreateChunk(cx, cz);
-  const packet = {
+  const chunk = getOrCreateChunk(cx, cz, is119);
+  const packet = is119 ? {
     x: cx,
     z: cz,
-    heightmaps: [],
+    heightmaps: heightmapNbt,
+    biomes: chunk.dumpBiomes(),
+    chunkData: chunk.dump(),
+    blockEntities: [],
+    trustEdges: true,
+    ...chunk.dumpLight()
+  } : {
+    x: cx,
+    z: cz,
+    heightmaps: heightmapNbt,
     chunkData: chunk.dump(),
     blockEntities: [],
     ...chunk.dumpLight()
   };
 
-  chunkPacketCache.set(key, packet);
+  packetCache.set(key, packet);
   return packet;
 }
 
@@ -305,48 +233,3 @@ export const ITEM_TO_BLOCK: Record<string, string> = {
   stone_brick_slab: 'stone_brick_slab',
   lantern: 'lantern'
 };
-
-/**
- * Universal type-safe sound player for 1.21.8 and legacy 1.19.2.
- * Uses 1.21.8 sound_effect (ItemSoundHolder schema) and legacy named_sound_effect.
- * Isolated in try/catch so errors never crash the server or drop clients.
- */
-export function playSoundEffect(
-  client: any,
-  soundName: string,
-  x: number,
-  y: number,
-  z: number,
-  volume = 1.0,
-  pitch = 1.0,
-  soundCategory: string = 'master',
-  is119 = false
-): void {
-  if (!client || client.ended || client.state === 'closed') return;
-  try {
-    if (is119) {
-      client.write('named_sound_effect', {
-        soundName,
-        soundCategory: 0,
-        x: Math.round(x * 8),
-        y: Math.round(y * 8),
-        z: Math.round(z * 8),
-        volume,
-        pitch,
-        seed: [0, 0]
-      });
-    } else {
-      client.write('sound_effect', {
-        sound: { soundId: undefined, data: { soundName, fixedRange: undefined } },
-        soundCategory,
-        x: Math.round(x * 8),
-        y: Math.round(y * 8),
-        z: Math.round(z * 8),
-        volume,
-        pitch,
-        seed: 0n
-      });
-    }
-  } catch (_) {}
-}
-

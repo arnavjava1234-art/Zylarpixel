@@ -15,10 +15,9 @@
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack, formatSlotForClient } from '../items';
+import { tagVanillaItemStack } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
-import { sendWindow, sendSlot, makeEmptySlot } from './guiHelper';
 
 export const FARM_MERCHANT_WINDOW_ID = 16;
 export const DAILY_MERCHANT_LIMIT = 640;
@@ -255,18 +254,42 @@ export function createMerchantGuiItem(
 /**
  * Synchronizes player inventory inside the open 54-slot chest window (slots 54..89)
  */
-export function syncMerchantChestPlayerInventory(client: any, pData: any, is119: boolean = false): void {
+export function syncMerchantChestPlayerInventory(client: any, pData: any, is119: boolean = true): void {
   // Main inventory: slots 9..35 mapped to chest slots 54..80
   for (let s = 9; s < 36; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 9 + 54;
-    sendSlot(client, FARM_MERCHANT_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: FARM_MERCHANT_WINDOW_ID,
+        stateId: 1,
+        slot: chestSlot,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
   // Hotbar: slots 36..43 mapped to chest slots 81..88
   for (let s = 36; s < 44; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 36 + 81;
-    sendSlot(client, FARM_MERCHANT_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: FARM_MERCHANT_WINDOW_ID,
+        stateId: 1,
+        slot: chestSlot,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
 }
 
@@ -301,7 +324,14 @@ function addCommodityToPlayerInventory(pData: any, itemName: string, count: numb
       }, is119);
       existing.nbtData = tagged.nbtData;
 
-      sendSlot(pData.client, 0, s, tagged);
+      try {
+        pData.client.write('set_slot', {
+          windowId: 0,
+          stateId: 1,
+          slot: s,
+          item: tagged
+        });
+      } catch (_) {}
     }
   }
 
@@ -325,7 +355,14 @@ function addCommodityToPlayerInventory(pData: any, itemName: string, count: numb
       });
       remaining -= canAdd;
 
-      sendSlot(pData.client, 0, s, tagged);
+      try {
+        pData.client.write('set_slot', {
+          windowId: 0,
+          stateId: 1,
+          slot: s,
+          item: tagged
+        });
+      } catch (_) {}
     }
   }
 
@@ -375,16 +412,23 @@ function formatItemName(raw: string): string {
 /**
  * Opens the Farm Merchant 54-slot chest GUI
  */
-export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = false): void {
+export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = true): void {
   pData.openWindowId = FARM_MERCHANT_WINDOW_ID;
   checkAndRolloverDailyCaps(pData);
 
-  // 1. Base fillers: gray stained glass panes
+  // 1. Open 54-slot double chest container
+  client.write('open_window', {
+    windowId: FARM_MERCHANT_WINDOW_ID,
+    inventoryType: 5, // generic_9x6
+    windowTitle: JSON.stringify({ text: '§8Farm Merchant' })
+  });
+
+  // 2. Base fillers: gray stained glass panes
   const items = new Array(54).fill(null).map(() =>
     createMerchantGuiItem('gray_stained_glass_pane', 1, '§8 ', [])
   );
 
-  // 2. Populate 13 Commodities
+  // 3. Populate 13 Commodities
   for (const slotStr of Object.keys(COMMODITIES)) {
     const slot = parseInt(slotStr, 10);
     const c = COMMODITIES[slot];
@@ -397,7 +441,7 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = f
     );
   }
 
-  // 3. Utility Slot 48: Hopper ("Sell Item")
+  // 4. Utility Slot 48: Hopper ("Sell Item")
   items[48] = createMerchantGuiItem(
     'hopper',
     1,
@@ -410,7 +454,7 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = f
     ]
   );
 
-  // 4. Utility Slot 49: Barrier ("Close")
+  // 5. Utility Slot 49: Barrier ("Close")
   items[49] = createMerchantGuiItem(
     'barrier',
     1,
@@ -422,10 +466,17 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = f
 
   pData.currentGuiItems = items;
 
-  // 5. Open window and write items via 1.21.8 Data Components
-  sendWindow(client, FARM_MERCHANT_WINDOW_ID, 5, '§8Farm Merchant', items);
+  // 6. Write window items
+  try {
+    client.write('window_items', {
+      windowId: FARM_MERCHANT_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 
-  // 6. Sync open chest player inventory slots
+  // 7. Sync open chest player inventory slots
   syncMerchantChestPlayerInventory(client, pData, is119);
 
   playSound(client, pData, 'ui.button.click', 1.0);
@@ -469,7 +520,14 @@ export function handleFarmMerchantClick(
           totalCropsSold += it.count;
           totalCoinsEarned += coins;
           pData.inventory.delete(s);
-          sendSlot(client, 0, s, null);
+          try {
+            client.write('set_slot', {
+              windowId: 0,
+              stateId: 1,
+              slot: s,
+              item: { present: false }
+            });
+          } catch (_) {}
         }
       }
 
@@ -573,8 +631,20 @@ export function handleFarmMerchantClick(
       pData.inventory.delete(survivalSlot);
 
       // Clear slot in survival window 0 and open chest window
-      sendSlot(client, 0, survivalSlot, null);
-      sendSlot(client, FARM_MERCHANT_WINDOW_ID, clickedSlot, null);
+      try {
+        client.write('set_slot', {
+          windowId: 0,
+          stateId: 1,
+          slot: survivalSlot,
+          item: { present: false }
+        });
+        client.write('set_slot', {
+          windowId: FARM_MERCHANT_WINDOW_ID,
+          stateId: 1,
+          slot: clickedSlot,
+          item: { present: false }
+        });
+      } catch (_) {}
 
       updatePlayerScoreboardPurse(pData);
       persistPlayerSession(pData);

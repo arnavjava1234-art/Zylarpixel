@@ -99,12 +99,9 @@ export function teleportPlayerWithChunks(pData: any, targetX: number, targetY: n
     x: targetX,
     y: targetY,
     z: targetZ,
-    dx: 0,
-    dy: 0,
-    dz: 0,
     yaw: 0.0,
     pitch: 0.0,
-    flags: { _value: 0 },
+    flags: is119 ? 0x00 : {},
     teleportId: tpId,
     dismountVehicle: false
   });

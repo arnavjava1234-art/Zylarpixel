@@ -8,9 +8,8 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { createNetherStarItem, giveNetherStar, HOTBAR_NETHER_STAR_SLOT } from './skyblockMenu';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack, formatSlotForClient } from '../items';
+import { tagVanillaItemStack } from '../items';
 import { persistPlayerSession } from '../players/playerManager';
-import { sendWindow, sendSlot, makeEmptySlot } from './guiHelper';
 
 export const CRAFTING_TABLE_WINDOW_ID = 15;
 
@@ -89,9 +88,8 @@ export function createGuiItemById(
   displayName: string,
   loreArray: string[] = []
 ): any {
-  if (!itemId || count <= 0) return { itemCount: 0 };
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
-  return formatSlotForClient({
+  return {
     present: true,
     itemId,
     itemCount: count || 1,
@@ -114,7 +112,7 @@ export function createGuiItemById(
         }
       }
     }
-  }, false);
+  };
 }
 
 /**
@@ -284,10 +282,22 @@ export function dropItemAtPlayerFeet(pData: any, itemId: number, count: number, 
 /**
  * Synchronizes player survival inventory (windowId 0)
  */
-export function syncPlayerInventory(client: any, pData: any, is119: boolean = false): void {
+export function syncPlayerInventory(client: any, pData: any, is119: boolean = true): void {
   for (let s = 9; s < 44; s++) {
     const item = pData.inventory.get(s);
-    sendSlot(client, 0, s, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: 0,
+        stateId: 1,
+        slot: s,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
   giveNetherStar(client);
 }
@@ -295,31 +305,74 @@ export function syncPlayerInventory(client: any, pData: any, is119: boolean = fa
 /**
  * Synchronizes player inventory portion in the open 54-slot chest window (slots 54..89)
  */
-export function syncChestPlayerInventory(client: any, pData: any, is119: boolean = false): void {
+export function syncChestPlayerInventory(client: any, pData: any, is119: boolean = true): void {
   // Main inventory: slots 9..35 mapped to chest 54..80
   for (let s = 9; s < 36; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 9 + 54;
-    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: CRAFTING_TABLE_WINDOW_ID,
+        stateId: 1,
+        slot: chestSlot,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
   // Hotbar: slots 36..43 mapped to chest 81..88
   for (let s = 36; s < 44; s++) {
     const item = pData.inventory.get(s);
     const chestSlot = s - 36 + 81;
-    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, chestSlot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: CRAFTING_TABLE_WINDOW_ID,
+        stateId: 1,
+        slot: chestSlot,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
   // Slot 89: Nether Star (hotbar slot 44)
-  sendSlot(client, CRAFTING_TABLE_WINDOW_ID, 89, createNetherStarItem(is119));
+  try {
+    client.write('set_slot', {
+      windowId: CRAFTING_TABLE_WINDOW_ID,
+      stateId: 1,
+      slot: 89,
+      item: createNetherStarItem()
+    });
+  } catch (_) {}
 }
 
 /**
  * Synchronizes the 3x3 crafting grid slots (10, 11, 12, 19, 20, 21, 28, 29, 30)
  */
-export function syncCraftingGridSlots(client: any, pData: any, is119: boolean = false): void {
+export function syncCraftingGridSlots(client: any, pData: any, is119: boolean = true): void {
   for (let i = 0; i < 9; i++) {
     const slot = CRAFT_GRID_SLOTS[i];
     const item = pData.craftingGrid ? pData.craftingGrid[i] : null;
-    sendSlot(client, CRAFTING_TABLE_WINDOW_ID, slot, item && item.count > 0 ? tagVanillaItemStack(item, is119) : null);
+    try {
+      client.write('set_slot', {
+        windowId: CRAFTING_TABLE_WINDOW_ID,
+        stateId: 1,
+        slot,
+        item: item && item.count > 0 ? tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119) : { present: false }
+      });
+    } catch (_) {}
   }
 }
 
@@ -376,7 +429,14 @@ export function openCraftingTableMenu(client: any, pData: any): void {
     pData.craftingGrid = new Array(9).fill(null);
   }
 
-  // 1. Base fillers: black stained glass panes
+  // 1. Open 54-slot chest container (inventoryType 5 = 9x6)
+  client.write('open_window', {
+    windowId: CRAFTING_TABLE_WINDOW_ID,
+    inventoryType: 5,
+    windowTitle: JSON.stringify({ text: '§8Crafting Table' })
+  });
+
+  // 2. Base fillers: black stained glass panes
   const items = new Array(54).fill(null).map(() =>
     createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
@@ -428,7 +488,16 @@ export function openCraftingTableMenu(client: any, pData: any): void {
   items[CLOSE_SLOT] = createCloseItem();
 
   pData.currentGuiItems = items;
-  sendWindow(client, CRAFTING_TABLE_WINDOW_ID, 5, '§8Crafting Table', items);
+
+  // 7. Write all container items
+  try {
+    client.write('window_items', {
+      windowId: CRAFTING_TABLE_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 /**
@@ -469,7 +538,7 @@ export function handleCraftingTableClick(
         windowId: -1,
         stateId: data.stateId,
         slot: -1,
-        item: makeEmptySlot()
+        item: { present: false }
       });
     } catch (_) {}
     return;
@@ -493,7 +562,7 @@ export function handleCraftingTableClick(
         windowId: -1,
         stateId: data.stateId,
         slot: -1,
-        item: data.cursorItem || data.carriedItem ? formatSlotForClient(data.cursorItem || data.carriedItem, false) : makeEmptySlot()
+        item: data.cursorItem || data.carriedItem || { present: false }
       });
     } catch (_) {}
     return;
@@ -516,7 +585,7 @@ export function handleCraftingTableClick(
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: makeEmptySlot()
+          item: { present: false }
         });
       } catch (_) {}
       return;
@@ -554,7 +623,7 @@ export function handleCraftingTableClick(
             windowId: -1,
             stateId: data.stateId,
             slot: -1,
-            item: makeEmptySlot()
+            item: { present: false }
           });
         } catch (_) {}
         return;
@@ -629,7 +698,7 @@ export function handleCraftingTableClick(
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: formatSlotForClient(carried, false)
+          item: carried
         });
       } catch (_) {}
 

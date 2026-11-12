@@ -19,7 +19,6 @@ import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
 import { findPlayerByName, persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { parseCoinInput, formatCoins, playSound, restoreSignBlock } from './bankMenu';
-import { sendWindow } from './guiHelper';
 
 export const ADMIN_COIN_SELECTOR_WINDOW_ID = 11;
 export const ADMIN_COIN_ACTION_WINDOW_ID = 12;
@@ -31,6 +30,12 @@ export function openCoinPlayerSelector(
   showOffline: boolean = false
 ): void {
   pData.openWindowId = ADMIN_COIN_SELECTOR_WINDOW_ID;
+
+  client.write('open_window', {
+    windowId: ADMIN_COIN_SELECTOR_WINDOW_ID,
+    inventoryType: 5, // generic_9x6 (54 slots)
+    windowTitle: JSON.stringify({ text: '§8Manage Coins: Select Player' })
+  });
 
   const items = createAdminBaseSlots(54);
 
@@ -154,7 +159,14 @@ export function openCoinPlayerSelector(
     slotPlayerMap
   };
 
-  sendWindow(client, ADMIN_COIN_SELECTOR_WINDOW_ID, 5, '§8Manage Coins: Select Player', items);
+  try {
+    client.write('window_items', {
+      windowId: ADMIN_COIN_SELECTOR_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 export function openCoinActionMenu(
@@ -164,6 +176,12 @@ export function openCoinActionMenu(
   targetPData?: any
 ): void {
   pData.openWindowId = ADMIN_COIN_ACTION_WINDOW_ID;
+
+  client.write('open_window', {
+    windowId: ADMIN_COIN_ACTION_WINDOW_ID,
+    inventoryType: 3, // generic_9x4 (36 slots)
+    windowTitle: JSON.stringify({ text: `§8Purse: ${targetUsername}` })
+  });
 
   const items = createAdminBaseSlots(36);
 
@@ -247,7 +265,14 @@ export function openCoinActionMenu(
     targetPData: onlineTarget
   };
 
-  sendWindow(client, ADMIN_COIN_ACTION_WINDOW_ID, 3, `§8Purse: ${targetUsername}`, items);
+  try {
+    client.write('window_items', {
+      windowId: ADMIN_COIN_ACTION_WINDOW_ID,
+      stateId: 1,
+      items,
+      carriedItem: { present: false }
+    });
+  } catch (_) {}
 }
 
 export function promptAdminOakSignGui(

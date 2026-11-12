@@ -8,10 +8,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
 const nbt = require('prismarine-nbt');
-const Chunk1218 = require('prismarine-chunk')('1.21.8');
+const Chunk1192 = require('prismarine-chunk')('1.19.2');
+const Chunk1211 = require('prismarine-chunk')('1.21.1');
 const Vec3 = require('vec3');
-const mcData1218 = require('minecraft-data')('1.21.8');
-const Block1218 = require('prismarine-block')('1.21.8');
+const mcData119 = require('minecraft-data')('1.19.2');
+const mcData121 = require('minecraft-data')('1.21.1');
+const Block1192 = require('prismarine-block')('1.19.2');
+const Block1211 = require('prismarine-block')('1.21.1');
 
 export const HUB_SPAWN_X = -2.5;
 export const HUB_SPAWN_Y = 71.0;
@@ -19,25 +22,17 @@ export const HUB_SPAWN_Z = -66.5;
 export const HUB_WORLD_NAME = 'zylarpixel:hub';
 
 // Cache for loaded Hub chunks
-const hubChunks = new Map<string, any>();
-const hubPacketCache = new Map<string, any>();
+const hubChunks119 = new Map<string, any>();
+const hubChunks121 = new Map<string, any>();
 
-// Backwards-compatible aliases
-const hubChunks119 = hubChunks;
-const hubChunks121 = hubChunks;
-const hubPacketCache119 = hubPacketCache;
-const hubPacketCache121 = hubPacketCache;
+// Memoized packet cache: 'cx,cz' -> map_chunk packet payload (0ms streaming!)
+const hubPacketCache119 = new Map<string, any>();
+const hubPacketCache121 = new Map<string, any>();
 
 // Region file cache: regionKey ('rx,rz') -> Buffer
 const regionCache = new Map<string, Buffer | null>();
 
-const candidateRegionDirs = [
-  path.resolve(__dirname, '../../The_Hub/The Hub/region'),
-  path.resolve(__dirname, '../../../The_Hub/The Hub/region'),
-  path.resolve(process.cwd(), 'The_Hub/The Hub/region'),
-  path.resolve(__dirname, '../The_Hub/The Hub/region')
-];
-const REGION_DIR = candidateRegionDirs.find(d => fs.existsSync(d)) || candidateRegionDirs[0];
+const REGION_DIR = path.resolve(__dirname, '../../The_Hub/The Hub/region');
 
 function getRegionBuffer(rx: number, rz: number): Buffer | null {
   const key = `${rx},${rz}`;
@@ -63,12 +58,13 @@ function getRegionBuffer(rx: number, rz: number): Buffer | null {
 /**
  * Loads and parses a chunk from Anvil region files on demand
  */
-export function loadHubChunk(cx: number, cz: number, _is119?: boolean): any {
+export function loadHubChunk(cx: number, cz: number, is119: boolean = true): any {
   const key = `${cx},${cz}`;
-  if (hubChunks.has(key)) return hubChunks.get(key);
+  const store = is119 ? hubChunks119 : hubChunks121;
+  if (store.has(key)) return store.get(key);
 
-  const chunk = new Chunk1218();
-  hubChunks.set(key, chunk);
+  const chunk = is119 ? new Chunk1192() : new Chunk1211();
+  store.set(key, chunk);
 
   const rx = Math.floor(cx / 32);
   const rz = Math.floor(cz / 32);
@@ -96,8 +92,8 @@ export function loadHubChunk(cx: number, cz: number, _is119?: boolean): any {
     const simp = nbt.simplify(parsed);
 
     if (simp.Level && simp.Level.Sections) {
-      const mcData = mcData1218;
-      const BlockClass = Block1218;
+      const mcData = is119 ? mcData119 : mcData121;
+      const BlockClass = is119 ? Block1192 : Block1211;
       const lightSources: Array<{ x: number; y: number; z: number; level: number }> = [];
 
       for (const sec of simp.Level.Sections) {
@@ -186,7 +182,7 @@ export function getHubBlockStateId(x: number, y: number, z: number): number {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  const chunk = hubChunks.get(key) || loadHubChunk(cx, cz);
+  const chunk = hubChunks119.get(key) || loadHubChunk(cx, cz, true);
   if (!chunk) return 0;
   const localX = ((x % 16) + 16) % 16;
   const localZ = ((z % 16) + 16) % 16;
@@ -199,42 +195,82 @@ export function getHubBlockStateId(x: number, y: number, z: number): number {
 
 export function getHubBlockName(x: number, y: number, z: number): string {
   const stateId = getHubBlockStateId(x, y, z);
-  return mcData1218.blocksByStateId[stateId]?.name || 'air';
+  return mcData119.blocksByStateId[stateId]?.name || 'air';
 }
 
-export function setHubBlockStateId(x: number, y: number, z: number, stateId119: number, stateId121?: number): void {
+export function setHubBlockStateId(x: number, y: number, z: number, stateId119: number, stateId121: number): void {
   const cx = Math.floor(x / 16);
   const cz = Math.floor(z / 16);
   const key = `${cx},${cz}`;
-  hubPacketCache.delete(key);
+  hubPacketCache119.delete(key);
+  hubPacketCache121.delete(key);
 
   const rx = ((x % 16) + 16) % 16;
   const rz = ((z % 16) + 16) % 16;
   const pos = new Vec3(rx, y, rz);
 
-  const chunk = hubChunks.get(key) || loadHubChunk(cx, cz);
-  if (chunk) {
-    chunk.setBlockStateId(pos, stateId121 || stateId119);
+  const chunk119 = hubChunks119.get(key) || loadHubChunk(cx, cz, true);
+  if (chunk119) {
+    chunk119.setBlockStateId(pos, stateId119);
+  }
+
+  const chunk121 = hubChunks121.get(key);
+  if (chunk121) {
+    chunk121.setBlockStateId(pos, stateId121);
   }
 }
 
-export function dumpHubChunkPacket(cx: number, cz: number, _is119?: boolean): any {
+export function dumpHubChunkPacket(cx: number, cz: number, is119: boolean = true): any {
   const key = `${cx},${cz}`;
-  const cached = hubPacketCache.get(key);
+  const packetCache = is119 ? hubPacketCache119 : hubPacketCache121;
+  const cached = packetCache.get(key);
   if (cached) return cached;
 
-  const chunk = loadHubChunk(cx, cz);
+  const chunk = loadHubChunk(cx, cz, is119);
+  
+  // Heightmap construction
+  const surfaceHeight = 175n;
+  const heightmapLongs: bigint[] = [];
+  let currentLong = 0n;
+  let countInLong = 0;
+  for (let i = 0; i < 256; i++) {
+    currentLong |= (surfaceHeight << BigInt(countInLong * 9));
+    countInLong++;
+    if (countInLong === 7 || i === 255) {
+      heightmapLongs.push(currentLong);
+      currentLong = 0n;
+      countInLong = 0;
+    }
+  }
+  const motionBlockingData = heightmapLongs.map(l => [Number(l >> 32n), Number(l & 0xFFFFFFFFn)]);
+  const heightmapNbt = {
+    type: 'compound',
+    name: '',
+    value: {
+      MOTION_BLOCKING: { type: 'longArray', value: motionBlockingData },
+      WORLD_SURFACE: { type: 'longArray', value: motionBlockingData }
+    }
+  };
 
-  const packet = {
+  const packet = is119 ? {
     x: cx,
     z: cz,
-    heightmaps: [],
+    heightmaps: heightmapNbt,
+    biomes: chunk.dumpBiomes(),
+    chunkData: chunk.dump(),
+    blockEntities: [],
+    trustEdges: true,
+    ...chunk.dumpLight()
+  } : {
+    x: cx,
+    z: cz,
+    heightmaps: heightmapNbt,
     chunkData: chunk.dump(),
     blockEntities: [],
     ...chunk.dumpLight()
   };
 
-  hubPacketCache.set(key, packet);
+  packetCache.set(key, packet);
   return packet;
 }
 
@@ -253,7 +289,7 @@ export function preWarmHubSpawn(): void {
   let coreLoaded = 0;
   for (let cx = spawnCx - 4; cx <= spawnCx + 4; cx++) {
     for (let cz = spawnCz - 4; cz <= spawnCz + 4; cz++) {
-      dumpHubChunkPacket(cx, cz);
+      dumpHubChunkPacket(cx, cz, true);
       coreLoaded++;
     }
   }
@@ -277,7 +313,7 @@ export function preWarmHubSpawn(): void {
       // Keep each slice under 4ms so the event loop 20 TPS is completely unhindered
       while (queue.length > 0 && performance.now() - startTime < 4) {
         const item = queue.shift()!;
-        dumpHubChunkPacket(item.cx, item.cz);
+        dumpHubChunkPacket(item.cx, item.cz, true);
       }
 
       if (queue.length > 0) {
@@ -293,8 +329,10 @@ export function preWarmHubSpawn(): void {
 }
 
 export function reloadHubWorld(): void {
-  hubChunks.clear();
-  hubPacketCache.clear();
+  hubChunks119.clear();
+  hubChunks121.clear();
+  hubPacketCache119.clear();
+  hubPacketCache121.clear();
   regionCache.clear();
   preWarmHubSpawn();
 }

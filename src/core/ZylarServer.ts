@@ -8,19 +8,15 @@ import * as mc from 'minecraft-protocol';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import * as nbt from 'prismarine-nbt';
 
 import {
-  mcData1218,
-  sanitizedDimensionCodec1218,
+  mcData1192,
   setWorldBlock,
   getWorldBlockName,
   dumpChunkPacket,
   BLOCK_DROPS,
-  ITEM_TO_BLOCK,
-  playSoundEffect
+  ITEM_TO_BLOCK
 } from '../world/worldManager';
-import { tagRegistryManager } from '../world/tagRegistryManager';
 import {
   generateStarterIslands,
   generatePlayerIsland,
@@ -41,6 +37,7 @@ import {
   updatePlayerScoreboardLocation,
   sendScoreboardTeam,
   startScoreboardAnimation,
+  stopScoreboardAnimation,
   initBelowNameHealth,
   updatePlayerHealthScore
 } from './scoreboard';
@@ -189,20 +186,13 @@ export class ZylarServer {
   private botTickerInterval: NodeJS.Timeout | null = null;
   private intervals: NodeJS.Timeout[] = [];
 
-  public clearLoops(): void {
-    for (const interval of this.intervals) {
-      try { clearInterval(interval); } catch (_) {}
-    }
-    this.intervals = [];
-    if (this.botTickerInterval) {
-      try { clearInterval(this.botTickerInterval); } catch (_) {}
-      this.botTickerInterval = null;
-    }
-  }
-
   constructor(config: ZylarServerConfig) {
     this.config = config;
     this.initLogger();
+  }
+
+  private isClientWritable(client: any): boolean {
+    return !!(client && !client.ended && client.state !== 'closed');
   }
 
   private initLogger() {
@@ -225,10 +215,6 @@ export class ZylarServer {
     }
   }
 
-  public getPlayers(): Map<any, any> {
-    return players;
-  }
-
   private toProtocolByte(deg: number): number {
     let b = Math.floor((deg || 0) * 256 / 360) % 256;
     if (b < 0) b += 256;
@@ -236,19 +222,20 @@ export class ZylarServer {
     return b;
   }
 
-  private sendPositionPacket(client: any, x: number, y: number, z: number, yaw: number, pitch: number, teleportId: number, _is119?: boolean): void {
-    client.write('position', {
-      teleportId,
-      x,
-      y,
-      z,
-      dx: 0,
-      dy: 0,
-      dz: 0,
-      yaw,
-      pitch,
-      flags: { _value: 0 }
-    });
+  private sendPositionPacket(client: any, x: number, y: number, z: number, yaw: number, pitch: number, teleportId: number, _is119: boolean = true): void {
+    if (!this.isClientWritable(client)) return;
+    try {
+      client.write('position', {
+        x,
+        y,
+        z,
+        yaw,
+        pitch,
+        flags: 0x00,
+        teleportId,
+        dismountVehicle: false
+      });
+    } catch (_) {}
   }
 
   private getIslandOwnerForCoords(x: number, z: number, fallbackUser: string): string {
@@ -269,6 +256,7 @@ export class ZylarServer {
   }
 
   private spawnPlayerForObserver(observerPData: any, targetPData: any): void {
+    if (!this.isClientWritable(observerPData?.client) || !this.isClientWritable(targetPData?.client)) return;
     if (observerPData.client.id === targetPData.client.id) return;
     if (observerPData.spawnedPlayers.has(targetPData.entityId)) return;
 
@@ -278,22 +266,18 @@ export class ZylarServer {
       const yawByte = this.toProtocolByte(targetPData.yaw || 0);
       const pitchByte = this.toProtocolByte(targetPData.pitch || 0);
 
-      observerPData.client.write('spawn_entity', {
+      observerPData.client.write('named_entity_spawn', {
         entityId: targetPData.entityId,
-        objectUUID: targetPData.client.uuid,
-        type: 149,
+        playerUUID: targetPData.client.uuid,
         x: targetPData.x,
         y: targetPData.y,
         z: targetPData.z,
-        pitch: pitchByte,
         yaw: yawByte,
-        headPitch: pitchByte,
-        objectData: 0,
-        velocity: { x: 0, y: 0, z: 0 }
+        pitch: pitchByte
       });
       observerPData.client.write('entity_metadata', {
         entityId: targetPData.entityId,
-        metadata: [{ key: 17, type: 'byte', value: 127 }]
+        metadata: [{ key: 17, type: 0, value: 127 }]
       });
       observerPData.client.write('entity_head_rotation', {
         entityId: targetPData.entityId,
@@ -303,9 +287,10 @@ export class ZylarServer {
   }
 
   private despawnPlayerForObserver(observerPData: any, targetPData: any): void {
-    if (!observerPData.spawnedPlayers.has(targetPData.entityId)) return;
+    if (!observerPData?.spawnedPlayers?.has(targetPData.entityId)) return;
     observerPData.spawnedPlayers.delete(targetPData.entityId);
 
+    if (!this.isClientWritable(observerPData?.client)) return;
     try {
       observerPData.client.write('entity_destroy', {
         entityIds: [targetPData.entityId]
@@ -314,8 +299,10 @@ export class ZylarServer {
   }
 
   private syncNearbyPlayers(pData: any): void {
+    if (!pData || !this.isClientWritable(pData.client) || !players.has(pData.client.id)) return;
     for (const [_, other] of players) {
       if (other.client.id === pData.client.id) continue;
+      if (!this.isClientWritable(other.client)) continue;
       const dist = Math.hypot(pData.x - other.x, pData.y - other.y, pData.z - other.z);
       if (dist <= 96.0) {
         this.spawnPlayerForObserver(pData, other);
@@ -327,43 +314,30 @@ export class ZylarServer {
     }
   }
 
-  private spawnServerBotsForPlayer(client: any, _is119?: boolean): void {
-    if (!client || client.ended || client.state === 'closed') return;
+  private spawnServerBotsForPlayer(client: any, _is119: boolean = true): void {
+    if (!this.isClientWritable(client)) return;
     for (const bot of SERVER_SIDE_BOTS) {
       try {
         client.write('player_info', {
-          action: {
-            add_player: true,
-            initialize_chat: false,
-            update_game_mode: true,
-            update_listed: true,
-            update_latency: true,
-            update_display_name: true,
-            update_hat: true,
-            update_list_order: false
-          },
+          action: 'add_player',
           data: [{
             uuid: bot.uuid,
-            player: { name: bot.name, properties: [] },
+            name: bot.name,
+            properties: [],
             gamemode: 2,
-            listed: 1,
-            latency: 1,
-            displayName: nbt.comp({ text: nbt.string(`§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}`) }),
-            showHat: true
+            ping: 1,
+            displayName: JSON.stringify({ text: `§8[§6Hub§8] ${formatPlayerName(bot.rank || RANKS.default, bot.name)}` }),
+            crypto: undefined
           }]
         });
-        client.write('spawn_entity', {
+        client.write('named_entity_spawn', {
           entityId: bot.entityId,
-          objectUUID: bot.uuid,
-          type: 149,
+          playerUUID: bot.uuid,
           x: bot.pos.x,
           y: bot.pos.y,
           z: bot.pos.z,
-          pitch: this.toProtocolByte(bot.pos.pitch),
           yaw: this.toProtocolByte(bot.pos.yaw),
-          headPitch: this.toProtocolByte(bot.pos.pitch),
-          objectData: 0,
-          velocity: { x: 0, y: 0, z: 0 }
+          pitch: this.toProtocolByte(bot.pos.pitch)
         });
         client.write('entity_head_rotation', {
           entityId: bot.entityId,
@@ -371,9 +345,9 @@ export class ZylarServer {
         });
         client.write('entity_metadata', {
           entityId: bot.entityId,
-          metadata: [{ key: 17, type: 'byte', value: 127 }]
+          metadata: [{ key: 17, type: 0, value: 127 }]
         });
-        sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, false);
+        sendScoreboardTeam(client, bot.name, bot.rank || RANKS.default, true);
       } catch (_) {}
     }
   }
@@ -384,16 +358,16 @@ export class ZylarServer {
     try {
       let target: any = null;
       for (const [_, p] of players) {
-        if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
-        if ((p.username || '').toLowerCase() === 'arnavjava') {
+        if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+        if (p.username.toLowerCase() === 'arnavjava') {
           target = p;
           break;
         }
       }
       if (!target) {
         for (const [_, p] of players) {
-          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
-          if ((p.username || '').toLowerCase() === 'chuchichan') {
+          if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+          if (p.username.toLowerCase() === 'chuchichan') {
             target = p;
             break;
           }
@@ -401,10 +375,9 @@ export class ZylarServer {
       }
       if (!target) {
         for (const [_, p] of players) {
-          if (p && p.client && !p.client.ended && p.client.state !== 'closed') {
-            target = p;
-            break;
-          }
+          if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+          target = p;
+          break;
         }
       }
       if (!target) return;
@@ -415,121 +388,117 @@ export class ZylarServer {
       const targetYawRad = ((target.yaw || 0) * Math.PI) / 180;
 
       for (const bot of SERVER_SIDE_BOTS) {
-        try {
-          const currentAngle = targetYawRad + bot.angleOffset;
-          const destX = targetX + Math.sin(currentAngle) * 3.0;
-          const destZ = targetZ - Math.cos(currentAngle) * 3.0;
-          const destY = targetY;
+        const currentAngle = targetYawRad + bot.angleOffset;
+        const destX = targetX + Math.sin(currentAngle) * 3.0;
+        const destZ = targetZ - Math.cos(currentAngle) * 3.0;
+        const destY = targetY;
 
-          const dx = destX - bot.pos.x;
-          const dz = destZ - bot.pos.z;
-          const dy = destY - bot.pos.y;
-          const distToDest = Math.hypot(dx, dz);
-          const distToPlayer = Math.hypot(targetX - bot.pos.x, targetZ - bot.pos.z);
+        const dx = destX - bot.pos.x;
+        const dz = destZ - bot.pos.z;
+        const dy = destY - bot.pos.y;
+        const distToDest = Math.hypot(dx, dz);
+        const distToPlayer = Math.hypot(targetX - bot.pos.x, targetZ - bot.pos.z);
 
-          const toPlayerX = targetX - bot.pos.x;
-          const toPlayerZ = targetZ - bot.pos.z;
-          const lookYaw = Math.atan2(-toPlayerX, toPlayerZ) * (180 / Math.PI);
-          const lookPitch = Math.atan2(-(targetY + 1.4 - (bot.pos.y + 1.6)), Math.max(0.1, distToPlayer)) * (180 / Math.PI);
+        const toPlayerX = targetX - bot.pos.x;
+        const toPlayerZ = targetZ - bot.pos.z;
+        const lookYaw = Math.atan2(-toPlayerX, toPlayerZ) * (180 / Math.PI);
+        const lookPitch = Math.atan2(-(targetY + 1.4 - (bot.pos.y + 1.6)), Math.max(0.1, distToPlayer)) * (180 / Math.PI);
 
-          const oldX = bot.pos.x;
-          const oldY = bot.pos.y;
-          const oldZ = bot.pos.z;
+        const oldX = bot.pos.x;
+        const oldY = bot.pos.y;
+        const oldZ = bot.pos.z;
 
-          let moved = false;
-          let teleported = false;
+        let moved = false;
+        let teleported = false;
 
-          if (distToPlayer > 35) {
-            bot.pos.x = destX;
+        if (distToPlayer > 35) {
+          bot.pos.x = destX;
+          bot.pos.y = destY;
+          bot.pos.z = destZ;
+          bot.pos.yaw = lookYaw;
+          bot.pos.pitch = lookPitch;
+          teleported = true;
+        } else if (distToDest > 0.2) {
+          const speed = distToDest > 6 ? 0.55 : (distToDest > 2 ? 0.38 : 0.22);
+          const step = Math.min(distToDest, speed);
+
+          bot.pos.x += (dx / distToDest) * step;
+          bot.pos.z += (dz / distToDest) * step;
+          if (Math.abs(dy) > 0.1) {
+            bot.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), 0.35);
+          } else {
             bot.pos.y = destY;
-            bot.pos.z = destZ;
-            bot.pos.yaw = lookYaw;
-            bot.pos.pitch = lookPitch;
-            teleported = true;
-          } else if (distToDest > 0.2) {
-            const speed = distToDest > 6 ? 0.55 : (distToDest > 2 ? 0.38 : 0.22);
-            const step = Math.min(distToDest, speed);
-
-            bot.pos.x += (dx / distToDest) * step;
-            bot.pos.z += (dz / distToDest) * step;
-            if (Math.abs(dy) > 0.1) {
-              bot.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), 0.35);
-            } else {
-              bot.pos.y = destY;
-            }
+          }
+          bot.pos.yaw = lookYaw;
+          bot.pos.pitch = lookPitch;
+          moved = true;
+        } else {
+          if (Math.abs(bot.pos.yaw - lookYaw) > 2 || Math.abs(bot.pos.pitch - lookPitch) > 2) {
             bot.pos.yaw = lookYaw;
             bot.pos.pitch = lookPitch;
             moved = true;
-          } else {
-            if (Math.abs(bot.pos.yaw - lookYaw) > 2 || Math.abs(bot.pos.pitch - lookPitch) > 2) {
-              bot.pos.yaw = lookYaw;
-              bot.pos.pitch = lookPitch;
-              moved = true;
-            }
           }
+        }
 
-          if (teleported) {
-            for (const [_, p] of players) {
-              if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
-              try {
-                p.client.write('entity_teleport', {
+        if (teleported) {
+          for (const [_, p] of players) {
+            if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+            try {
+              p.client.write('entity_teleport', {
+                entityId: bot.entityId,
+                x: bot.pos.x,
+                y: bot.pos.y,
+                z: bot.pos.z,
+                yaw: this.toProtocolByte(bot.pos.yaw),
+                pitch: this.toProtocolByte(bot.pos.pitch),
+                onGround: true
+              });
+              p.client.write('entity_head_rotation', {
+                entityId: bot.entityId,
+                headYaw: this.toProtocolByte(bot.pos.yaw)
+              });
+            } catch (_) {}
+          }
+        } else if (moved) {
+          const dX = Math.round((bot.pos.x - oldX) * 4096);
+          const dY = Math.round((bot.pos.y - oldY) * 4096);
+          const dZ = Math.round((bot.pos.z - oldZ) * 4096);
+
+          for (const [_, p] of players) {
+            if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+            try {
+              if (Math.abs(dX) < 32768 && Math.abs(dY) < 32768 && Math.abs(dZ) < 32768 && (dX !== 0 || dY !== 0 || dZ !== 0)) {
+                p.client.write('entity_move_look', {
                   entityId: bot.entityId,
-                  x: bot.pos.x,
-                  y: bot.pos.y,
-                  z: bot.pos.z,
-                  dx: 0,
-                  dy: 0,
-                  dz: 0,
-                  yaw: bot.pos.yaw, // float32 degrees in 1.21.8 schema
-                  pitch: bot.pos.pitch, // float32 degrees in 1.21.8 schema
-                  flags: { _value: 0 },
+                  dX, dY, dZ,
+                  yaw: this.toProtocolByte(bot.pos.yaw),
+                  pitch: this.toProtocolByte(bot.pos.pitch),
                   onGround: true
                 });
-                p.client.write('entity_head_rotation', {
+              } else {
+                p.client.write('entity_look', {
                   entityId: bot.entityId,
-                  headYaw: this.toProtocolByte(bot.pos.yaw) // int8 byte
+                  yaw: this.toProtocolByte(bot.pos.yaw),
+                  pitch: this.toProtocolByte(bot.pos.pitch),
+                  onGround: true
                 });
-              } catch (_) {}
-            }
-          } else if (moved) {
-            const dX = Math.round((bot.pos.x - oldX) * 4096);
-            const dY = Math.round((bot.pos.y - oldY) * 4096);
-            const dZ = Math.round((bot.pos.z - oldZ) * 4096);
-
-            for (const [_, p] of players) {
-              if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
-              try {
-                if (Math.abs(dX) < 32768 && Math.abs(dY) < 32768 && Math.abs(dZ) < 32768 && (dX !== 0 || dY !== 0 || dZ !== 0)) {
-                  p.client.write('entity_move_look', {
-                    entityId: bot.entityId,
-                    dX, dY, dZ,
-                    yaw: this.toProtocolByte(bot.pos.yaw),
-                    pitch: this.toProtocolByte(bot.pos.pitch),
-                    onGround: true
-                  });
-                } else {
-                  p.client.write('entity_look', {
-                    entityId: bot.entityId,
-                    yaw: this.toProtocolByte(bot.pos.yaw),
-                    pitch: this.toProtocolByte(bot.pos.pitch),
-                    onGround: true
-                  });
-                }
-                p.client.write('entity_head_rotation', {
-                  entityId: bot.entityId,
-                  headYaw: this.toProtocolByte(bot.pos.yaw)
-                });
-              } catch (_) {}
-            }
+              }
+              p.client.write('entity_head_rotation', {
+                entityId: bot.entityId,
+                headYaw: this.toProtocolByte(bot.pos.yaw)
+              });
+            } catch (_) {}
           }
-        } catch (_) {}
+        }
       }
-    } catch (_) {}
+    } catch (err: any) {
+      this.log('ERROR', 'tickServerBots error:', err?.message || err);
+    }
   }
 
-  public reGenerateWorld(client: any, _is119?: boolean): void {
+  public reGenerateWorld(client: any, _is119: boolean = true): void {
     const pData = players.get(client.id);
-    if (!pData || !pData.island) return;
+    if (!pData || !pData.island || !this.isClientWritable(client)) return;
 
     resetPlayerIsland(pData.username, pData.island.originX, pData.island.originZ);
     pData.loadedChunks = new Set<string>();
@@ -542,14 +511,14 @@ export class ZylarServer {
       client.write('update_view_position', { chunkX: baseChunkX, chunkZ: baseChunkZ });
     } catch (_) {}
 
-    try { client.write('chunk_batch_start', {}); } catch (_) {}
     for (let cx = baseChunkX - 4; cx <= baseChunkX + 4; cx++) {
       for (let cz = baseChunkZ - 4; cz <= baseChunkZ + 4; cz++) {
         pData.loadedChunks.add(`${cx},${cz}`);
-        client.write('map_chunk', dumpChunkPacket(cx, cz));
+        try {
+          client.write('map_chunk', dumpChunkPacket(cx, cz, true));
+        } catch (_) {}
       }
     }
-    try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
   }
 
   public triggerServerRestart(): void {
@@ -563,9 +532,11 @@ export class ZylarServer {
     for (const [_, p] of players) {
       try {
         persistPlayerSession(p);
-        sendSystemMessage(p.client, '§c§l[ZylarPixel] §eServer restart initiated! Transferring to Limbo...', p.is119);
-        // Destroy the backend socket so the Master Proxy immediately catches it and transitions the player into Limbo!
-        p.client.destroy();
+        if (this.isClientWritable(p?.client)) {
+          sendSystemMessage(p.client, '§c§l[ZylarPixel] §eServer restart initiated! Transferring to Limbo...', true);
+          // Destroy the backend socket so the Master Proxy immediately catches it and transitions the player into Limbo!
+          p.client.destroy();
+        }
       } catch (_) {}
     }
     players.clear();
@@ -616,15 +587,29 @@ export class ZylarServer {
   }
 
   public stop(): void {
-    if (this.botTickerInterval) clearInterval(this.botTickerInterval);
+    this.clearLoops();
     for (const [_, p] of players) {
-      try { p.client.destroy(); } catch (_) {}
+      try {
+        if (p?.client) p.client.destroy();
+      } catch (_) {}
     }
     players.clear();
     this.droppedItems.clear();
     if (this.serverInstance) {
       try { this.serverInstance.close(); } catch (_) {}
     }
+  }
+
+  private clearLoops(): void {
+    for (const timer of this.intervals) {
+      clearInterval(timer);
+    }
+    this.intervals = [];
+    if (this.botTickerInterval) {
+      clearInterval(this.botTickerInterval);
+      this.botTickerInterval = null;
+    }
+    stopScoreboardAnimation();
   }
 
   public start(): void {
@@ -639,33 +624,31 @@ export class ZylarServer {
       generateStarterIslands();
     }
 
-    // 2. Start Animated Scoreboard Loop
-    startScoreboardAnimation(players);
-
-    // 3. Start Core Gameplay Loops
+    // 2. Start Core Gameplay & Scoreboard Loops (clears any previous intervals first)
     this.initLoops();
 
-    // 4. Create Network Listener (1.21.8)
+    // 3. Create Network Listener (Locked cleanly to Minecraft 1.19.2 / Protocol 760)
     this.serverInstance = (mc as any).createServer({
       'online-mode': false,
       encryption: false,
       host: '0.0.0.0',
       port: this.config.port,
-      version: '1.21.8',
-      maxPlayers: 250,
+      version: '1.19.2',
+      maxPlayers: 50,
       motd: this.config.motd || `§d§lZYLARPIXEL §7[${this.config.serverName}]`,
-      registryCodec: sanitizedDimensionCodec1218,
-      tags: tagRegistryManager.getTagPacketData()
+      registryCodec: mcData1192.loginPacket.dimensionCodec
     } as any);
 
     this.serverInstance.on('error', (err: any) => {
-      this.log('ERROR', '⚠️ Server socket error:', err.message);
+      this.log('ERROR', '⚠️ Server socket error:', err?.message || err);
     });
 
     this.serverInstance.on('connection', (client: any) => {
+      if (!client) return;
       client.on('error', (err: any) => {
-        const msg = err?.message || String(err);
-        this.log('DEBUG', `Socket connection error for client: ${msg}`);
+        if (!players.has(client.id)) {
+          this.log('WARN', `Pre-join client socket error (${client.username || client.id || 'unknown'}): ${err?.message || err}`);
+        }
       });
     });
 
@@ -677,7 +660,7 @@ export class ZylarServer {
     const memoryUsage = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
 
     console.log(`\n=================================================`);
-    console.log(`🚀 ZYLARPIXEL [${this.config.serverName.toUpperCase()}] LIVE!`);
+    console.log(`🚀 ZYLARPIXEL [${this.config.serverName.toUpperCase()}] LIVE! (1.19.2 / Protocol 760)`);
     console.log(`🌐 Host:          0.0.0.0:${this.config.port}`);
     console.log(`⚔️ PvP:           ${this.config.pvp ? 'ENABLED (Damage & Crits Active)' : 'DISABLED (Peaceful Safe Zone)'}`);
     console.log(`🧱 Building:      ${this.config.allowBlockBreaking ? 'Enabled (Island Protection)' : 'Disabled (Hub Protected)'}`);
@@ -689,29 +672,34 @@ export class ZylarServer {
   private initLoops(): void {
     this.clearLoops();
 
+    // 0. Animated Scoreboard Title Loop (every 250ms)
+    this.intervals.push(startScoreboardAnimation(players));
+
     // A. Action Bar Ticker (every 100ms)
     this.intervals.push(setInterval(() => {
       try {
         for (const [_, p] of players) {
-          if (!p || !p.client || !p.stats || p.client.ended || p.client.state === 'closed') continue;
+          if (!p?.client || !p.stats || p.client.ended || p.client.state === 'closed') continue;
           try {
             if (p.actionBarOverride && Date.now() < p.actionBarOverride.expiresAt) {
-              sendActionBar(p.client, p.is119, p.actionBarOverride.text);
+              sendActionBar(p.client, true, p.actionBarOverride.text);
             } else {
               p.actionBarOverride = undefined;
               const text = formatActionBar(p.stats);
-              sendActionBar(p.client, p.is119, text);
+              sendActionBar(p.client, true, text);
             }
           } catch (_) {}
         }
-      } catch (_) {}
+      } catch (err: any) {
+        this.log('ERROR', 'Action bar loop error:', err?.message || err);
+      }
     }, 100));
 
     // B. Mana Regeneration Loop (every 1s)
     this.intervals.push(setInterval(() => {
       try {
         for (const [_, p] of players) {
-          if (!p || !p.stats) continue;
+          if (!p?.client || !p.stats || p.client.ended || p.client.state === 'closed') continue;
           try {
             if (p.stats.mana < p.stats.maxMana) {
               const regen = calculateManaRegen(p.stats.maxMana);
@@ -719,283 +707,296 @@ export class ZylarServer {
             }
           } catch (_) {}
         }
-      } catch (_) {}
+      } catch (err: any) {
+        this.log('ERROR', 'Mana regen loop error:', err?.message || err);
+      }
     }, 1000));
 
     // C. Health Regeneration Loop (every 2s)
     this.intervals.push(setInterval(() => {
       try {
         for (const [_, p] of players) {
-          if (!p || !p.stats || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          if (!p?.client || !p.stats || p.client.ended || p.client.state === 'closed') continue;
           try {
             if (p.stats.health < p.stats.maxHealth && p.stats.health > 0) {
               const hpRegen = calculateHealthRegen(p.stats.maxHealth);
               p.stats.health = Math.min(p.stats.maxHealth, p.stats.health + hpRegen);
-              try { syncVanillaHealthAndHunger(p.client, p.stats); } catch (_) {}
+              syncVanillaHealthAndHunger(p.client, p.stats);
               for (const [__, observer] of players) {
-                if (!observer || !observer.client || observer.client.ended || observer.client.state === 'closed') continue;
-                try {
-                  updatePlayerHealthScore(observer.client, p.username, p.stats.health, observer.is119);
-                } catch (_) {}
+                if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
+                updatePlayerHealthScore(observer.client, p.username, p.stats.health, true);
               }
             }
           } catch (_) {}
         }
-      } catch (_) {}
+      } catch (err: any) {
+        this.log('ERROR', 'Health regen loop error:', err?.message || err);
+      }
     }, 2000));
 
     // D. Proximity Player Sync Loop (every 500ms)
     this.intervals.push(setInterval(() => {
       try {
         for (const [_, p] of players) {
-          if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+          if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
           try {
             this.syncNearbyPlayers(p);
           } catch (_) {}
         }
-      } catch (_) {}
+      } catch (err: any) {
+        this.log('ERROR', 'Proximity sync loop error:', err?.message || err);
+      }
     }, 500));
 
     // E. Dropped Items Pickup Loop (every 100ms)
     this.intervals.push(setInterval(() => {
       try {
         this.tickDroppedItems();
-      } catch (_) {}
+      } catch (err: any) {
+        this.log('ERROR', 'Dropped items loop error:', err?.message || err);
+      }
     }, 100));
 
     // F. Hub Banker NPC, Farm Merchant NPC, Crop Guardians & Server Bots Ticker (every 50ms / 20 TPS)
-    this.botTickerInterval = setInterval(() => {
-      try {
-        this.tickServerBots();
-      } catch (_) {}
-
-      if (this.config.worldType === 'hub') {
+    if (this.config.worldType === 'hub') {
+      this.botTickerInterval = setInterval(() => {
         try {
           tickBankerNpc(players, (deg: number) => this.toProtocolByte(deg));
-        } catch (_) {}
-
-        try {
           tickFarmMerchantNpc(players, (deg: number) => this.toProtocolByte(deg));
-        } catch (_) {}
-
-        try {
           tickCropGuardians(this, players, (deg: number) => this.toProtocolByte(deg));
-        } catch (_) {}
-      }
-    }, 50);
+          this.tickServerBots();
+        } catch (err: any) {
+          this.log('ERROR', 'Hub NPC/bot ticker loop error:', err?.message || err);
+        }
+      }, 50);
+      this.intervals.push(this.botTickerInterval);
+    }
   }
 
   private tickDroppedItems(): void {
-    const now = Date.now();
-    for (const [entityId, item] of this.droppedItems) {
-      // 5-minute (300 seconds) Despawn Timer
-      if (now - item.spawnTime > 300000) {
-        for (const [__, observer] of players) {
-          try {
-            observer.client.write('entity_destroy', {
-              entityIds: [entityId]
-            });
-          } catch (_) {}
-        }
-        this.droppedItems.delete(entityId);
-        continue;
-      }
-
-      for (const [_, p] of players) {
-        if (!p.client) continue;
-
-        // Strict Anti-Theft: Only the breaker who owns the crop drop can pick it up!
-        if (item.owner && item.owner !== p.username) {
-          continue;
-        }
-
-        const dist = Math.hypot(p.x - item.x, p.y - item.y, p.z - item.z);
-        const requiredDelay = item.pickupDelay || 300;
-        if (dist <= 1.8 && (now - item.spawnTime > requiredDelay)) {
-          // Candidate slots: hotbar 36..43 (skipping slot 44 Nether Star), then main inventory 9..35
-          const candidateSlots: number[] = [];
-          for (let s = 36; s <= 43; s++) candidateSlots.push(s);
-          for (let s = 9; s <= 35; s++) candidateSlots.push(s);
-
-          const pMcData = mcData1218;
-          const pItemDef = pMcData.itemsByName[item.name] || pMcData.blocksByName[item.name];
-          const pItemId = pItemDef ? pItemDef.id : item.itemId;
-          const maxStack = pItemDef?.stackSize || 64;
-
-          // 1. Calculate available space in player inventory for this item
-          let availableSpace = 0;
-          let emptySlotCount = 0;
-          for (const slot of candidateSlots) {
-            const existing = p.inventory.get(slot);
-            if (!existing) {
-              availableSpace += maxStack;
-              emptySlotCount++;
-            } else {
-              const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
-              if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
-                availableSpace += (maxStack - existing.count);
-              }
-            }
-          }
-
-          // If inventory cannot accept any items, do NOT void or destroy the item!
-          if (availableSpace <= 0) {
-            if (emptySlotCount === 0) {
-              this.showInventoryFullTitle(p);
-            }
-            continue;
-          }
-
-          const toTake = Math.min(item.count, availableSpace);
-          let remainingToPlace = toTake;
-
-          // 2. Pass 1: Add to existing matching stacks < maxStack (commodities stack cleanly up to 64!)
-          for (const slot of candidateSlots) {
-            if (remainingToPlace <= 0) break;
-            const existing = p.inventory.get(slot);
-            if (existing) {
-              const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
-              if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
-                const space = maxStack - existing.count;
-                const addCount = Math.min(space, remainingToPlace);
-                existing.count += addCount;
-                remainingToPlace -= addCount;
-                existing.itemId = pItemId;
-
-                const tagged = tagVanillaItemStack({
-                  present: true,
-                  itemId: pItemId,
-                  itemCount: existing.count,
-                  nbtData: existing.nbtData
-                }, p.is119);
-                existing.nbtData = tagged.nbtData;
-
-                try {
-                  p.client.write('set_slot', {
-                    windowId: 0,
-                    stateId: 1,
-                    slot,
-                    item: formatSlotForClient(tagged, p.is119)
-                  });
-                } catch (_) {}
-              }
-            }
-          }
-
-          // 3. Pass 2: Place into empty slots
-          if (remainingToPlace > 0) {
-            for (const slot of candidateSlots) {
-              if (remainingToPlace <= 0) break;
-              if (!p.inventory.has(slot)) {
-                const putCount = Math.min(maxStack, remainingToPlace);
-                remainingToPlace -= putCount;
-
-                const rawStack = {
-                  present: true,
-                  itemId: pItemId,
-                  itemCount: putCount
-                };
-                const tagged = tagVanillaItemStack(rawStack, p.is119);
-
-                p.inventory.set(slot, {
-                  slot,
-                  name: item.name,
-                  itemId: pItemId,
-                  count: putCount,
-                  nbtData: tagged.nbtData
-                });
-
-                try {
-                  p.client.write('set_slot', {
-                    windowId: 0,
-                    stateId: 1,
-                    slot,
-                    item: formatSlotForClient(tagged, p.is119)
-                  });
-                } catch (_) {}
-              }
-            }
-          }
-
-          const actuallyTaken = toTake - remainingToPlace;
-          if (actuallyTaken <= 0) {
-            continue;
-          }
-
-          // 4. Play pickup sound
-          try {
-            playSoundEffect(p.client, 'entity.item.pickup', p.x, p.y, p.z, 0.8, 1.2, 'player', p.is119);
-          } catch (_) {}
-
-          // 5. Send collect animation to all observers
+    try {
+      const now = Date.now();
+      for (const [entityId, item] of this.droppedItems) {
+        // 5-minute (300 seconds) Despawn Timer
+        if (now - item.spawnTime > 300000) {
           for (const [__, observer] of players) {
+            if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
             try {
-              observer.client.write('collect', {
-                collectedEntityId: entityId,
-                collectorEntityId: p.entityId,
-                pickupItemCount: actuallyTaken
+              observer.client.write('entity_destroy', {
+                entityIds: [entityId]
               });
             } catch (_) {}
           }
+          this.droppedItems.delete(entityId);
+          continue;
+        }
 
-          // 6. Complete pickup vs partial pickup handling
-          persistPlayerSession(p);
-          if (actuallyTaken >= item.count) {
+        for (const [_, p] of players) {
+          if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
+
+          // Strict Anti-Theft: Only the breaker who owns the crop drop can pick it up!
+          if (item.owner && item.owner !== p.username) {
+            continue;
+          }
+
+          const dist = Math.hypot(p.x - item.x, p.y - item.y, p.z - item.z);
+          const requiredDelay = item.pickupDelay || 300;
+          if (dist <= 1.8 && (now - item.spawnTime > requiredDelay)) {
+            // Candidate slots: hotbar 36..43 (skipping slot 44 Nether Star), then main inventory 9..35
+            const candidateSlots: number[] = [];
+            for (let s = 36; s <= 43; s++) candidateSlots.push(s);
+            for (let s = 9; s <= 35; s++) candidateSlots.push(s);
+
+            const pItemDef = mcData1192.itemsByName[item.name] || mcData1192.blocksByName[item.name];
+            const pItemId = pItemDef ? pItemDef.id : item.itemId;
+            const maxStack = pItemDef?.stackSize || 64;
+
+            // 1. Calculate available space in player inventory for this item
+            let availableSpace = 0;
+            let emptySlotCount = 0;
+            for (const slot of candidateSlots) {
+              const existing = p.inventory.get(slot);
+              if (!existing) {
+                availableSpace += maxStack;
+                emptySlotCount++;
+              } else {
+                const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
+                if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
+                  availableSpace += (maxStack - existing.count);
+                }
+              }
+            }
+
+            // If inventory cannot accept any items, do NOT void or destroy the item!
+            if (availableSpace <= 0) {
+              if (emptySlotCount === 0) {
+                this.showInventoryFullTitle(p);
+              }
+              continue;
+            }
+
+            const toTake = Math.min(item.count, availableSpace);
+            let remainingToPlace = toTake;
+
+            // 2. Pass 1: Add to existing matching stacks < maxStack (commodities stack cleanly up to 64!)
+            for (const slot of candidateSlots) {
+              if (remainingToPlace <= 0) break;
+              const existing = p.inventory.get(slot);
+              if (existing) {
+                const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
+                if (!hasUniqueUuid && existing.name === item.name && existing.count < maxStack) {
+                  const space = maxStack - existing.count;
+                  const addCount = Math.min(space, remainingToPlace);
+                  existing.count += addCount;
+                  remainingToPlace -= addCount;
+                  existing.itemId = pItemId;
+
+                  const tagged = tagVanillaItemStack({
+                    present: true,
+                    itemId: pItemId,
+                    itemCount: existing.count,
+                    nbtData: existing.nbtData
+                  }, true);
+                  existing.nbtData = tagged.nbtData;
+
+                  try {
+                    p.client.write('set_slot', {
+                      windowId: 0,
+                      stateId: 1,
+                      slot,
+                      item: formatSlotForClient(tagged, true)
+                    });
+                  } catch (_) {}
+                }
+              }
+            }
+
+            // 3. Pass 2: Place into empty slots
+            if (remainingToPlace > 0) {
+              for (const slot of candidateSlots) {
+                if (remainingToPlace <= 0) break;
+                if (!p.inventory.has(slot)) {
+                  const putCount = Math.min(maxStack, remainingToPlace);
+                  remainingToPlace -= putCount;
+
+                  const rawStack = {
+                    present: true,
+                    itemId: pItemId,
+                    itemCount: putCount
+                  };
+                  const tagged = tagVanillaItemStack(rawStack, true);
+
+                  p.inventory.set(slot, {
+                    slot,
+                    name: item.name,
+                    itemId: pItemId,
+                    count: putCount,
+                    nbtData: tagged.nbtData
+                  });
+
+                  try {
+                    p.client.write('set_slot', {
+                      windowId: 0,
+                      stateId: 1,
+                      slot,
+                      item: formatSlotForClient(tagged, true)
+                    });
+                  } catch (_) {}
+                }
+              }
+            }
+
+            const actuallyTaken = toTake - remainingToPlace;
+            if (actuallyTaken <= 0) {
+              continue;
+            }
+
+            // 4. Play pickup sound
+            try {
+              p.client.write('named_sound_effect', {
+                soundName: 'entity.item.pickup',
+                soundCategory: 0,
+                x: Math.floor(p.x * 8),
+                y: Math.floor(p.y * 8),
+                z: Math.floor(p.z * 8),
+                volume: 0.8,
+                pitch: 1.2,
+                seed: [0, 0]
+              });
+            } catch (_) {}
+
+            // 5. Send collect animation to all observers
             for (const [__, observer] of players) {
+              if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
               try {
-                observer.client.write('entity_destroy', {
-                  entityIds: [entityId]
+                observer.client.write('collect', {
+                  collectedEntityId: entityId,
+                  collectorEntityId: p.entityId,
+                  pickupItemCount: actuallyTaken
                 });
               } catch (_) {}
             }
-            this.droppedItems.delete(entityId);
-          } else {
-            item.count -= actuallyTaken;
-            for (const [__, observer] of players) {
-              if (!observer.client) continue;
-              const obsDef = mcData1218.itemsByName[item.name] || mcData1218.blocksByName[item.name];
-              if (obsDef) {
+
+            // 6. Complete pickup vs partial pickup handling
+            persistPlayerSession(p);
+            if (actuallyTaken >= item.count) {
+              for (const [__, observer] of players) {
+                if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
                 try {
-                  observer.client.write('entity_metadata', {
-                    entityId,
-                    metadata: [{
-                      key: 8,
-                      type: 'item_stack',
-                      value: {
-                        itemCount: item.count,
-                        itemId: obsDef.id,
-                        addedComponentCount: 0,
-                        removedComponentCount: 0,
-                        components: [],
-                        removeComponents: []
-                      }
-                    }]
+                  observer.client.write('entity_destroy', {
+                    entityIds: [entityId]
                   });
                 } catch (_) {}
               }
+              this.droppedItems.delete(entityId);
+            } else {
+              item.count -= actuallyTaken;
+              for (const [__, observer] of players) {
+                if (!observer?.client || observer.client.ended || observer.client.state === 'closed') continue;
+                const obsDef = mcData1192.itemsByName[item.name] || mcData1192.blocksByName[item.name];
+                if (obsDef) {
+                  try {
+                    observer.client.write('entity_metadata', {
+                      entityId,
+                      metadata: [{
+                        key: 8,
+                        type: 6,
+                        value: { present: true, itemId: obsDef.id, itemCount: item.count }
+                      }]
+                    });
+                  } catch (_) {}
+                }
+              }
             }
-          }
 
-          break; // Item processed for this tick
+            break; // Item processed for this tick
+          }
         }
       }
+    } catch (err: any) {
+      this.log('ERROR', 'tickDroppedItems error:', err?.message || err);
     }
   }
 
   public showInventoryFullTitle(p: any): void {
+    if (!p?.client || p.client.ended || p.client.state === 'closed') return;
     const lastWarning = p._lastInvFullWarning || 0;
     const now = Date.now();
     if (now - lastWarning >= 20000) { // 20-second cooldown per player
       p._lastInvFullWarning = now;
       try {
-        if (p.is119) {
-          p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
-          p.client.write('set_title_text', { text: JSON.stringify({ text: '§c§lINVENTORY FULL' }) });
-        } else {
-          p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
-          p.client.write('set_title_text', { text: nbt.comp({ text: nbt.string('§c§lINVENTORY FULL') }) });
-        }
-        playSoundEffect(p.client, 'block.chest.locked', p.x, p.y, p.z, 1.0, 0.8, 'block', p.is119);
+        p.client.write('set_title_time', { fadeIn: 10, stay: 50, fadeOut: 20 });
+        p.client.write('set_title_text', { text: JSON.stringify({ text: '§c§lINVENTORY FULL' }) });
+        p.client.write('named_sound_effect', {
+          soundName: 'block.chest.locked',
+          soundCategory: 0,
+          x: Math.floor(p.x * 8),
+          y: Math.floor(p.y * 8),
+          z: Math.floor(p.z * 8),
+          volume: 1.0,
+          pitch: 0.8,
+          seed: [0, 0]
+        });
       } catch (_) {}
     }
   }
@@ -1010,8 +1011,8 @@ export class ZylarServer {
     velocity?: { x: number; y: number; z: number },
     pickupDelay?: number
   ): void {
-    const itemDef = mcData1218.itemsByName[name] || mcData1218.blocksByName[name];
-    if (!itemDef) return;
+    const itemDef119 = mcData1192.itemsByName[name] || mcData1192.blocksByName[name];
+    if (!itemDef119) return;
 
     const itemEntityId = this.nextEntityId++;
     const spawnX = x + 0.5 + (Math.random() - 0.5) * 0.2;
@@ -1020,7 +1021,7 @@ export class ZylarServer {
 
     this.droppedItems.set(itemEntityId, {
       entityId: itemEntityId,
-      itemId: itemDef.id,
+      itemId: itemDef119.id,
       count,
       name,
       x: spawnX,
@@ -1036,13 +1037,13 @@ export class ZylarServer {
     const velZ = velocity ? velocity.z : Math.floor((Math.random() - 0.5) * 400);
 
     for (const [_, p] of players) {
-      if (!p.client) continue;
+      if (!p?.client || p.client.ended || p.client.state === 'closed') continue;
 
       try {
         p.client.write('spawn_entity', {
           entityId: itemEntityId,
           objectUUID: crypto.randomUUID(),
-          type: 69, // item in 1.21.8
+          type: 44,
           x: spawnX,
           y: spawnY,
           z: spawnZ,
@@ -1050,22 +1051,19 @@ export class ZylarServer {
           yaw: 0,
           headPitch: 0,
           objectData: 1,
-          velocity: { x: velX, y: velY, z: velZ }
+          data: 1,
+          velocity: { x: velX, y: velY, z: velZ },
+          velocityX: velX,
+          velocityY: velY,
+          velocityZ: velZ
         });
 
         p.client.write('entity_metadata', {
           entityId: itemEntityId,
           metadata: [{
             key: 8,
-            type: 'item_stack',
-            value: {
-              itemCount: count,
-              itemId: itemDef.id,
-              addedComponentCount: 0,
-              removedComponentCount: 0,
-              components: [],
-              removeComponents: []
-            }
+            type: 6,
+            value: { present: true, itemId: itemDef119.id, itemCount: count }
           }]
         });
       } catch (_) {}
@@ -1095,14 +1093,17 @@ export class ZylarServer {
   }
 
   private handlePlayerJoin(client: any): void {
-    const is119 = false;
-    const verLabel = '1.21.8 (Protocol 772)';
-
-    // Attach stream error handler early so socket hiccups never crash process
+    (client as any)._hasJoinErrorHandler = true;
     client.on('error', (err: any) => {
-      const msg = err?.message || String(err);
-      this.log('WARN', `[!] Client network error for ${client.username || client.id}: ${msg}`);
+      if ((client as any)._hasPacketErrorHandler) return;
+      if (err?.code === 'ECONNRESET' || err?.code === 'EPIPE' || err?.code === 'ERR_STREAM_DESTROYED') return;
+      this.log('ERROR', `[JoinSocketError] ${client?.username || client?.socket?.remoteAddress || 'unknown'}: ${err?.message || err}`);
     });
+
+    if (!this.isClientWritable(client)) return;
+
+    const is119 = true;
+    const verLabel = '1.19.2 (Protocol 760)';
 
     this.log('INFO', `[+] Player joined ${this.config.serverName}: ${client.username} [${verLabel}]`);
 
@@ -1129,74 +1130,64 @@ export class ZylarServer {
     pData.pitch = spawnPitch;
     pData.currentWorld = this.config.worldType === 'hub' ? 'zylarpixel:hub' : 'zylarpixel:islands';
 
-    // 1. Handshake & Login Packet (1.21.8)
-    client.write('login', {
-      entityId: client.id,
-      isHardcore: false,
-      worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
-      maxPlayers: 250,
-      viewDistance: 12,
-      simulationDistance: 12,
-      reducedDebugInfo: false,
-      enableRespawnScreen: true,
-      doLimitedCrafting: false,
-      worldState: {
-        dimension: 0,
-        name: 'minecraft:overworld',
+    // 1. Handshake & Login Packet (Locked to 1.19.2)
+    try {
+      client.write('login', {
+        entityId: client.id,
+        isHardcore: false,
+        gameMode: this.config.gamemode,
+        previousGameMode: -1,
+        worldNames: ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'],
+        dimensionCodec: mcData1192.loginPacket.dimensionCodec,
+        worldType: 'minecraft:overworld',
+        worldName: 'minecraft:overworld',
         hashedSeed: [0, 0],
-        gamemode: this.config.gamemode === 0 ? 'survival' : (this.config.gamemode === 1 ? 'creative' : (this.config.gamemode === 2 ? 'adventure' : 'spectator')),
-        previousGamemode: 255,
+        maxPlayers: 50,
+        viewDistance: 12,
+        simulationDistance: 12,
+        reducedDebugInfo: false,
+        enableRespawnScreen: true,
         isDebug: false,
         isFlat: false,
-        death: undefined,
-        portalCooldown: 0,
-        seaLevel: 63
-      },
-      enforcesSecureChat: false
-    });
+        death: undefined
+      });
+    } catch (err: any) {
+      this.log('ERROR', `Failed to send login packet to ${client.username}: ${err?.message || err}`);
+      return;
+    }
 
-    // 1b. Add Player to Self Tablist (1.21.8)
-    client.write('player_info', {
-      action: {
-        add_player: true,
-        initialize_chat: false,
-        update_game_mode: true,
-        update_listed: true,
-        update_latency: true,
-        update_display_name: true,
-        update_hat: true,
-        update_list_order: false
-      },
-      data: [{
-        uuid: client.uuid || generateOfflineUuid(pData.username),
-        player: { name: client.username, properties: [] },
-        gamemode: this.config.gamemode,
-        listed: 1,
-        latency: 1,
-        displayName: nbt.comp({ text: nbt.string(`§8[§6${this.config.scoreboardLocation}§8] ${formatPlayerName(pData.rank, client.username)}`) }),
-        showHat: true
-      }]
-    });
+    // 1b. Add Player to Self Tablist (1.19.2)
+    try {
+      client.write('player_info', {
+        action: 'add_player',
+        data: [{
+          uuid: client.uuid || generateOfflineUuid(pData.username),
+          name: client.username,
+          properties: [],
+          gamemode: this.config.gamemode,
+          ping: 1,
+          displayName: JSON.stringify({ text: `§8[§6${this.config.scoreboardLocation}§8] ${formatPlayerName(pData.rank, client.username)}` }),
+          crypto: undefined
+        }]
+      });
+    } catch (_) {}
 
     // 2. Abilities
     const initialAbilitiesFlags = (this.config.worldType === 'hub') ? 0x01 : (pData.isOp ? 0x07 : 0x00);
     client._abilitiesFlags = initialAbilitiesFlags;
     client._isHub = (this.config.worldType === 'hub');
-    client.write('abilities', {
-      flags: initialAbilitiesFlags,
-      flyingSpeed: 0.05,
-      walkingSpeed: 0.1 * ((pData.stats.speed || 100) / 100.0)
-    });
-
-    // 3. Spawn Position & View Center
     try {
-      client.write('spawn_position', {
-        location: { x: Math.floor(spawnX), y: Math.floor(spawnY), z: Math.floor(spawnZ) },
-        angle: 0
+      client.write('abilities', {
+        flags: initialAbilitiesFlags,
+        flyingSpeed: 0.05,
+        walkingSpeed: 0.1 * ((pData.stats.speed || 100) / 100.0)
       });
     } catch (_) {}
 
-    client.write('update_view_distance', { viewDistance: 12 });
+    // 3. View Distance & View Center
+    try {
+      client.write('update_view_distance', { viewDistance: 12 });
+    } catch (_) {}
 
     const baseChunkX = Math.floor(spawnX / 16);
     const baseChunkZ = Math.floor(spawnZ / 16);
@@ -1204,7 +1195,9 @@ export class ZylarServer {
     pData.currentChunkX = baseChunkX;
     pData.currentChunkZ = baseChunkZ;
 
-    client.write('update_view_position', { chunkX: baseChunkX, chunkZ: baseChunkZ });
+    try {
+      client.write('update_view_position', { chunkX: baseChunkX, chunkZ: baseChunkZ });
+    } catch (_) {}
 
     // 4. Stream Chunks
     if (this.config.worldType === 'hub') {
@@ -1220,17 +1213,12 @@ export class ZylarServer {
 
       // Send immediate floor chunks directly under player's feet FIRST so floor is 100% solid
       const immediate = chunkCoords.filter(c => c.dist <= 2);
-      if (!is119 && immediate.length > 0) {
-        try { client.write('chunk_batch_start', {}); } catch (_) {}
-      }
       for (const c of immediate) {
+        if (!this.isClientWritable(client)) break;
         pData.loadedChunks.add(`${c.cx},${c.cz}`);
         try {
           client.write('map_chunk', dumpHubChunkPacket(c.cx, c.cz, is119));
         } catch (_) {}
-      }
-      if (!is119 && immediate.length > 0) {
-        try { client.write('chunk_batch_finished', { batchSize: immediate.length }); } catch (_) {}
       }
 
       // Send Initial Position
@@ -1242,29 +1230,23 @@ export class ZylarServer {
 
       // Stream remaining outer chunks smoothly right after
       const outer = chunkCoords.filter(c => c.dist > 2);
-      if (!is119 && outer.length > 0) {
-        try { client.write('chunk_batch_start', {}); } catch (_) {}
-      }
       for (const c of outer) {
+        if (!this.isClientWritable(client)) break;
         pData.loadedChunks.add(`${c.cx},${c.cz}`);
         try {
           client.write('map_chunk', dumpHubChunkPacket(c.cx, c.cz, is119));
         } catch (_) {}
       }
-      if (!is119 && outer.length > 0) {
-        try { client.write('chunk_batch_finished', { batchSize: outer.length }); } catch (_) {}
-      }
     } else {
-      try { client.write('chunk_batch_start', {}); } catch (_) {}
-
       for (let cx = baseChunkX - 4; cx <= baseChunkX + 4; cx++) {
         for (let cz = baseChunkZ - 4; cz <= baseChunkZ + 4; cz++) {
+          if (!this.isClientWritable(client)) break;
           pData.loadedChunks.add(`${cx},${cz}`);
-          client.write('map_chunk', dumpChunkPacket(cx, cz));
+          try {
+            client.write('map_chunk', dumpChunkPacket(cx, cz, is119));
+          } catch (_) {}
         }
       }
-
-      try { client.write('chunk_batch_finished', { batchSize: 81 }); } catch (_) {}
 
       // Send Initial Position
       const joinTpId = ++this.teleportCounter;
@@ -1296,22 +1278,26 @@ export class ZylarServer {
     giveNetherStar(client);
 
     // 6. Scoreboard & Below-Name Health
-    sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse);
-    initBelowNameHealth(client, is119);
-    updatePlayerHealthScore(client, pData.username, pData.stats.health, is119);
+    try {
+      sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse);
+      initBelowNameHealth(client, is119);
+      updatePlayerHealthScore(client, pData.username, pData.stats.health, is119);
+    } catch (_) {}
 
     // 7. Global Tablist & Nametag Teams
     for (const [_, p] of players) {
+      if (!this.isClientWritable(p?.client)) continue;
       updateTablist(p.client, p.is119, this.config.scoreboardLocation);
     }
     for (const [_, other] of players) {
+      if (!this.isClientWritable(other?.client)) continue;
       sendScoreboardTeam(client, other.username, other.rank, is119);
       sendScoreboardTeam(other.client, pData.username, pData.rank, other.is119);
       updatePlayerHealthScore(client, other.username, other.stats.health, is119);
       updatePlayerHealthScore(other.client, pData.username, pData.stats.health, other.is119);
     }
 
-    // Purge old follow bots from client tablist cache
+    // Purge old follow bots from client tablist cache (1.19.2)
     const oldBotUuids = [
       generateOfflineUuid('Village_Alex'),
       generateOfflineUuid('Village_Kai'),
@@ -1319,36 +1305,29 @@ export class ZylarServer {
       generateOfflineUuid('Village_Leo'),
       generateOfflineUuid('Village_Mia')
     ];
-    if (is119) {
-      try {
-        client.write('player_info', {
-          action: 'remove_player',
-          data: oldBotUuids.map(uuid => ({ uuid }))
-        });
-      } catch (_) {}
-    } else {
-      try {
-        client.write('player_remove', {
-          players: oldBotUuids
-        });
-      } catch (_) {}
-    }
+    try {
+      client.write('player_info', {
+        action: 'remove_player',
+        data: oldBotUuids.map(uuid => ({ uuid }))
+      });
+    } catch (_) {}
 
-    // 8. Server-Side Banker NPC & Farm Merchant NPC (if Hub)
-    if (this.config.worldType === 'hub') {
+    // 8. Server-Side Banker NPC & Farm Merchant NPC (if Hub) - Crop Guardians are dynamically spawned via proximity ticker
+    if (this.config.worldType === 'hub' && this.isClientWritable(client)) {
       spawnBankerNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
       spawnFarmMerchantNpc(client, is119, (deg: number) => this.toProtocolByte(deg));
     }
 
-    // 8b. Active Dropped Items
+    // 8b. Active Dropped Items (1.19.2)
     for (const [entityId, drop] of this.droppedItems) {
-      const pItemDef = mcData1218.itemsByName[drop.name] || mcData1218.blocksByName[drop.name];
+      if (!this.isClientWritable(client)) break;
+      const pItemDef = mcData1192.itemsByName[drop.name] || mcData1192.blocksByName[drop.name];
       if (!pItemDef) continue;
       try {
         client.write('spawn_entity', {
           entityId,
           objectUUID: crypto.randomUUID(),
-          type: 69, // item in 1.21.8
+          type: 44,
           x: drop.x,
           y: drop.y,
           z: drop.z,
@@ -1356,54 +1335,82 @@ export class ZylarServer {
           yaw: 0,
           headPitch: 0,
           objectData: 1,
-          velocity: { x: 0, y: 0, z: 0 }
+          data: 1,
+          velocity: { x: 0, y: 0, z: 0 },
+          velocityX: 0,
+          velocityY: 0,
+          velocityZ: 0
         });
         client.write('entity_metadata', {
           entityId,
           metadata: [{
             key: 8,
-            type: 'item_stack',
-            value: {
-              itemCount: drop.count,
-              itemId: pItemDef.id,
-              addedComponentCount: 0,
-              removedComponentCount: 0,
-              components: [],
-              removeComponents: []
-            }
+            type: 6,
+            value: { present: true, itemId: pItemDef.id, itemCount: drop.count }
           }]
         });
       } catch (_) {}
     }
 
     // 9. Stats Sync
-    syncVanillaHealthAndHunger(client, pData.stats);
+    try {
+      syncVanillaHealthAndHunger(client, pData.stats);
 
-    // Synchronize active speed boost across server warps
-    if (pData.activeBuffs && typeof pData.activeBuffs.speedBoostUntil === 'number') {
-      const remainingMs = pData.activeBuffs.speedBoostUntil - Date.now();
-      if (remainingMs > 0) {
-        applySpeedBoost(pData, this, remainingMs, false);
+      // Synchronize active speed boost across server warps
+      if (pData.activeBuffs && typeof pData.activeBuffs.speedBoostUntil === 'number') {
+        const remainingMs = pData.activeBuffs.speedBoostUntil - Date.now();
+        if (remainingMs > 0) {
+          applySpeedBoost(pData, this, remainingMs, false);
+        } else {
+          pData.stats.speed = pData.baseSpeed || 100;
+          syncPlayerAttributes(client, pData.entityId, pData.stats.speed, is119);
+        }
       } else {
-        pData.stats.speed = pData.baseSpeed || 100;
         syncPlayerAttributes(client, pData.entityId, pData.stats.speed, is119);
       }
-    } else {
-      syncPlayerAttributes(client, pData.entityId, pData.stats.speed, is119);
-    }
 
-    // 10. Command Palette Declarations
-    const isMaster = (pData.username || '').toLowerCase() === 'arnavjava';
-    sendDeclaredCommands(client, !!pData.isOp, isMaster);
+      // 10. Command Palette Declarations
+      const isMaster = (pData.username || '').toLowerCase() === 'arnavjava';
+      sendDeclaredCommands(client, !!pData.isOp, isMaster);
+    } catch (_) {}
 
     // 11. Synchronize Nearby Players
-    setTimeout(() => this.syncNearbyPlayers(pData), 150);
+    setTimeout(() => {
+      try {
+        if (this.isClientWritable(client)) this.syncNearbyPlayers(pData);
+      } catch (_) {}
+    }, 150);
 
     // 12. Register Client Packet Listeners
     this.registerPacketHandlers(client, pData, is119);
   }
 
   private registerPacketHandlers(client: any, pData: any, is119: boolean): void {
+    const onDisconnect = () => {
+      if ((client as any)._zylarCleanedUp) return;
+      (client as any)._zylarCleanedUp = true;
+      try { persistPlayerSession(pData); } catch (_) {}
+      removePlayerSession(client.id);
+      for (const [_, p] of players) {
+        if (!this.isClientWritable(p?.client)) continue;
+        updateTablist(p.client, p.is119, this.config.scoreboardLocation);
+      }
+      for (const [_, other] of players) {
+        if (!this.isClientWritable(other?.client)) continue;
+        this.despawnPlayerForObserver(other, pData);
+      }
+      this.log('INFO', `[-] Player left ${this.config.serverName}: ${client.username}`);
+    };
+
+    (client as any)._hasPacketErrorHandler = true;
+    client.on('error', (err: any) => {
+      const code = err?.code || '';
+      if (code !== 'ECONNRESET' && code !== 'EPIPE' && code !== 'ERR_STREAM_DESTROYED') {
+        this.log('ERROR', `[PacketSocketError] ${client?.username || client?.socket?.remoteAddress || 'unknown'}: ${err?.message || err}`);
+      }
+      onDisconnect();
+    });
+
     // A. Movement & Collision
     const handleMovement = (data: any) => {
       const now = Date.now();
@@ -1444,10 +1451,6 @@ export class ZylarServer {
             client.write('update_view_position', { chunkX: spawnCx, chunkZ: spawnCz });
           } catch (_) {}
 
-          if (!is119) {
-            try { client.write('chunk_batch_start', {}); } catch (_) {}
-          }
-          let rescueChunks = 0;
           for (let dx = -3; dx <= 3; dx++) {
             for (let dz = -3; dz <= 3; dz++) {
               const targetCx = spawnCx + dx;
@@ -1455,12 +1458,8 @@ export class ZylarServer {
               pData.loadedChunks.add(`${targetCx},${targetCz}`);
               try {
                 client.write('map_chunk', dumpHubChunkPacket(targetCx, targetCz, is119));
-                rescueChunks++;
               } catch (_) {}
             }
-          }
-          if (!is119 && rescueChunks > 0) {
-            try { client.write('chunk_batch_finished', { batchSize: rescueChunks }); } catch (_) {}
           }
 
           this.sendPositionPacket(client, HUB_SPAWN_X, 71.0, HUB_SPAWN_Z, 180, 0, rescueTpId, is119);
@@ -1536,7 +1535,6 @@ export class ZylarServer {
 
         const streamRadius = (this.config.worldType === 'hub') ? 6 : 5;
         const pruneRadius = streamRadius + 3;
-        let newChunksStreamed = 0;
 
         if (pData.loadedChunks) {
           for (const key of pData.loadedChunks) {
@@ -1545,9 +1543,6 @@ export class ZylarServer {
             const cz = parseInt(key.slice(commaIdx + 1), 10);
             if (Math.abs(cx - currentCx) > pruneRadius || Math.abs(cz - currentCz) > pruneRadius) {
               pData.loadedChunks.delete(key);
-              try {
-                client.write('unload_chunk', { chunkX: cx, chunkZ: cz });
-              } catch (_) {}
             }
           }
         }
@@ -1566,45 +1561,39 @@ export class ZylarServer {
         }
 
         if (chunksToStream.length > 0) {
-          if (!is119) {
-            try { client.write('chunk_batch_start', {}); } catch (_) {}
-          }
           // Send closest chunks first for instant floor stability
           chunksToStream.sort((a, b) => a.dist - b.dist);
 
           const immediate = chunksToStream.slice(0, 4);
           for (const c of immediate) {
+            if (!this.isClientWritable(client)) break;
             try {
               const chunkPacket = (this.config.worldType === 'hub')
                 ? dumpHubChunkPacket(c.cx, c.cz, is119)
                 : dumpChunkPacket(c.cx, c.cz, is119);
               client.write('map_chunk', chunkPacket);
-              newChunksStreamed++;
             } catch (_) {}
           }
 
           const remaining = chunksToStream.slice(4);
           if (remaining.length > 0) {
             const streamBatch = () => {
+              if (!this.isClientWritable(client)) return;
               const batch = remaining.splice(0, 6);
               for (const c of batch) {
+                if (!this.isClientWritable(client)) return;
                 try {
                   const chunkPacket = (this.config.worldType === 'hub')
                     ? dumpHubChunkPacket(c.cx, c.cz, is119)
                     : dumpChunkPacket(c.cx, c.cz, is119);
                   client.write('map_chunk', chunkPacket);
-                  newChunksStreamed++;
                 } catch (_) {}
               }
-              if (remaining.length > 0) {
+              if (remaining.length > 0 && this.isClientWritable(client)) {
                 setImmediate(streamBatch);
-              } else if (!is119 && newChunksStreamed > 0) {
-                try { client.write('chunk_batch_finished', { batchSize: newChunksStreamed }); } catch (_) {}
               }
             };
             setImmediate(streamBatch);
-          } else if (!is119 && newChunksStreamed > 0) {
-            try { client.write('chunk_batch_finished', { batchSize: newChunksStreamed }); } catch (_) {}
           }
         }
       }
@@ -1627,7 +1616,7 @@ export class ZylarServer {
       const pitchByte = this.toProtocolByte(pData.pitch);
 
       for (const [_, other] of players) {
-        if (other.client.id !== client.id && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
+        if (other.client.id !== client.id && this.isClientWritable(other?.client) && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
           try {
             if (distSq > 0.0001 && distSq < 64.0) {
               const dX = Math.round(deltaX * 4096);
@@ -1655,12 +1644,8 @@ export class ZylarServer {
                 x: data.x,
                 y: data.y,
                 z: data.z,
-                dx: 0,
-                dy: 0,
-                dz: 0,
-                yaw: pData.yaw,
-                pitch: pData.pitch,
-                flags: { _value: 0 },
+                yaw: yawByte,
+                pitch: pitchByte,
                 onGround: true
               });
             }
@@ -1682,7 +1667,7 @@ export class ZylarServer {
       const yawByte = this.toProtocolByte(pData.yaw);
       const pitchByte = this.toProtocolByte(pData.pitch);
       for (const [_, other] of players) {
-        if (other.client.id !== client.id && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
+        if (other.client.id !== client.id && this.isClientWritable(other?.client) && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
           try {
             other.client.write('entity_head_rotation', {
               entityId: pData.entityId,
@@ -1706,13 +1691,6 @@ export class ZylarServer {
       }
     });
 
-    client.on('chunk_batch_received', (data: any) => {
-      // Mojang 1.21.8 chunk batch feedback telemetry from client
-      if (data && typeof data.chunksPerTick === 'number') {
-        pData.chunksPerTick = data.chunksPerTick;
-      }
-    });
-
     client.on('held_item_slot', (data: any) => {
       if (typeof data.slotId === 'number') {
         pData.selectedSlot = data.slotId;
@@ -1727,7 +1705,7 @@ export class ZylarServer {
 
     client.on('arm_animation', (data: any) => {
       for (const [_, other] of players) {
-        if (other.client.id !== client.id && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
+        if (other.client.id !== client.id && this.isClientWritable(other?.client) && other.spawnedPlayers && other.spawnedPlayers.has(pData.entityId)) {
           try {
             other.client.write('animation', {
               entityId: pData.entityId,
@@ -1777,12 +1755,14 @@ export class ZylarServer {
       if (data.windowId === 0 || pData.openWindowId === 0) {
         // Locking Hotbar Slot 9 (Slot 44): Nether Star is completely unmovable
         if (clickedSlot === HOTBAR_NETHER_STAR_SLOT || (data.mode === 2 && data.button === 8)) {
-          client.write('set_slot', {
-            windowId: -1,
-            stateId: data.stateId,
-            slot: -1,
-            item: formatSlotForClient(null, false)
-          });
+          try {
+            client.write('set_slot', {
+              windowId: -1,
+              stateId: data.stateId,
+              slot: -1,
+              item: { present: false }
+            });
+          } catch (_) {}
           giveNetherStar(client);
           openSkyBlockMenu(client, pData);
           return;
@@ -1803,7 +1783,7 @@ export class ZylarServer {
                   windowId: 0,
                   stateId: data.stateId,
                   slot: clickedSlot,
-                  item: formatSlotForClient(null, false)
+                  item: { present: false }
                 });
               } catch (_) {}
             } else {
@@ -1833,7 +1813,7 @@ export class ZylarServer {
 
         // 2. Dropping item held on cursor outside window (clickedSlot === -999)
         if (clickedSlot === -999) {
-          const mcData = mcData1218;
+          const mcData = mcData1192;
           const cursor = data.cursorItem || data.item;
           if (cursor && (cursor.present || cursor.itemId)) {
             const itemDef = mcData.items[cursor.itemId];
@@ -1845,7 +1825,7 @@ export class ZylarServer {
                   windowId: -1,
                   stateId: data.stateId,
                   slot: -1,
-                  item: formatSlotForClient(null, false)
+                  item: { present: false }
                 });
               } catch (_) {}
             }
@@ -1855,7 +1835,7 @@ export class ZylarServer {
         }
 
         if (Array.isArray(data.changedSlots)) {
-          const mcData = mcData1218;
+          const mcData = mcData1192;
           for (const change of data.changedSlots) {
             const slot = change.location;
             const item = change.item;
@@ -1877,7 +1857,7 @@ export class ZylarServer {
                     windowId: 0,
                     stateId: data.stateId,
                     slot,
-                    item: formatSlotForClient(tagged, is119)
+                    item: tagged
                   });
                 } catch (_) {}
               }
@@ -1898,21 +1878,25 @@ export class ZylarServer {
         }
 
         // Clear cursor item immediately
-        client.write('set_slot', {
-          windowId: -1,
-          stateId: data.stateId,
-          slot: -1,
-          item: formatSlotForClient(null, false)
-        });
+        try {
+          client.write('set_slot', {
+            windowId: -1,
+            stateId: data.stateId,
+            slot: -1,
+            item: { present: false }
+          });
+        } catch (_) {}
 
         // CRITICAL FIX: Restore clicked slot item in GUI so items (like player head!) NEVER disappear!
         if (pData.currentGuiItems && clickedSlot >= 0 && clickedSlot < 54) {
-          client.write('set_slot', {
-            windowId: pData.openWindowId,
-            stateId: data.stateId,
-            slot: clickedSlot,
-            item: formatSlotForClient(pData.currentGuiItems[clickedSlot], false)
-          });
+          try {
+            client.write('set_slot', {
+              windowId: pData.openWindowId,
+              stateId: data.stateId,
+              slot: clickedSlot,
+              item: pData.currentGuiItems[clickedSlot] || { present: false }
+            });
+          } catch (_) {}
         }
 
         // 1. SkyBlock Menu (WindowId = 6)
@@ -1925,7 +1909,7 @@ export class ZylarServer {
         if (pData.openWindowId === 5) {
           if (clickedSlot === 49) {
             pData.openWindowId = 0;
-            client.write('close_window', { windowId: 5 });
+            try { client.write('close_window', { windowId: 5 }); } catch (_) {}
           }
           return;
         }
@@ -1949,7 +1933,7 @@ export class ZylarServer {
             openAdminItemSpawner(client, pData, 0);
           } else if (clickedSlot === 49) {
             pData.openWindowId = 0;
-            client.write('close_window', { windowId: 1 });
+            try { client.write('close_window', { windowId: 1 }); } catch (_) {}
           }
           return;
         }
@@ -1978,6 +1962,7 @@ export class ZylarServer {
             const target = pData.targetPlayerForRank || pData;
             setPlayerRank(target, chosenRank);
             for (const [_, observer] of players) {
+              if (!this.isClientWritable(observer?.client)) continue;
               updateTablist(observer.client, observer.is119, this.config.scoreboardLocation);
               sendScoreboardTeam(observer.client, target.username, chosenRank, observer.is119);
             }
@@ -2096,7 +2081,7 @@ export class ZylarServer {
                 windowId: 0,
                 stateId: 1,
                 slot: activeSlot,
-                item: formatSlotForClient(null, false)
+                item: { present: false }
               });
             } catch (_) {}
           } else {
@@ -2136,7 +2121,7 @@ export class ZylarServer {
         const rx = ((x % 16) + 16) % 16;
         const rz = ((z % 16) + 16) % 16;
         const stateId = chunk ? chunk.getBlockStateId(new Vec3(rx, y, rz)) : 1;
-        const mcData = mcData1218;
+        const mcData = mcData1192;
         const blockName = mcData.blocksByStateId[stateId]?.name || '';
 
         // Check 5x5 Hub Wheat Minion Exclusion Zone (X: 45..49, Y: 70, Z: -139..-135)
@@ -2153,10 +2138,12 @@ export class ZylarServer {
           return;
         }
 
-        client.write('block_change', {
-          location,
-          type: stateId
-        });
+        try {
+          client.write('block_change', {
+            location,
+            type: stateId
+          });
+        } catch (_) {}
         if (typeof sequence === 'number') {
           try { client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
         }
@@ -2168,7 +2155,7 @@ export class ZylarServer {
         return;
       }
 
-      const mcData = mcData1218;
+      const mcData = mcData1192;
       const blockDef = mcData.blocksByName[currentBlock];
       const isInstantBreak = blockDef && (blockDef.hardness === 0 || blockDef.hardness === null);
 
@@ -2178,10 +2165,12 @@ export class ZylarServer {
         const islandOwner = this.getIslandOwnerForCoords(x, z, pData.username);
         if (islandOwner.toLowerCase() !== pData.username.toLowerCase() && !pData.isOp && !pData.bypassGuestProtection) {
           sendSystemMessage(client, `§cYou cannot build or break blocks on §e${islandOwner}'s §cisland! You are a guest.`, is119);
-          client.write('block_change', {
-            location,
-            type: blockDef ? blockDef.defaultState : 0
-          });
+          try {
+            client.write('block_change', {
+              location,
+              type: blockDef ? blockDef.defaultState : 0
+            });
+          } catch (_) {}
           if (typeof sequence === 'number') {
             try { client.write('acknowledge_player_digging', { sequenceId: sequence }); } catch (_) {}
           }
@@ -2193,6 +2182,7 @@ export class ZylarServer {
 
         // Broadcast block break to breaker AND all nearby observers
         for (const [_, observer] of players) {
+          if (!this.isClientWritable(observer?.client)) continue;
           const dist = Math.hypot((observer.x || 0) - x, (observer.z || 0) - z);
           if (dist <= 128.0) {
             try {
@@ -2284,16 +2274,18 @@ export class ZylarServer {
 
       // Hub Protection
       if (!this.config.allowBlockPlacement || this.config.worldType === 'hub') {
-        client.write('block_change', {
-          location: { x: targetX, y: targetY, z: targetZ },
-          type: 0
-        });
-        client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: activeSlot,
-          item: currentTagged
-        });
+        try {
+          client.write('block_change', {
+            location: { x: targetX, y: targetY, z: targetZ },
+            type: 0
+          });
+          client.write('set_slot', {
+            windowId: 0,
+            stateId: 1,
+            slot: activeSlot,
+            item: currentTagged
+          });
+        } catch (_) {}
         if (typeof data.sequence === 'number') {
           try { client.write('acknowledge_player_digging', { sequenceId: data.sequence }); } catch (_) {}
         }
@@ -2306,16 +2298,18 @@ export class ZylarServer {
       const islandOwner = this.getIslandOwnerForCoords(targetX, targetZ, pData.username);
       if (islandOwner.toLowerCase() !== pData.username.toLowerCase() && !pData.isOp && !pData.bypassGuestProtection) {
         sendSystemMessage(client, `§cYou cannot build or break blocks on §e${islandOwner}'s §cisland! You are a guest.`, is119);
-        client.write('block_change', {
-          location: { x: targetX, y: targetY, z: targetZ },
-          type: 0
-        });
-        client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: activeSlot,
-          item: currentTagged
-        });
+        try {
+          client.write('block_change', {
+            location: { x: targetX, y: targetY, z: targetZ },
+            type: 0
+          });
+          client.write('set_slot', {
+            windowId: 0,
+            stateId: 1,
+            slot: activeSlot,
+            item: currentTagged
+          });
+        } catch (_) {}
         if (typeof data.sequence === 'number') {
           try { client.write('acknowledge_player_digging', { sequenceId: data.sequence }); } catch (_) {}
         }
@@ -2324,17 +2318,19 @@ export class ZylarServer {
       }
 
       const blockToPlace = ITEM_TO_BLOCK[held.name] || held.name;
-      const mcData = mcData1218;
+      const mcData = mcData1192;
       const blockDef = mcData.blocksByName[blockToPlace];
 
       // Non-placeable item (e.g. Swords, tools, items without a block)
       if (!blockDef) {
-        client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: activeSlot,
-          item: currentTagged
-        });
+        try {
+          client.write('set_slot', {
+            windowId: 0,
+            stateId: 1,
+            slot: activeSlot,
+            item: currentTagged
+          });
+        } catch (_) {}
         handleItemAbility(pData, this, currentTagged, 'RIGHT CLICK');
         return;
       }
@@ -2344,6 +2340,7 @@ export class ZylarServer {
         savePlayerIslandBlock(islandOwner, targetX, targetY, targetZ, blockToPlace);
 
         for (const [_, p] of players) {
+          if (!this.isClientWritable(p?.client)) continue;
           const dist = Math.hypot((p.x || 0) - targetX, (p.z || 0) - targetZ);
           if (dist <= 128.0) {
             try {
@@ -2364,12 +2361,14 @@ export class ZylarServer {
           nbtData: held.nbtData
         }, is119) : { present: false };
 
-        client.write('set_slot', {
-          windowId: 0,
-          stateId: 1,
-          slot: activeSlot,
-          item: formatSlotForClient(updatedTagged, is119)
-        });
+        try {
+          client.write('set_slot', {
+            windowId: 0,
+            stateId: 1,
+            slot: activeSlot,
+            item: updatedTagged
+          });
+        } catch (_) {}
 
         persistPlayerSession(pData);
 
@@ -2409,7 +2408,7 @@ export class ZylarServer {
 
       if (data.mouse !== 1) return; // 1 = Attack
 
-      // Peaceful Hub Safe Zone Check (Player vs Player)
+      // Peaceful Hub Safe Zone Check
       if (!this.config.pvp || this.config.worldType === 'hub') {
         return;
       }
@@ -2430,7 +2429,18 @@ export class ZylarServer {
         if (!pData.lastPvpNotice || now - pData.lastPvpNotice > 1500) {
           pData.lastPvpNotice = now;
           sendSystemMessage(client, `§cYou cannot attack players on ZylarPixel! Only Operators can attack.`, is119);
-          playSoundEffect(client, 'entity.villager.no', pData.x, pData.y, pData.z, 0.8, 1.0, 'player', is119);
+          try {
+            client.write('named_sound_effect', {
+              soundName: 'entity.villager.no',
+              soundCategory: 0,
+              x: Math.floor(pData.x * 8),
+              y: Math.floor(pData.y * 8),
+              z: Math.floor(pData.z * 8),
+              volume: 0.8,
+              pitch: 1.0,
+              seed: [0, 0]
+            });
+          } catch (_) {}
         }
         return;
       }
@@ -2439,6 +2449,7 @@ export class ZylarServer {
 
       // Red Hurt Status
       for (const [_, p] of players) {
+        if (!this.isClientWritable(p?.client)) continue;
         try {
           p.client.write('entity_status', {
             entityId: targetEntityId,
@@ -2449,9 +2460,18 @@ export class ZylarServer {
 
       // Hurt Sound Effect
       for (const [_, p] of players) {
-        if (!p || !p.client || p.client.ended || p.client.state === 'closed') continue;
+        if (!this.isClientWritable(p?.client)) continue;
         try {
-          playSoundEffect(p.client, 'entity.player.hurt', targetPData.x, targetPData.y, targetPData.z, 1.0, 1.0, 'player', p.is119);
+          p.client.write('named_sound_effect', {
+            soundName: 'entity.player.hurt',
+            soundCategory: 0,
+            x: Math.floor(targetPData.x * 8),
+            y: Math.floor(targetPData.y * 8),
+            z: Math.floor(targetPData.z * 8),
+            volume: 1.0,
+            pitch: 1.0,
+            seed: [0, 0]
+          });
         } catch (_) {}
       }
 
@@ -2462,15 +2482,17 @@ export class ZylarServer {
       const vy = 3000;
       const vz = Math.round(Math.cos(yawRad) * knockStrength);
 
-      try {
-        targetClient.write('entity_velocity', {
-          entityId: targetEntityId,
-          velocity: { x: vx, y: vy, z: vz }
-        });
-      } catch (_) {}
+      if (this.isClientWritable(targetClient)) {
+        try {
+          targetClient.write('entity_velocity', {
+            entityId: targetEntityId,
+            velocity: { x: vx, y: vy, z: vz }
+          });
+        } catch (_) {}
+      }
 
       for (const [_, p] of players) {
-        if (p.client.id !== targetClient.id) {
+        if (p.client.id !== targetClient.id && this.isClientWritable(p?.client)) {
           try {
             p.client.write('entity_velocity', {
               entityId: targetEntityId,
@@ -2496,21 +2518,27 @@ export class ZylarServer {
       const finalDamage = applyDefense(rawDamage, targetPData.stats.defense);
 
       targetPData.stats.health = Math.max(0, targetPData.stats.health - finalDamage);
-      syncVanillaHealthAndHunger(targetClient, targetPData.stats);
+      if (this.isClientWritable(targetClient)) {
+        syncVanillaHealthAndHunger(targetClient, targetPData.stats);
+      }
 
       // Spawn Floating ArmorStand Damage Indicator (Zero Chat Spam!)
-      const allClients = Array.from(players.values()).map(p => p.client);
+      const allClients = Array.from(players.values()).map(p => p.client).filter(c => this.isClientWritable(c));
       spawnDamageIndicator(allClients, targetPData.x, targetPData.y, targetPData.z, finalDamage, isCrit);
 
       // Sync Below-Name Health Score
       for (const [_, p] of players) {
+        if (!this.isClientWritable(p?.client)) continue;
         updatePlayerHealthScore(p.client, targetPData.username, targetPData.stats.health, p.is119);
       }
 
       // Death Check
       if (targetPData.stats.health <= 0) {
-        sendSystemMessage(targetClient, `§c☠ You died! Respawning at island...`, targetPData.is119);
+        if (this.isClientWritable(targetClient)) {
+          sendSystemMessage(targetClient, `§c☠ You died! Respawning at island...`, targetPData.is119);
+        }
         for (const [_, p] of players) {
+          if (!this.isClientWritable(p?.client)) continue;
           sendSystemMessage(p.client, `§c☠ §e${targetPData.username} §7was slain by §c${pData.username}§7!`, p.is119);
         }
         targetPData.stats.health = targetPData.stats.maxHealth;
@@ -2518,9 +2546,12 @@ export class ZylarServer {
         const sX = targetPData.island ? targetPData.island.spawnX : 0.5;
         const sY = targetPData.island ? targetPData.island.spawnY : 101.0;
         const sZ = targetPData.island ? targetPData.island.spawnZ : 0.5;
-        teleportPlayerWithChunks(targetPData, sX, sY, sZ);
-        syncVanillaHealthAndHunger(targetClient, targetPData.stats);
+        if (this.isClientWritable(targetClient)) {
+          teleportPlayerWithChunks(targetPData, sX, sY, sZ);
+          syncVanillaHealthAndHunger(targetClient, targetPData.stats);
+        }
         for (const [_, p] of players) {
+          if (!this.isClientWritable(p?.client)) continue;
           updatePlayerHealthScore(p.client, targetPData.username, targetPData.stats.health, p.is119);
         }
       }
@@ -2543,6 +2574,7 @@ export class ZylarServer {
         const formatted = formatChatMessage(pData.rank, pData.username, clean);
         console.log(`[CHAT] ${formatted.replace(/§[0-9a-fk-or]/g, '')}`);
         for (const [_, p] of players) {
+          if (!this.isClientWritable(p?.client)) continue;
           sendSystemMessage(p.client, formatted, p.is119);
         }
       }
@@ -2557,23 +2589,12 @@ export class ZylarServer {
       handleTabComplete(client, pData, data, players);
     });
 
-    // I. Player Error & Disconnect
-    client.on('error', (err: any) => {
-      const msg = err?.message || String(err);
-      this.log('DEBUG', `[!] Client packet stream error for ${client.username || client.id}: ${msg}`);
-    });
+    // I. Player Disconnect
+    client.on('end', onDisconnect);
 
-    client.on('end', () => {
-      persistPlayerSession(pData);
-      removePlayerSession(client.id);
-      for (const [_, p] of players) {
-        updateTablist(p.client, p.is119, this.config.scoreboardLocation);
-      }
-      for (const [_, other] of players) {
-        this.despawnPlayerForObserver(other, pData);
-      }
-      this.log('INFO', `[-] Player left ${this.config.serverName}: ${client.username}`);
-    });
+    if (!this.isClientWritable(client)) {
+      onDisconnect();
+    }
   }
 
   private checkPortalStep(pData: any, x: number, y: number, z: number): void {
