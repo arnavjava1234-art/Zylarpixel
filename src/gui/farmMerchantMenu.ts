@@ -15,7 +15,7 @@
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack } from '../items';
+import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 
@@ -264,10 +264,9 @@ export function createMerchantGuiItem(
         value: [{ id: { type: 'string', value: 'minecraft:unbreaking' }, lvl: { type: 'short', value: 1 } }]
       }
     };
-    nbtValue.HideFlags = { type: 'int', value: 1 };
   }
 
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -276,7 +275,7 @@ export function createMerchantGuiItem(
       name: '',
       value: nbtValue
     }
-  };
+  }, true);
 }
 
 /**

@@ -8,7 +8,7 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { createNetherStarItem, giveNetherStar, HOTBAR_NETHER_STAR_SLOT } from './skyblockMenu';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack } from '../items';
+import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession } from '../players/playerManager';
 
 export const CRAFTING_TABLE_WINDOW_ID = 15;
@@ -89,7 +89,7 @@ export function createGuiItemById(
   loreArray: string[] = []
 ): any {
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId,
     itemCount: count || 1,
@@ -112,7 +112,7 @@ export function createGuiItemById(
         }
       }
     }
-  };
+  }, true);
 }
 
 /**
@@ -234,10 +234,18 @@ export function addItemToPlayerInventory(pData: any, itemId: number, count: numb
   for (const slot of candidateSlots) {
     if (remaining <= 0) break;
     const existing = pData.inventory.get(slot);
-    if (existing && existing.itemId === itemId && existing.count < maxStack) {
+    const hasUniqueUuid = !!existing?.nbtData?.value?.ExtraAttributes?.value?.uuid?.value;
+    if (existing && !hasUniqueUuid && existing.itemId === itemId && existing.count < maxStack) {
       const canAdd = Math.min(remaining, maxStack - existing.count);
       existing.count += canAdd;
       remaining -= canAdd;
+      const tagged = tagVanillaItemStack({
+        present: true,
+        itemId: existing.itemId,
+        itemCount: existing.count,
+        nbtData: existing.nbtData
+      }, is119);
+      existing.nbtData = tagged.nbtData;
     }
   }
 
@@ -246,11 +254,17 @@ export function addItemToPlayerInventory(pData: any, itemId: number, count: numb
     if (remaining <= 0) break;
     if (!pData.inventory.has(slot)) {
       const canAdd = Math.min(remaining, maxStack);
+      const tagged = tagVanillaItemStack({
+        present: true,
+        itemId,
+        itemCount: canAdd
+      }, is119);
       pData.inventory.set(slot, {
         slot,
         name: itemName,
         itemId,
-        count: canAdd
+        count: canAdd,
+        nbtData: tagged.nbtData
       });
       remaining -= canAdd;
     }

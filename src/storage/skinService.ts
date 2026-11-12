@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { mcData1192 } from '../world/worldManager';
+import { applyUniversalItemFlags } from '../items';
 
 const SKINS_DIR = path.resolve(__dirname, '../../data/skins');
 if (!fs.existsSync(SKINS_DIR)) {
@@ -164,7 +165,7 @@ export function createPlayerSkullItem(
     };
   }
 
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId: itemDef.id,
     itemCount: 1,
@@ -173,5 +174,5 @@ export function createPlayerSkullItem(
       name: '',
       value: nbtValue
     }
-  };
+  }, true);
 }

@@ -127,7 +127,7 @@ import {
   handleAdminItemSpawnerClick,
   ADMIN_ITEM_SPAWNER_WINDOW_ID
 } from '../gui/adminItemMenu';
-import { tagVanillaItemStack, formatSlotForClient, isSkyBlockItemStack, handleItemAbility, createItem, applySpeedBoost } from '../items';
+import { tagVanillaItemStack, formatSlotForClient, isSkyBlockItemStack, handleItemAbility, createItem, applySpeedBoost, sanitizeOutgoingPacket } from '../items';
 
 const Vec3 = require('vec3');
 
@@ -193,6 +193,23 @@ export class ZylarServer {
 
   private isClientWritable(client: any): boolean {
     return !!(client && !client.ended && client.state !== 'closed');
+  }
+
+  /**
+   * Wraps client.write once per connection so all outgoing item-bearing packets
+   * (menus, hotbar, inventory, cursor, equipment, drops) have HideFlags: 255
+   * and all breakable items are Unbreakable.
+   */
+  private installUniversalPacketSanitizer(client: any, is119: boolean = true): void {
+    if (!client || typeof client.write !== 'function' || (client as any)._zylarItemSanitizerInstalled) {
+      return;
+    }
+    const originalWrite = client.write.bind(client);
+    (client as any)._zylarItemSanitizerInstalled = true;
+    client.write = (name: string, params: any) => {
+      const sanitized = sanitizeOutgoingPacket(name, params, is119);
+      return originalWrite(name, sanitized);
+    };
   }
 
   private initLogger() {
@@ -645,6 +662,7 @@ export class ZylarServer {
 
     this.serverInstance.on('connection', (client: any) => {
       if (!client) return;
+      this.installUniversalPacketSanitizer(client, true);
       client.on('error', (err: any) => {
         if (!players.has(client.id)) {
           this.log('WARN', `Pre-join client socket error (${client.username || client.id || 'unknown'}): ${err?.message || err}`);
@@ -1093,6 +1111,7 @@ export class ZylarServer {
   }
 
   private handlePlayerJoin(client: any): void {
+    this.installUniversalPacketSanitizer(client, true);
     (client as any)._hasJoinErrorHandler = true;
     client.on('error', (err: any) => {
       if ((client as any)._hasPacketErrorHandler) return;

@@ -4,12 +4,13 @@
  */
 
 import { mcData1192 } from '../world/worldManager';
+import { applyUniversalItemFlags } from '../items';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
 
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -32,7 +33,7 @@ export function createGuiItem(itemName: string, count: number, displayName: stri
         }
       }
     }
-  };
+  }, true);
 }
 
 export function createAdminBaseSlots(totalSlots: number = 54): any[] {

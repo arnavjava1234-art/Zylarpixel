@@ -4,7 +4,7 @@
  */
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
-import { formatSlotForClient } from '../items';
+import { formatSlotForClient, applyUniversalItemFlags } from '../items';
 import { createGuiItem, openStatsMenu } from './statsMenu';
 import { openBankMainMenu } from './bankMenu';
 import { openCraftingTableMenu } from './craftingTableMenu';
@@ -23,7 +23,7 @@ export function createNetherStarItem(is119: boolean = true): any {
     JSON.stringify({ text: '§eClick to open!' })
   ];
 
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId: itemDef.id,
     itemCount: 1,
@@ -46,7 +46,7 @@ export function createNetherStarItem(is119: boolean = true): any {
         }
       }
     }
-  };
+  }, is119);
 }
 
 export function giveNetherStar(client: any): void {

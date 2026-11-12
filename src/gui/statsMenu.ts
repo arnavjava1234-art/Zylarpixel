@@ -6,6 +6,7 @@
 import { mcData1192 } from '../world/worldManager';
 import { PlayerSession } from '../types';
 import { calculateEHP } from '../stats/statsManager';
+import { applyUniversalItemFlags } from '../items';
 
 export function createGuiItem(
   itemName: string,
@@ -16,7 +17,7 @@ export function createGuiItem(
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
 
-  return {
+  return applyUniversalItemFlags({
     present: true,
     itemId: itemDef.id,
     itemCount: count || 1,
@@ -39,7 +40,7 @@ export function createGuiItem(
         }
       }
     }
-  };
+  }, true);
 }
 
 export function openStatsMenu(client: any, pData: PlayerSession): void {

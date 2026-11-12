@@ -15,6 +15,112 @@ import {
   formatExclusiveGradient
 } from './itemTypes';
 
+export const UNIVERSAL_HIDE_FLAGS = 255;
+
+/**
+ * Returns true if the given Minecraft item ID has durability and can break in vanilla.
+ */
+export function isBreakableItem(itemId: number, is119: boolean = true): boolean {
+  if (typeof itemId !== 'number') return false;
+  const mcData = is119 ? mcData1192 : mcData1211;
+  const itemDef = mcData?.items?.[itemId];
+  return typeof itemDef?.maxDurability === 'number' && itemDef.maxDurability > 0;
+}
+
+function applyUniversalNbtFields(nbtValue: any, itemId: number, isSkyBlock: boolean, is119: boolean): void {
+  nbtValue.HideFlags = { type: 'int', value: UNIVERSAL_HIDE_FLAGS };
+  if (isBreakableItem(itemId, is119) || isSkyBlock) {
+    nbtValue.Unbreakable = { type: 'byte', value: 1 };
+    delete nbtValue.Damage;
+  } else {
+    // Strip legacy Unbreakable from non-breakable items so old & new stacks always merge cleanly
+    delete nbtValue.Unbreakable;
+  }
+}
+
+/**
+ * Universally enforces HideFlags: 255 on any item stack and marks all breakable items Unbreakable.
+ */
+export function applyUniversalItemFlags(itemStack: any, is119: boolean = true): any {
+  if (
+    !itemStack ||
+    itemStack.present === false ||
+    typeof itemStack.itemId !== 'number' ||
+    (typeof itemStack.itemCount === 'number' && itemStack.itemCount <= 0) ||
+    (typeof itemStack.count === 'number' && itemStack.count <= 0)
+  ) {
+    return itemStack;
+  }
+
+  // Handle 1.21.1 component slot shape without wrapping in legacy nbtData
+  if (itemStack.addedComponentCount !== undefined && Array.isArray(itemStack.components)) {
+    return itemStack;
+  }
+
+  const nextNbtValue = itemStack.nbtData?.value ? { ...itemStack.nbtData.value } : {};
+  applyUniversalNbtFields(nextNbtValue, itemStack.itemId, isSkyBlockItemStack(itemStack), is119);
+
+  return {
+    ...itemStack,
+    nbtData: {
+      type: 'compound',
+      name: itemStack.nbtData?.name ?? '',
+      value: nextNbtValue
+    }
+  };
+}
+
+/**
+ * Sanitizes outgoing item-bearing packets (set_slot, window_items, entity_equipment, entity_metadata)
+ * so every item sent to clients has HideFlags: 255 and breakable items are Unbreakable.
+ */
+export function sanitizeOutgoingPacket(packetName: string, params: any, is119: boolean = true): any {
+  if (!params || typeof params !== 'object') return params;
+
+  if (packetName === 'set_slot') {
+    const next = { ...params };
+    if (next.item) {
+      next.item = applyUniversalItemFlags(next.item, is119);
+    }
+    return next;
+  }
+
+  if (packetName === 'window_items') {
+    const next = { ...params };
+    if (Array.isArray(next.items)) {
+      next.items = next.items.map((it: any) => applyUniversalItemFlags(it, is119));
+    }
+    if (next.carriedItem) {
+      next.carriedItem = applyUniversalItemFlags(next.carriedItem, is119);
+    }
+    return next;
+  }
+
+  if (packetName === 'entity_equipment') {
+    const next = { ...params };
+    if (Array.isArray(next.equipments)) {
+      next.equipments = next.equipments.map((eq: any) =>
+        eq && eq.item ? { ...eq, item: applyUniversalItemFlags(eq.item, is119) } : eq
+      );
+    }
+    return next;
+  }
+
+  if (packetName === 'entity_metadata') {
+    const next = { ...params };
+    if (Array.isArray(next.metadata)) {
+      next.metadata = next.metadata.map((entry: any) =>
+        entry && entry.type === 6 && entry.value
+          ? { ...entry, value: applyUniversalItemFlags(entry.value, is119) }
+          : entry
+      );
+    }
+    return next;
+  }
+
+  return params;
+}
+
 export function formatRarityBadge(rarity: ItemRarity, type: ItemType): string {
   if (rarity === 'EXCLUSIVE') {
     const text = type === 'ITEM' ? 'EXCLUSIVE' : `EXCLUSIVE ${type}`;
@@ -181,7 +287,7 @@ export function createSkyBlockItemStack(
   }
 
   const nbtValue: any = {
-    HideFlags: { type: 'int', value: 254 }, // Hides vanilla attribute tooltips (e.g. +4 Attack Damage, +1.6 Attack Speed), unbreakable, etc.
+    HideFlags: { type: 'int', value: UNIVERSAL_HIDE_FLAGS }, // Hides all vanilla tooltips (enchants, damage, attack speed, unbreakable, dyed, etc.)
     Unbreakable: { type: 'byte', value: 1 },
     display: {
       type: 'compound',
@@ -325,26 +431,18 @@ export function tagVanillaItemStack(itemStack: any, is119: boolean = true): any 
     return itemStack;
   }
 
-  // Preserve existing SkyBlock items, but ensure HideFlags: 254 is present to hide vanilla tooltips!
+  // Preserve existing SkyBlock items, upgrading HideFlags to 255 and enforcing Unbreakable
   if (isSkyBlockItemStack(itemStack)) {
-    if (itemStack.nbtData?.value) {
-      if (!itemStack.nbtData.value.HideFlags) {
-        itemStack.nbtData.value.HideFlags = { type: 'int', value: 254 };
-      }
-      if (!itemStack.nbtData.value.Unbreakable) {
-        itemStack.nbtData.value.Unbreakable = { type: 'byte', value: 1 };
-      }
-    }
-    return itemStack;
+    return applyUniversalItemFlags(itemStack, is119);
   }
 
   const mcData = is119 ? mcData1192 : mcData1211;
   const itemDef = mcData.items[itemStack.itemId];
   const rawName = itemDef ? itemDef.name : 'unknown';
 
-  // Do not tag the SkyBlock Menu Nether Star
+  // Do not add ExtraAttributes/lore to the SkyBlock Menu Nether Star, but still hide tooltips
   if (rawName === 'nether_star') {
-    return itemStack;
+    return applyUniversalItemFlags(itemStack, is119);
   }
 
   const friendlyName = formatFriendlyItemName(rawName);
@@ -359,8 +457,8 @@ export function tagVanillaItemStack(itemStack: any, is119: boolean = true): any 
   // Deep clone or construct NBT data
   const existingNbt = itemStack.nbtData?.value ? JSON.parse(JSON.stringify(itemStack.nbtData.value)) : {};
 
-  // Hide vanilla attack damage & speed tooltips, unbreakable, etc.
-  existingNbt.HideFlags = { type: 'int', value: 254 };
+  // Hide all vanilla tooltips and normalize Unbreakable consistently with packet sanitizer
+  applyUniversalNbtFields(existingNbt, itemStack.itemId, false, is119);
 
   if (!existingNbt.display) {
     existingNbt.display = { type: 'compound', value: {} };
@@ -419,13 +517,13 @@ export function formatSlotForClient(item: any, is119: boolean = true): any {
   }
 
   if (is119) {
-    if (item.present !== undefined) return item;
-    return {
+    if (item.present !== undefined) return applyUniversalItemFlags(item, true);
+    return applyUniversalItemFlags({
       present: true,
       itemId: item.itemId,
       itemCount: item.itemCount || item.count || 1,
       nbtData: item.nbtData
-    };
+    }, true);
   }
 
   // 1.21.1 SlotComponent format: if already formatted, return directly
