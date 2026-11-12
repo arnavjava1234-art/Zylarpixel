@@ -113,7 +113,7 @@ function getNetworkDisplayName(session: ProxySession): string {
     return `${serverTag} ${nameWithRank}`;
   } catch (_) {
     const serverTag = session.isInLimbo ? '§8[§dLimbo§8]' : (session.currentServer === 'hub' ? '§8[§6Hub§8]' : '§8[§aIsland§8]');
-    return `${serverTag} §7${session.username}`;
+    return `${serverTag} ${formatPlayerName(RANKS.default, session.username)}`;
   }
 }
 

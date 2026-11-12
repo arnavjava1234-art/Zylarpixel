@@ -306,7 +306,7 @@ export function handleCommand(
         pData.isOp = true;
         persistPlayerSession(pData);
         sendDeclaredCommands(client, true, isMaster);
-        sendSystemMessage(client, `§7[§dZylarPixel§7] §aOperator status granted to §c[${pData.rank?.id?.toUpperCase() || 'OWNER'}] ${pData.username}§a!`, is119);
+        sendSystemMessage(client, `§7[§dZylarPixel§7] §aOperator status granted to ${formatPlayerName(pData.rank || RANKS.default, pData.username)}§a!`, is119);
         sendSystemMessage(client, `§7Type §e/admin §7to open the Admin Control Panel.`, is119);
       } else {
         sendSystemMessage(client, '§cYou do not have permission to execute this command.', is119);
