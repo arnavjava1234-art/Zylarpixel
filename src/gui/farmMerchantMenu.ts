@@ -3,9 +3,9 @@
  * 54-Slot (minecraft:generic_9x6) double-chest layout, 1:1 mirror of Hypixel Classic Hub.
  * 
  * Features:
- * - 13 authentic commodities (Wheat, Carrot, Potato, Melon, Sugar Cane, Pumpkin, Cocoa, Mushrooms, Sand, Cactus)
+ * - 14 authentic commodities (Wheat, Carrot, Potato, Melon, Sugar Cane, Pumpkin, Cocoa, Mushrooms, Sand, Cactus, Seeds)
  * - Anti-arbitrage guaranteed: Buy unit price > Sell unit price across every single commodity
- * - Contiguous under-development items at slots 23 & 24 (Enchanted Bone Meal with glint, Rookie Hoe)
+ * - Under-development items at slots 23 & 24 (Enchanted Bone Meal with glint, Rookie Hoe) and Seeds at slot 25
  * - Clean lore with daily limit and countdown numbers stripped
  * - 640 daily purchase cap per commodity with universal 00:00 GMT lazy epoch rollover
  * - Interactive Click-to-Sell for agricultural commodities from player inventory (slots 54..89)
@@ -167,23 +167,51 @@ export const COMMODITIES: Record<number, CommodityItem> = {
       ' ',
       '§cCurrently Under Development!'
     ]
+  },
+  25: {
+    slot: 25,
+    name: 'Seeds',
+    vanillaItem: 'wheat_seeds',
+    buyUnit: 3,
+    buyPrice: 7,
+    unitSellPrice: 1.0,
+    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
   }
 };
 
 export const CROP_SELL_PRICES: Record<string, number> = {
   wheat: 2.0,
+  wheat_seeds: 1.0,
   carrot: 1.0,
   potato: 1.0,
+  poisonous_potato: 10.0,
   melon_slice: 0.2,
   melon: 1.0,
+  melon_seeds: 0.5,
   sugar_cane: 1.334,
   pumpkin: 10.0,
+  pumpkin_seeds: 1.0,
   cocoa_beans: 1.0,
   red_mushroom: 10.0,
   brown_mushroom: 10.0,
   sand: 1.0,
-  cactus: 4.0
+  cactus: 4.0,
+  nether_wart: 2.0,
+  beetroot: 1.0,
+  beetroot_seeds: 0.5
 };
+
+/**
+ * Resolves a player inventory item's normalized vanilla key (falling back to 1.19.2 itemId lookup)
+ */
+function resolveCommodityKey(item: any): string {
+  if (!item) return '';
+  if (typeof item.name === 'string' && item.name.trim()) {
+    return item.name.trim().toLowerCase();
+  }
+  const byId = item.itemId !== undefined ? mcData1192.items[item.itemId] : null;
+  return (byId?.name || '').toLowerCase();
+}
 
 /**
  * Universal lazy rollover at 00:00 GMT (Midnight UTC)
@@ -514,8 +542,9 @@ export function handleFarmMerchantClick(
 
       for (let s = 9; s < 44; s++) {
         const it = pData.inventory.get(s);
-        if (it && CROP_SELL_PRICES[it.name] !== undefined) {
-          const unitPrice = CROP_SELL_PRICES[it.name];
+        const itemKey = resolveCommodityKey(it);
+        const unitPrice = itemKey ? CROP_SELL_PRICES[itemKey] : undefined;
+        if (it && unitPrice !== undefined && unitPrice > 0) {
           const coins = Math.max(1, Math.floor(it.count * unitPrice));
           totalCropsSold += it.count;
           totalCoinsEarned += coins;
@@ -621,11 +650,12 @@ export function handleFarmMerchantClick(
     const item = pData.inventory.get(survivalSlot);
     if (!item) return;
 
-    const unitPrice = CROP_SELL_PRICES[item.name];
+    const itemKey = resolveCommodityKey(item);
+    const unitPrice = itemKey ? CROP_SELL_PRICES[itemKey] : undefined;
     if (unitPrice !== undefined && unitPrice > 0) {
       const earnedCoins = Math.max(1, Math.floor(item.count * unitPrice));
       const count = item.count;
-      const itemName = formatItemName(item.name);
+      const itemName = formatItemName(itemKey || item.name);
 
       pData.purse += earnedCoins;
       pData.inventory.delete(survivalSlot);
@@ -652,6 +682,7 @@ export function handleFarmMerchantClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.2);
       sendSystemMsg(client, `§6You sold §e${count}x ${itemName} §6for §6+${earnedCoins.toLocaleString()} Coins§6!`, is119);
     } else {
+      syncMerchantChestPlayerInventory(client, pData, is119);
       playSound(client, pData, 'entity.villager.no', 1.0);
       sendSystemMsg(client, '§c[NPC] Farm Merchant: I only buy farm commodities!', is119);
     }
