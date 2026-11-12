@@ -1,0 +1,39 @@
+{
+  "username": "RankMemberTest",
+  "uuid": "c3a852a7-062e-3dbe-9445-b9e97cdbb3ff",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "RankMemberTest",
+    "originX": 66000,
+    "originZ": 0,
+    "spawnX": 66000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-12T14:33:57.514Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794494037514
+}
