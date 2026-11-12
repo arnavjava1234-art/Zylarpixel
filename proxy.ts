@@ -14,7 +14,7 @@ import * as fs from 'fs';
 import * as net from 'net';
 import { mcData1192 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
-import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
+import { RANKS, getRankOrDefault, formatPlayerName } from './src/config/ranks';
 import { startResourcePackServer, waitForResourcePackPayload, stopResourcePackServer } from './src/network/resourcePackServer';
 
 const Vec3 = require('vec3');

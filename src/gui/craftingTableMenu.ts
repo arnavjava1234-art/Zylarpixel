@@ -10,6 +10,7 @@ import { createNetherStarItem, giveNetherStar, HOTBAR_NETHER_STAR_SLOT } from '.
 import { playSound } from './bankMenu';
 import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession } from '../players/playerManager';
+import { RANKS } from '../config/ranks';
 
 export const CRAFTING_TABLE_WINDOW_ID = 15;
 

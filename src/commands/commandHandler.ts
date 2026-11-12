@@ -3,7 +3,7 @@
  * Handles /admin, /op (exclusive to ARNAVJAVA), /deop, /is, /island, /visit, /rank, /reset, /restart
  */
 
-import { getRank } from '../config/ranks';
+import { RANKS, getRank, formatPlayerName } from '../config/ranks';
 import {
   setPlayerRank,
   setOfflinePlayerRank,

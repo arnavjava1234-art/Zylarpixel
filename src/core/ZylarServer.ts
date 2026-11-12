@@ -69,7 +69,7 @@ import {
   handleGraveyardMobAttack,
   isInsideGraveyardZone
 } from '../combat/graveyardMobManager';
-import { formatPlayerName, formatChatMessage, RANKS, RankDefinition } from '../config/ranks';
+import { formatPlayerName, formatChatMessage, formatPlainChatLog, RANKS, RankDefinition } from '../config/ranks';
 import {
   players,
   createPlayerSession,
