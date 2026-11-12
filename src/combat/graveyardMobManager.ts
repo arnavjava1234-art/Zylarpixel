@@ -21,6 +21,7 @@ import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { players, persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
 import { getSkyBlockExtraAttributes, getSkyBlockItem } from '../items';
+import { COIN_ICON } from '../config/currencyIcons';
 
 export const GRAVEYARD_MOB_CAP = 20;
 export const GRAVEYARD_RESPAWN_MS = 4000;
@@ -932,7 +933,7 @@ function awardCombatXpAndCoins(pData: any, def: GraveyardMobDef): void {
     profile.skills.combat = currentLvl + 1;
     sendSystemMessage(
       pData.client,
-      `§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n§b§l  SKILL LEVEL UP §3Combat §8${currentLvl}➜§3${currentLvl + 1}\n§a  REWARDS: §e+4% Crit Chance & +${(currentLvl + 1) * 50} Coins!\n§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`,
+      `§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n§b§l  SKILL LEVEL UP §3Combat §8${currentLvl}➜§3${currentLvl + 1}\n§a  REWARDS: §e+4% Crit Chance & ${COIN_ICON} §6+${(currentLvl + 1) * 50} Coins!\n§b§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`,
       pData.is119 !== false
     );
     pData.purse = (pData.purse || 0) + (currentLvl + 1) * 50;
@@ -946,7 +947,7 @@ function awardCombatXpAndCoins(pData: any, def: GraveyardMobDef): void {
 
   showActionBarMessage(
     pData,
-    `§3+${def.combatXp} Combat (${newXp}/${nextReq})  §6+${def.coinReward} Coins`,
+    `§3+${def.combatXp} Combat (${newXp}/${nextReq})  ${COIN_ICON} §6+${def.coinReward} Coins`,
     1800
   );
 }

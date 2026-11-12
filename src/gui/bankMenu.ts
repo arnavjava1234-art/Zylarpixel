@@ -18,6 +18,7 @@ import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { COIN_ICON } from '../config/currencyIcons';
 
 export const BANK_MAIN_WINDOW_ID = 7;
 export const BANK_DEPOSIT_WINDOW_ID = 8;
@@ -146,16 +147,16 @@ export function openBankMainMenu(client: any, pData: any): void {
   items[11] = createGuiItem(
     'chest',
     1,
-    '§aDeposit Coins',
+    `§aDeposit Coins ${COIN_ICON}`,
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
       ' ',
       '§7Keep your coins safe in the bank!',
       '§7Earn §a2% §7interest every SkyBlock',
       '§7season (31 hours).',
       ' ',
       '§7Next interest in: §e18h 32m',
-      `§7Estimated interest: §6+${formatCoins(Math.floor(pData.bank * 0.02))} coins`,
+      `§7Estimated interest: ${COIN_ICON} §6+${formatCoins(Math.floor(pData.bank * 0.02))} coins`,
       ' ',
       '§eClick to deposit coins!'
     ]
@@ -165,9 +166,9 @@ export function openBankMainMenu(client: any, pData: any): void {
   items[13] = createGuiItem(
     'dropper',
     1,
-    '§aWithdraw Coins',
+    `§aWithdraw Coins ${COIN_ICON}`,
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
       ' ',
       '§7Take your coins out of the bank',
       '§7to spend them!',
@@ -187,9 +188,9 @@ export function openBankMainMenu(client: any, pData: any): void {
     for (const tx of txHistory) {
       const timeStr = formatTimeAgo(tx.timestamp);
       if (tx.type === 'deposit') {
-        txLore.push(`§a+${formatCoins(tx.amount)} coins §7(Deposit, ${timeStr})`);
+        txLore.push(`${COIN_ICON} §a+${formatCoins(tx.amount)} coins §7(Deposit, ${timeStr})`);
       } else {
-        txLore.push(`§c-${formatCoins(tx.amount)} coins §7(Withdrawal, ${timeStr})`);
+        txLore.push(`${COIN_ICON} §c-${formatCoins(tx.amount)} coins §7(Withdrawal, ${timeStr})`);
       }
     }
   }
@@ -209,7 +210,7 @@ export function openBankMainMenu(client: any, pData: any): void {
       '§7store your coins!',
       ' ',
       '§7• Earn interest every §e31 hours§7.',
-      `§7• Bank limit: §6${formatCoins(STARTER_BANK_CAP)} coins§7.`,
+      `§7• Bank limit: ${COIN_ICON} §6${formatCoins(STARTER_BANK_CAP)} coins§7.`,
       '§7• Upgrade your bank at the Bank Upgrades',
       '§7  menu to store even more coins!'
     ]
@@ -222,7 +223,7 @@ export function openBankMainMenu(client: any, pData: any): void {
     '§6Bank Upgrades',
     [
       '§7Current Tier: §aStarter',
-      `§7Max Account Coins: §6${formatCoins(STARTER_BANK_CAP)}`,
+      `§7Max Account Coins: ${COIN_ICON} §6${formatCoins(STARTER_BANK_CAP)}`,
       ' ',
       '§7Upgrade your bank account to hold',
       '§7more coins and gain higher',
@@ -273,8 +274,8 @@ export function openBankDepositMenu(client: any, pData: any): void {
     64,
     '§aYour whole purse',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
-      `§7Amount to deposit: §6${formatCoins(wholePurse)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
+      `§7Amount to deposit: ${COIN_ICON} §6${formatCoins(wholePurse)} coins`,
       ' ',
       '§eClick to deposit whole purse!'
     ]
@@ -286,8 +287,8 @@ export function openBankDepositMenu(client: any, pData: any): void {
     32,
     '§aHalf your purse',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
-      `§7Amount to deposit: §6${formatCoins(halfPurse)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
+      `§7Amount to deposit: ${COIN_ICON} §6${formatCoins(halfPurse)} coins`,
       ' ',
       '§eClick to deposit half purse!'
     ]
@@ -299,7 +300,7 @@ export function openBankDepositMenu(client: any, pData: any): void {
     1,
     '§aSpecific amount',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
       ' ',
       '§eClick to deposit a custom amount!'
     ]
@@ -349,8 +350,8 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
     64,
     '§aEverything in the account',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
-      `§7Amount to withdraw: §6${formatCoins(wholeBank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
+      `§7Amount to withdraw: ${COIN_ICON} §6${formatCoins(wholeBank)} coins`,
       ' ',
       '§eClick to withdraw everything!'
     ]
@@ -362,8 +363,8 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
     32,
     '§aHalf the account',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
-      `§7Amount to withdraw: §6${formatCoins(halfBank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
+      `§7Amount to withdraw: ${COIN_ICON} §6${formatCoins(halfBank)} coins`,
       ' ',
       '§eClick to withdraw half!'
     ]
@@ -375,8 +376,8 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
     1,
     '§aWithdraw 20%',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
-      `§7Amount to withdraw: §6${formatCoins(fifthBank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
+      `§7Amount to withdraw: ${COIN_ICON} §6${formatCoins(fifthBank)} coins`,
       ' ',
       '§eClick to withdraw 20%!'
     ]
@@ -388,7 +389,7 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
     1,
     '§aSpecific amount',
     [
-      `§7Current balance: §6${formatCoins(pData.bank)} coins`,
+      `§7Current balance: ${COIN_ICON} §6${formatCoins(pData.bank)} coins`,
       ' ',
       '§eClick to withdraw a custom amount!'
     ]
@@ -431,7 +432,7 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§aStarter Account',
     [
-      '§7Maximum Coins: §650,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §650,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§aCURRENT TIER'
@@ -444,11 +445,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§6Gold Account',
     [
-      '§7Maximum Coins: §6100,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §6100,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§65,000,000 coins',
+      `${COIN_ICON} §65,000,000 coins`,
       '§a1x Enchanted Gold Block',
       ' ',
       '§eClick to upgrade!'
@@ -461,11 +462,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§6Deluxe Account',
     [
-      '§7Maximum Coins: §6250,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §6250,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§610,000,000 coins',
+      `${COIN_ICON} §610,000,000 coins`,
       '§a5x Enchanted Gold Blocks',
       ' ',
       '§eClick to upgrade!'
@@ -478,11 +479,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§6Super Deluxe Account',
     [
-      '§7Maximum Coins: §6500,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §6500,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§625,000,000 coins',
+      `${COIN_ICON} §625,000,000 coins`,
       '§a20x Enchanted Gold Blocks',
       ' ',
       '§eClick to upgrade!'
@@ -495,11 +496,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§5Premier Account',
     [
-      '§7Maximum Coins: §61,000,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §61,000,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§650,000,000 coins',
+      `${COIN_ICON} §650,000,000 coins`,
       '§a50x Enchanted Gold Blocks',
       ' ',
       '§eClick to upgrade!'
@@ -512,11 +513,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§dLuxurious Account',
     [
-      '§7Maximum Coins: §66,000,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §66,000,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§6200,000,000 coins',
+      `${COIN_ICON} §6200,000,000 coins`,
       '§a10x Enchanted Gold Blocks',
       '§cRequires Museum Rank',
       ' ',
@@ -530,11 +531,11 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
     1,
     '§cPalatial Account',
     [
-      '§7Maximum Coins: §660,000,000,000',
+      `§7Maximum Coins: ${COIN_ICON} §660,000,000,000`,
       '§7Interest: §a2%',
       ' ',
       '§7Cost:',
-      '§61,000,000,000 coins',
+      `${COIN_ICON} §61,000,000,000 coins`,
       '§cRequires Museum Rank',
       ' ',
       '§eClick to upgrade!'
@@ -688,7 +689,7 @@ export function handleSignUpdate(
     playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
     sendSystemMessage(
       client,
-      `§a[Banker] Deposited §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+      `§a[Banker] Deposited ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
       is119
     );
     openBankMainMenu(client, pData);
@@ -713,7 +714,7 @@ export function handleSignUpdate(
     playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
     sendSystemMessage(
       client,
-      `§a[Banker] Withdrew §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+      `§a[Banker] Withdrew ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
       is119
     );
     openBankMainMenu(client, pData);
@@ -799,7 +800,7 @@ export function handleBankClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
       sendSystemMessage(
         client,
-        `§a[Banker] Deposited §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+        `§a[Banker] Deposited ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
         is119
       );
       openBankMainMenu(client, pData);
@@ -829,7 +830,7 @@ export function handleBankClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
       sendSystemMessage(
         client,
-        `§a[Banker] Deposited §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+        `§a[Banker] Deposited ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
         is119
       );
       openBankMainMenu(client, pData);
@@ -873,7 +874,7 @@ export function handleBankClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
       sendSystemMessage(
         client,
-        `§a[Banker] Withdrew §6${formatCoins(amount)} coins§a! Your new balance is §60 coins§a.`,
+        `§a[Banker] Withdrew ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §60 coins§a.`,
         is119
       );
       openBankMainMenu(client, pData);
@@ -898,7 +899,7 @@ export function handleBankClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
       sendSystemMessage(
         client,
-        `§a[Banker] Withdrew §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+        `§a[Banker] Withdrew ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
         is119
       );
       openBankMainMenu(client, pData);
@@ -923,7 +924,7 @@ export function handleBankClick(
       playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
       sendSystemMessage(
         client,
-        `§a[Banker] Withdrew §6${formatCoins(amount)} coins§a! Your new balance is §6${formatCoins(pData.bank)} coins§a.`,
+        `§a[Banker] Withdrew ${COIN_ICON} §6${formatCoins(amount)} coins§a! Your new balance is ${COIN_ICON} §6${formatCoins(pData.bank)} coins§a.`,
         is119
       );
       openBankMainMenu(client, pData);

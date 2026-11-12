@@ -26,7 +26,8 @@ import {
 import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
 import { generatePlayerIsland } from '../world/islandGenerator';
 import { dumpChunkPacket } from '../world/worldManager';
-import { updatePlayerScoreboardLocation, updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { updatePlayerScoreboardLocation, updatePlayerScoreboardPurse, updatePlayerScoreboardBits } from '../core/scoreboard';
+import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 import { sendDeclaredCommands } from './commandRegistry';
 import { parseCoinInput, formatCoins } from '../gui/bankMenu';
 import { mcData1192, mcData1211 } from '../world/worldManager';
@@ -499,8 +500,9 @@ export function handleCommand(
     return;
   }
 
-  // 9. Manage Player Purse Coins (/coins, /money, /coin <player> <set|add|remove> <amount>)
-  if (cmd === 'coins' || cmd === 'money' || cmd === 'coin') {
+  // 9. Manage Player Purse Coins or Bits (/coins, /money, /coin, /bits <player> <set|add|remove> <amount>)
+  if (cmd === 'coins' || cmd === 'money' || cmd === 'coin' || cmd === 'bits') {
+    const isBitsCmd = cmd === 'bits';
     if (!pData.isOp && !isMaster) {
       sendSystemMessage(client, '§cYou do not have permission to execute this command.', is119);
       return;
@@ -513,57 +515,71 @@ export function handleCommand(
 
     const targetName = parts[1];
     const action = parts[2].toLowerCase();
-    const amount = parseCoinInput(parts[3]);
+    const parsedAmount = parseCoinInput(parts[3]);
 
     if (!['set', 'add', 'remove'].includes(action)) {
       sendSystemMessage(client, `§cInvalid action: ${parts[2]}. Choose from: §eset§c, §eadd§c, §eremove§c.`, is119);
       return;
     }
 
-    if (amount === null || isNaN(amount)) {
-      sendSystemMessage(client, `§cInvalid coin amount: "${parts[3]}"! (Examples: 500, 10k, 2.5m, 1b)`, is119);
+    if (parsedAmount === null || isNaN(parsedAmount)) {
+      sendSystemMessage(client, `§cInvalid ${isBitsCmd ? 'Bits' : 'coin'} amount: "${parts[3]}"! (Examples: 500, 10k, 2.5m)`, is119);
       return;
     }
 
+    const amount = isBitsCmd ? Math.max(0, Math.floor(parsedAmount)) : parsedAmount;
     const onlineTarget = findPlayerByName(targetName);
+    const computeNext = (cur: number) => {
+      if (action === 'set') return amount;
+      if (action === 'add') return isBitsCmd ? Math.floor(cur + amount) : Math.round((cur + amount) * 100) / 100;
+      return isBitsCmd ? Math.max(0, Math.floor(cur - amount)) : Math.max(0, Math.round((cur - amount) * 100) / 100);
+    };
+
     let newBalance = 0;
-
     if (onlineTarget) {
-      const cur = typeof onlineTarget.purse === 'number' ? onlineTarget.purse : 0;
-      if (action === 'set') newBalance = amount;
-      else if (action === 'add') newBalance = Math.round((cur + amount) * 100) / 100;
-      else if (action === 'remove') newBalance = Math.max(0, Math.round((cur - amount) * 100) / 100);
-
-      onlineTarget.purse = newBalance;
+      const cur = isBitsCmd
+        ? (typeof onlineTarget.bits === 'number' ? onlineTarget.bits : 0)
+        : (typeof onlineTarget.purse === 'number' ? onlineTarget.purse : 0);
+      newBalance = computeNext(cur);
+      if (isBitsCmd) {
+        onlineTarget.bits = newBalance;
+        updatePlayerScoreboardBits(onlineTarget);
+      } else {
+        onlineTarget.purse = newBalance;
+        updatePlayerScoreboardPurse(onlineTarget);
+      }
       persistPlayerSession(onlineTarget);
-      updatePlayerScoreboardPurse(onlineTarget);
     } else {
-      // Offline player handling
       const saved = loadPlayerData(targetName);
       const prof = loadPlayerProfile(targetName);
-      const cur = typeof (saved as any)?.purse === 'number' ? (saved as any).purse : (typeof prof?.coins === 'number' ? prof.coins : 0);
-
-      if (action === 'set') newBalance = amount;
-      else if (action === 'add') newBalance = Math.round((cur + amount) * 100) / 100;
-      else if (action === 'remove') newBalance = Math.max(0, Math.round((cur - amount) * 100) / 100);
+      const cur = isBitsCmd
+        ? (typeof (saved as any)?.bits === 'number' ? (saved as any).bits : (typeof prof?.bits === 'number' ? prof.bits : 0))
+        : (typeof (saved as any)?.purse === 'number' ? (saved as any).purse : (typeof prof?.coins === 'number' ? prof.coins : 0));
+      newBalance = computeNext(cur);
 
       if (saved) {
-        (saved as any).purse = newBalance;
+        if (isBitsCmd) (saved as any).bits = newBalance;
+        else (saved as any).purse = newBalance;
         savePlayerData(targetName, saved);
       }
       if (prof) {
-        prof.coins = newBalance;
+        if (isBitsCmd) prof.bits = newBalance;
+        else prof.coins = newBalance;
         savePlayerProfile(prof);
       }
     }
 
-    // Confirmation message sent ONLY to the admin
+    const icon = isBitsCmd ? BITS_ICON : COIN_ICON;
+    const col = isBitsCmd ? '§b' : '§6';
+    const unit = isBitsCmd ? 'Bits' : 'coins';
+    const balanceType = isBitsCmd ? 'Bits' : 'purse';
+
     if (action === 'set') {
-      sendSystemMessage(client, `§a[Admin] Set §e${targetName}'s §apurse to §6${formatCoins(newBalance)} coins§a!`, is119);
+      sendSystemMessage(client, `§a[Admin] Set §e${targetName}'s §a${balanceType} to ${icon} ${col}${formatCoins(newBalance)} ${unit}§a!`, is119);
     } else if (action === 'add') {
-      sendSystemMessage(client, `§a[Admin] Added §6${formatCoins(amount)} coins §ato §e${targetName}'s §apurse! (New Balance: §6${formatCoins(newBalance)} coins§a)`, is119);
-    } else if (action === 'remove') {
-      sendSystemMessage(client, `§a[Admin] Removed §6${formatCoins(amount)} coins §afrom §e${targetName}'s §apurse! (New Balance: §6${formatCoins(newBalance)} coins§a)`, is119);
+      sendSystemMessage(client, `§a[Admin] Added ${icon} ${col}${formatCoins(amount)} ${unit} §ato §e${targetName}'s §a${balanceType}! (New Balance: ${icon} ${col}${formatCoins(newBalance)} ${unit}§a)`, is119);
+    } else {
+      sendSystemMessage(client, `§a[Admin] Removed ${icon} ${col}${formatCoins(amount)} ${unit} §afrom §e${targetName}'s §a${balanceType}! (New Balance: ${icon} ${col}${formatCoins(newBalance)} ${unit}§a)`, is119);
     }
     return;
   }

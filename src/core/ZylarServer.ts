@@ -1422,7 +1422,7 @@ export class ZylarServer {
         : this.config.scoreboardLocation;
       pData.currentZoneScoreboardName = initialZone;
 
-      sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse, timeLine, dateLine, initialZone);
+      sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse, timeLine, dateLine, initialZone, pData.bits || 0);
       sendWorldTimePacket(client, timeState);
       initBelowNameHealth(client, is119);
       updatePlayerHealthScore(client, pData.username, pData.stats.health, is119);

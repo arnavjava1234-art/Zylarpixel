@@ -7,6 +7,7 @@ import { mcData1192 } from '../world/worldManager';
 import { PlayerSession } from '../types';
 import { calculateEHP } from '../stats/statsManager';
 import { applyUniversalItemFlags } from '../items';
+import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export function createGuiItem(
   itemName: string,
@@ -68,8 +69,8 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
     `§a§l${pData.username}'s Profile`,
     [
       `§7Rank: ${pData.rank.prefix}`,
-      `§7Purse: §6${(pData as any).purse ? (pData as any).purse.toFixed(1) : '0.0'} coins`,
-      `§7Bits: §b${(pData as any).bits || 0}`,
+      `§7Purse: ${COIN_ICON} §6${(pData as any).purse ? (pData as any).purse.toFixed(1) : '0.0'} coins`,
+      `§7Bits: ${BITS_ICON} §b${((pData as any).bits || 0).toLocaleString('en-US')}`,
       ' ',
       `§7Effective Health (EHP): §a${ehp.toLocaleString()}`,
       ' ',

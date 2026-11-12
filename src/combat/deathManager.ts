@@ -12,6 +12,7 @@ import { applyDefense, syncVanillaHealthAndHunger } from '../stats/statsManager'
 import { getHubBlockName } from '../world/hubRegionProvider';
 import { getWorldBlockName } from '../world/worldManager';
 import { formatCoins } from '../gui/bankMenu';
+import { COIN_ICON } from '../config/currencyIcons';
 import { spawnDamageIndicator } from './damageIndicator';
 
 export type DeathCause =
@@ -311,7 +312,7 @@ export function handlePlayerDeath(server: any, pData: any, info: DeathInfo): voi
   if (coinsLost > 0) {
     sendSystemMessage(
       client,
-      `§c ☠ You ${phrase} §cand lost §6${formatCoins(coinsLost)} coins§c! §7(Respawned at ${spawnLabel})`,
+      `§c ☠ You ${phrase} §cand lost ${COIN_ICON} §6${formatCoins(coinsLost)} coins§c! §7(Respawned at ${spawnLabel})`,
       is119
     );
   } else {

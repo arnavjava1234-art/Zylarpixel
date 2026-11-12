@@ -42,7 +42,7 @@ export function createPlayerSession(client: any, is119: boolean = true): any {
     purse = (typeof (saved as any).purse === 'number') ? (saved as any).purse : (typeof sharedProf.coins === 'number' ? sharedProf.coins : 60.0);
     bank = (typeof (saved as any).bank === 'number') ? (saved as any).bank : (typeof sharedProf.bank === 'number' ? sharedProf.bank : 0);
     bankTransactions = Array.isArray((saved as any).bankTransactions) ? (saved as any).bankTransactions : (Array.isArray(sharedProf.bankTransactions) ? sharedProf.bankTransactions : []);
-    bits = (saved as any).bits || 0;
+    bits = typeof sharedProf.bits === 'number' ? sharedProf.bits : ((saved as any).bits || 0);
     island = saved.island || allocateIslandForPlayer(username);
     merchantDailyPurchases = (saved as any).merchantDailyPurchases || sharedProf.merchantDailyPurchases || {};
     merchantLastResetDay = (saved as any).merchantLastResetDay || sharedProf.merchantLastResetDay || 0;
@@ -62,6 +62,7 @@ export function createPlayerSession(client: any, is119: boolean = true): any {
     initialOp = isMasterUser;
     island = allocateIslandForPlayer(username);
     bank = typeof sharedProf.bank === 'number' ? sharedProf.bank : 0;
+    bits = typeof sharedProf.bits === 'number' ? sharedProf.bits : 0;
     bankTransactions = Array.isArray(sharedProf.bankTransactions) ? sharedProf.bankTransactions : [];
     if (typeof sharedProf.coins === 'number') {
       purse = sharedProf.coins;
@@ -165,6 +166,7 @@ export function persistPlayerSession(pData: any): void {
     const prof = loadPlayerProfile(pData.username);
     prof.coins = pData.purse;
     prof.bank = pData.bank;
+    prof.bits = typeof pData.bits === 'number' ? pData.bits : 0;
     prof.bankTransactions = pData.bankTransactions;
     prof.inventory = invArray;
     prof.merchantDailyPurchases = pData.merchantDailyPurchases;

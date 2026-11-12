@@ -19,6 +19,7 @@ import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
 import { findPlayerByName, persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { parseCoinInput, formatCoins, playSound, restoreSignBlock } from './bankMenu';
+import { COIN_ICON } from '../config/currencyIcons';
 
 export const ADMIN_COIN_SELECTOR_WINDOW_ID = 11;
 export const ADMIN_COIN_ACTION_WINDOW_ID = 12;
@@ -74,7 +75,7 @@ export function openCoinPlayerSelector(
         [
           `§7Username: §f${p.username}`,
           '§7Status: §aOnline',
-          `§7Purse: §6${formatCoins(purse)} coins`,
+          `§7Purse: ${COIN_ICON} §6${formatCoins(purse)} coins`,
           ' ',
           '§eClick to manage purse! §b▶'
         ]
@@ -125,7 +126,7 @@ export function openCoinPlayerSelector(
         [
           `§7Username: §f${name}`,
           `§7Status: ${isOnline ? '§aOnline' : '§7Offline'}`,
-          `§7Purse: §6${formatCoins(purse)} coins`,
+          `§7Purse: ${COIN_ICON} §6${formatCoins(purse)} coins`,
           ' ',
           '§eClick to manage purse! §b▶'
         ]
@@ -205,7 +206,7 @@ export function openCoinActionMenu(
     `§e§l${targetUsername}`,
     [
       `§7Status: ${isOnline ? '§aOnline' : '§7Offline'}`,
-      `§7Current Purse: §6${formatCoins(currentPurse)} coins`,
+      `§7Current Purse: ${COIN_ICON} §6${formatCoins(currentPurse)} coins`,
       ' ',
       '§7Choose an action below to modify',
       '§7their purse balance.'
@@ -391,11 +392,11 @@ export function handleAdminSignUpdate(
   playSound(client, pData, 'entity.experience_orb.pickup', 1.0);
 
   if (action === 'set') {
-    sendSystemMessage(client, `§a[Admin] Set §e${targetName}'s §apurse to §6${formatCoins(newBalance)} coins§a!`, is119);
+    sendSystemMessage(client, `§a[Admin] Set §e${targetName}'s §apurse to ${COIN_ICON} §6${formatCoins(newBalance)} coins§a!`, is119);
   } else if (action === 'add') {
-    sendSystemMessage(client, `§a[Admin] Added §6${formatCoins(amount)} coins §ato §e${targetName}'s §apurse! (New Balance: §6${formatCoins(newBalance)} coins§a)`, is119);
+    sendSystemMessage(client, `§a[Admin] Added ${COIN_ICON} §6${formatCoins(amount)} coins §ato §e${targetName}'s §apurse! (New Balance: ${COIN_ICON} §6${formatCoins(newBalance)} coins§a)`, is119);
   } else if (action === 'remove') {
-    sendSystemMessage(client, `§a[Admin] Removed §6${formatCoins(amount)} coins §afrom §e${targetName}'s §apurse! (New Balance: §6${formatCoins(newBalance)} coins§a)`, is119);
+    sendSystemMessage(client, `§a[Admin] Removed ${COIN_ICON} §6${formatCoins(amount)} coins §afrom §e${targetName}'s §apurse! (New Balance: ${COIN_ICON} §6${formatCoins(newBalance)} coins§a)`, is119);
   }
 
   // Re-open action menu with updated purse value

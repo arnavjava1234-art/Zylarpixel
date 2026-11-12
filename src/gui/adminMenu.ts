@@ -6,6 +6,7 @@
 import { mcData1192 } from '../world/worldManager';
 import { applyUniversalItemFlags } from '../items';
 import { getWorldTimeState } from '../world/timeManager';
+import { COIN_ICON } from '../config/currencyIcons';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
@@ -110,9 +111,9 @@ export function openAdminMenu(client: any, pData: any): void {
   items[23] = createGuiItem(
     'gold_ingot',
     1,
-    '§6§lPurse & Economy Manager',
+    `§6§lPurse & Economy Manager ${COIN_ICON}`,
     [
-      '§7Manage coins for any player.',
+      `§7Manage ${COIN_ICON} §6coins §7for any player.`,
       '§7Actions: §fSet, Add, Remove',
       '§7Supports: §aOnline §7& §cOffline §7players',
       ' ',

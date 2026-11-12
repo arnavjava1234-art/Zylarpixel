@@ -18,6 +18,7 @@ import { playSound } from './bankMenu';
 import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { COIN_ICON } from '../config/currencyIcons';
 
 export const FARM_MERCHANT_WINDOW_ID = 16;
 export const DAILY_MERCHANT_LIMIT = 640;
@@ -42,7 +43,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 7,
     unitSellPrice: 2.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §67 Coins`, ' ', '§eClick to buy!']
   },
   11: {
     slot: 11,
@@ -51,7 +52,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 7,
     unitSellPrice: 1.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §67 Coins`, ' ', '§eClick to buy!']
   },
   12: {
     slot: 12,
@@ -60,7 +61,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 7,
     unitSellPrice: 1.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §67 Coins`, ' ', '§eClick to buy!']
   },
   13: {
     slot: 13,
@@ -69,7 +70,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 10,
     buyPrice: 10,
     unitSellPrice: 0.2,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§610 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §610 Coins`, ' ', '§eClick to buy!']
   },
   14: {
     slot: 14,
@@ -78,7 +79,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 15,
     unitSellPrice: 1.334,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§615 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §615 Coins`, ' ', '§eClick to buy!']
   },
   15: {
     slot: 15,
@@ -87,7 +88,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 1,
     buyPrice: 25,
     unitSellPrice: 10.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§625 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §625 Coins`, ' ', '§eClick to buy!']
   },
   16: {
     slot: 16,
@@ -96,7 +97,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 7,
     unitSellPrice: 1.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §67 Coins`, ' ', '§eClick to buy!']
   },
   19: {
     slot: 19,
@@ -105,7 +106,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 1,
     buyPrice: 12,
     unitSellPrice: 10.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§612 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §612 Coins`, ' ', '§eClick to buy!']
   },
   20: {
     slot: 20,
@@ -114,7 +115,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 1,
     buyPrice: 12,
     unitSellPrice: 10.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§612 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §612 Coins`, ' ', '§eClick to buy!']
   },
   21: {
     slot: 21,
@@ -123,7 +124,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 2,
     buyPrice: 8,
     unitSellPrice: 1.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§68 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §68 Coins`, ' ', '§eClick to buy!']
   },
   22: {
     slot: 22,
@@ -132,7 +133,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 1,
     buyPrice: 10,
     unitSellPrice: 4.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§610 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §610 Coins`, ' ', '§eClick to buy!']
   },
   23: {
     slot: 23,
@@ -175,7 +176,7 @@ export const COMMODITIES: Record<number, CommodityItem> = {
     buyUnit: 3,
     buyPrice: 7,
     unitSellPrice: 1.0,
-    lore: ['§8Collection Item', ' ', '§7Cost', '§67 Coins', ' ', '§eClick to buy!']
+    lore: ['§8Collection Item', ' ', '§7Cost', `${COIN_ICON} §67 Coins`, ' ', '§eClick to buy!']
   }
 };
 
@@ -565,7 +566,7 @@ export function handleFarmMerchantClick(
         syncMerchantChestPlayerInventory(client, pData, is119);
         persistPlayerSession(pData);
         playSound(client, pData, 'entity.experience_orb.pickup', 1.2);
-        sendSystemMsg(client, `§6[NPC] Farm Merchant: Sold §e${totalCropsSold} §6crops for §6+${totalCoinsEarned.toLocaleString()} Coins§6!`, is119);
+        sendSystemMsg(client, `§6[NPC] Farm Merchant: Sold §e${totalCropsSold} §6crops for ${COIN_ICON} §6+${totalCoinsEarned.toLocaleString()} Coins§6!`, is119);
       } else {
         playSound(client, pData, 'entity.villager.no', 1.0);
         sendSystemMsg(client, '§c[NPC] Farm Merchant: You do not have any sellable crops in your inventory!', is119);
@@ -624,7 +625,7 @@ export function handleFarmMerchantClick(
     persistPlayerSession(pData);
 
     playSound(client, pData, 'entity.experience_orb.pickup', 1.4);
-    sendSystemMsg(client, `§aYou bought §e${commodity.buyUnit}x ${commodity.name} §afor §6${commodity.buyPrice} Coins§a!`, is119);
+    sendSystemMsg(client, `§aYou bought §e${commodity.buyUnit}x ${commodity.name} §afor ${COIN_ICON} §6${commodity.buyPrice} Coins§a!`, is119);
     return;
   }
 
@@ -679,7 +680,7 @@ export function handleFarmMerchantClick(
       persistPlayerSession(pData);
 
       playSound(client, pData, 'entity.experience_orb.pickup', 1.2);
-      sendSystemMsg(client, `§6You sold §e${count}x ${itemName} §6for §6+${earnedCoins.toLocaleString()} Coins§6!`, is119);
+      sendSystemMsg(client, `§6You sold §e${count}x ${itemName} §6for ${COIN_ICON} §6+${earnedCoins.toLocaleString()} Coins§6!`, is119);
     } else {
       syncMerchantChestPlayerInventory(client, pData, is119);
       playSound(client, pData, 'entity.villager.no', 1.0);

@@ -15,6 +15,7 @@ import * as net from 'net';
 import { mcData1192 } from './src/world/worldManager';
 import { loadPlayerProfile } from './src/storage/sharedProfile';
 import { getRankOrDefault, formatPlayerName } from './src/config/ranks';
+import { startResourcePackServer, waitForResourcePackPayload, stopResourcePackServer } from './src/network/resourcePackServer';
 
 const Vec3 = require('vec3');
 const Chunk1192 = require('prismarine-chunk')('1.19.2');
@@ -41,6 +42,15 @@ process.on('uncaughtException', (err: any) => {
 process.on('unhandledRejection', (reason: any) => {
   log('WARN', `Caught unhandled rejection in proxy:`, reason?.message || reason);
 });
+
+startResourcePackServer();
+const cleanupProxy = () => {
+  stopResourcePackServer();
+  process.exit(0);
+};
+process.on('SIGINT', cleanupProxy);
+process.on('SIGTERM', cleanupProxy);
+process.on('exit', () => stopResourcePackServer());
 
 const proxyServer = (mc as any).createServer({
   'online-mode': false,
@@ -88,6 +98,8 @@ interface ProxySession {
   pendingCommand?: string;
   lastPortalWarp?: number;
   backendEntityId?: number;
+  resourcePackLoaded?: boolean;
+  resourcePackTimeout?: NodeJS.Timeout;
 }
 
 const sessions = new Map<string, ProxySession>();
@@ -663,6 +675,10 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // High-level navigation command interceptor at the Master Proxy layer
   const handleProxyCommand = (rawText: string) => {
+    if (!session.resourcePackLoaded) {
+      sendProxySystemChat(session.client, '§e[ResourcePack] Please accept the required ZylarPixel Resource Pack first!');
+      return true;
+    }
     if (session.isInLimbo) {
       sendProxySystemChat(session.client, '§e[Limbo] The game server is currently restarting. Reconnecting automatically in a few seconds!');
       return true;
@@ -739,7 +755,7 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Portal Step Detection (Client-Side Collision Detection)
   const checkPortalStep = (x: number, y: number, z: number) => {
-    if (session.isInLimbo) return;
+    if (!session.resourcePackLoaded || session.isInLimbo) return;
     const now = Date.now();
     if (session.isSwitching) return;
     if (session.lastPortalWarp && now < session.lastPortalWarp) return;
@@ -797,8 +813,8 @@ proxyServer.on('playerJoin', (client: any) => {
 
   // Forward packets from player client to backend (keep_alive is decoupled per connection)
   client.on('raw', (buffer: Buffer, meta: any) => {
-    if (session.isInLimbo || session.isSwitching) return;
-    if (meta && meta.name === 'keep_alive') return;
+    if (!session.resourcePackLoaded || session.isInLimbo || session.isSwitching) return;
+    if (meta && (meta.name === 'keep_alive' || meta.name === 'resource_pack_receive')) return;
     if (session.backend && session.backend.state === mc.states.PLAY) {
       try {
         session.backend.writeRaw(buffer);
@@ -808,12 +824,119 @@ proxyServer.on('playerJoin', (client: any) => {
     }
   });
 
-  // Default initial server: Hub
-  connectToBackend(session, 'hub');
-  setTimeout(() => broadcastGlobalProxyTablist(), 800);
+  // Force Resource Pack download on initial Proxy join BEFORE entering Hub
+  const kickForResourcePack = (reasonText: string) => {
+    if (session.resourcePackTimeout) {
+      clearTimeout(session.resourcePackTimeout);
+      session.resourcePackTimeout = undefined;
+    }
+    try {
+      client.write('kick_disconnect', {
+        reason: JSON.stringify({ text: reasonText })
+      });
+    } catch (_) {}
+    setTimeout(() => {
+      try { client.end(reasonText); } catch (_) {}
+    }, 150);
+  };
+
+  const finishPackGateAndEnterHub = () => {
+    if (session.resourcePackLoaded) return;
+    session.resourcePackLoaded = true;
+    if (session.resourcePackTimeout) {
+      clearTimeout(session.resourcePackTimeout);
+      session.resourcePackTimeout = undefined;
+    }
+    connectToBackend(session, 'hub');
+    setTimeout(() => broadcastGlobalProxyTablist(), 800);
+  };
+
+  try {
+    const limboChunkCoord = Math.floor(LIMBO_X / 16);
+    client.write('update_view_position', { chunkX: limboChunkCoord, chunkZ: limboChunkCoord });
+    client.write('abilities', { flags: 0x0F, flyingSpeed: 0.05, walkingSpeed: 0.1 });
+    client.write('position', {
+      x: LIMBO_X,
+      y: LIMBO_Y,
+      z: LIMBO_Z,
+      yaw: 0,
+      pitch: 0,
+      flags: 0x00,
+      teleportId: 1
+    });
+  } catch (_) {}
+
+  client.on('resource_pack_receive', (pkt: any) => {
+    if (session.resourcePackLoaded) return;
+    const res = typeof pkt?.result === 'number' ? pkt.result : -1;
+    if (res === 3) {
+      log('INFO', `[ResourcePack] ${username} accepted pack, downloading...`);
+      if (session.resourcePackTimeout) clearTimeout(session.resourcePackTimeout);
+      session.resourcePackTimeout = setTimeout(() => {
+        kickForResourcePack('§c§lResource Pack Download Timed Out!\n\n§7Please reconnect and accept the resource pack.');
+      }, 30000);
+    } else if (res === 0) {
+      log('INFO', `[ResourcePack] ${username} loaded pack successfully! Entering Hub...`);
+      finishPackGateAndEnterHub();
+    } else if (res === 1) {
+      log('WARN', `[ResourcePack] ${username} DECLINED required resource pack. Kicking.`);
+      kickForResourcePack(
+        '§c§lZylarPixel Resource Pack Required!\n\n' +
+        '§7You must accept the server resource pack to play here.\n\n' +
+        '§eHow to fix:\n' +
+        '§fMultiplayer §8➜ §fEdit Server §8➜ §fServer Resource Packs: §aEnabled\n' +
+        '§7Then reconnect!'
+      );
+    } else {
+      log('WARN', `[ResourcePack] ${username} failed to download resource pack (result=${res}). Kicking.`);
+      kickForResourcePack(
+        '§c§lResource Pack Download Failed!\n\n' +
+        '§7Your client could not download the custom icons pack.\n' +
+        '§ePlease wait a few seconds and reconnect!'
+      );
+    }
+  });
+
+  waitForResourcePackPayload(22000).then(pack => {
+    if (!client || client.state !== mc.states.PLAY || session.resourcePackLoaded) return;
+    if (!pack) {
+      log('WARN', `[ResourcePack] No pack payload available; allowing ${username} into Hub.`);
+      finishPackGateAndEnterHub();
+      return;
+    }
+
+    session.resourcePackTimeout = setTimeout(() => {
+      if (!session.resourcePackLoaded) {
+        log('WARN', `[ResourcePack] ${username} timed out responding to forced pack prompt.`);
+        kickForResourcePack(
+          '§c§lResource Pack Verification Timed Out!\n\n' +
+          '§7Please set §fServer Resource Packs: §aEnabled §7and reconnect!'
+        );
+      }
+    }, 120000);
+
+    try {
+      client.write('resource_pack_send', {
+        url: pack.url,
+        hash: pack.hash,
+        forced: true,
+        promptMessage: JSON.stringify({
+          text: '§d§lZYLARPIXEL SKYBLOCK\n\n§fThis server uses a tiny custom §6Coin §f& §bBits §ficon pack (~2 KB).\n§eClick Proceed to download and join!'
+        })
+      });
+      log('INFO', `[ResourcePack] Sent forced pack to ${username} -> ${pack.url} (sha1=${pack.hash})`);
+    } catch (err: any) {
+      log('WARN', `[ResourcePack] Error sending resource_pack_send to ${username}:`, err?.message || err);
+      finishPackGateAndEnterHub();
+    }
+  });
 
   client.on('end', () => {
     log('INFO', `[-] Player disconnected from Proxy: ${username}`);
+    if (session.resourcePackTimeout) {
+      clearTimeout(session.resourcePackTimeout);
+      session.resourcePackTimeout = undefined;
+    }
     if (session.limboRetryTimer) {
       clearInterval(session.limboRetryTimer);
       session.limboRetryTimer = undefined;

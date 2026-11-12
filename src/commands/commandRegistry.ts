@@ -37,6 +37,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: 'coins', description: 'Manage player purse balance (/coins <player> set/add/remove <amount>)', opOnly: true },
   { name: 'money', description: 'Manage player purse balance (/money <player> set/add/remove <amount>)', opOnly: true },
   { name: 'coin', description: 'Manage player purse balance (/coin <player> set/add/remove <amount>)', opOnly: true },
+  { name: 'bits', description: 'Manage player Bits balance (/bits <player> set/add/remove <amount>)', opOnly: true },
   { name: 'give', description: 'Give custom SkyBlock item (/give [player] <itemId> [count])', opOnly: true },
   { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true },
   { name: 'kill', description: 'Eliminate yourself or a target player (/kill [player])', opOnly: true },
@@ -175,8 +176,8 @@ export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boole
       });
     }
 
-    // /coins, /money, /coin -> <player> -> <action> -> <amount>
-    else if (c.name === 'coins' || c.name === 'money' || c.name === 'coin') {
+    // /coins, /money, /coin, /bits -> <player> -> <action> -> <amount>
+    else if (c.name === 'coins' || c.name === 'money' || c.name === 'coin' || c.name === 'bits') {
       const argPlayerIndex = nodes.length;
       literalNode.children.push(argPlayerIndex);
 
@@ -431,8 +432,8 @@ export function handleTabComplete(client: any, pData: any, data: any, onlinePlay
       .map(loc => ({ match: loc, tooltip: undefined }));
   }
 
-  // Sub-case E: /coins, /money, /coin <player> <action> <amount>
-  else if ((mainCmd === 'coins' || mainCmd === 'money' || mainCmd === 'coin') && pData.isOp) {
+  // Sub-case E: /coins, /money, /coin, /bits <player> <action> <amount>
+  else if ((mainCmd === 'coins' || mainCmd === 'money' || mainCmd === 'coin' || mainCmd === 'bits') && pData.isOp) {
     if (currentArgIndex === 1) {
       const allNames = getUniquePlayerNames();
       candidateMatches = allNames

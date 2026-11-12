@@ -29,6 +29,7 @@ export interface PlayerProfile {
   isOp: boolean;
   coins: number;
   bank: number;
+  bits: number;
   bankTransactions?: Array<{ type: 'deposit' | 'withdraw'; amount: number; timestamp: number }>;
   stats: PlayerStats;
   skills: {
@@ -69,6 +70,7 @@ export function getDefaultProfile(username: string): PlayerProfile {
     isOp: username.toLowerCase() === 'arnavjava',
     coins: 0,
     bank: 0,
+    bits: 0,
     stats: {
       health: 100,
       maxHealth: 100,
@@ -109,6 +111,7 @@ export function loadPlayerProfile(username: string): PlayerProfile {
       if (!profile.stats) profile.stats = getDefaultProfile(username).stats;
       if (typeof profile.stats.mana !== 'number') profile.stats.mana = profile.stats.maxMana || 100;
       if (typeof profile.stats.damage !== 'number') profile.stats.damage = 0;
+      if (typeof profile.bits !== 'number') profile.bits = 0;
     } catch (e) {
       console.error(`[PROFILE] Error reading profile for ${username}:`, e);
       profile = getDefaultProfile(username);

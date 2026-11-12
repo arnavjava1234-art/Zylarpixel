@@ -7,6 +7,7 @@
 import * as nbt from 'prismarine-nbt';
 import { PlayerSession } from '../types';
 import { RankDefinition } from '../config/ranks';
+import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
   '§d§lZYLARPIXEL',
@@ -36,6 +37,11 @@ export function formatScoreboardPurse(purse: number): string {
   return p.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
+export function formatScoreboardBits(bits: number): string {
+  const b = typeof bits === 'number' && !isNaN(bits) ? Math.max(0, Math.floor(bits)) : 0;
+  return b.toLocaleString('en-US');
+}
+
 export function sendScoreboard(
   client: any,
   is119: boolean = true,
@@ -43,7 +49,8 @@ export function sendScoreboard(
   initialPurse: number = 0.0,
   initialTimeLine: string = '§fTime: §712:00pm §e☀',
   initialDateLine: string = '§fDate: §bLate Autumn 1st',
-  initialLocationName?: string
+  initialLocationName?: string,
+  initialBits: number = 0
 ): void {
   try {
     const title = TITLE_FRAMES[currentTitleIndex];
@@ -87,7 +94,9 @@ export function sendScoreboard(
     });
 
     const purseFormatted = formatScoreboardPurse(initialPurse);
+    const bitsFormatted = formatScoreboardBits(initialBits);
     client._lastScoreboardPurseStr = purseFormatted;
+    client._lastScoreboardBitsStr = bitsFormatted;
 
     // 3. Set Scores (Hypixel layout with Bits & Quest Objective)
     const lines = [
@@ -98,8 +107,8 @@ export function sendScoreboard(
       initialTimeLine,
       `§fLocation: ${locationLabel.startsWith('§') ? locationLabel : `§a${locationLabel}`}`,
       '  ',
-      `§fPurse: §6${purseFormatted}`,
-      '§fBits: §b0',
+      `§fPurse: ${COIN_ICON} §6${purseFormatted}`,
+      `§fBits: ${BITS_ICON} §b${bitsFormatted}`,
       '   ',
       '§eObjective',
       '§7Currently no active quests',
@@ -132,41 +141,41 @@ export function sendScoreboard(
 export function updatePlayerScoreboardPurse(pData: any): void {
   if (!pData || !pData.client) return;
   const client = pData.client;
-  const is119 = pData.is119;
+  const is119 = pData.is119 !== false;
   const oldPurseStr = client._lastScoreboardPurseStr || pData.lastScoreboardPurseStr || '0.0';
   const newPurseStr = formatScoreboardPurse(pData.purse || 0);
 
   if (oldPurseStr === newPurseStr) return;
 
-  try {
-    if (is119) {
-      client.write('scoreboard_score', {
-        itemName: `§fPurse: §6${oldPurseStr}`,
-        action: 1,
-        scoreName: 'sb'
-      });
-      client.write('scoreboard_score', {
-        itemName: `§fPurse: §6${newPurseStr}`,
-        action: 0,
-        scoreName: 'sb',
-        value: 7
-      });
-    } else {
-      client.write('reset_score', {
-        entity_name: `§fPurse: §6${oldPurseStr}`,
-        objective_name: 'sb'
-      });
-      client.write('scoreboard_score', {
-        itemName: `§fPurse: §6${newPurseStr}`,
-        scoreName: 'sb',
-        value: 7,
-        display_name: undefined,
-        number_format: undefined
-      });
-    }
-    client._lastScoreboardPurseStr = newPurseStr;
-    pData.lastScoreboardPurseStr = newPurseStr;
-  } catch (_) {}
+  replaceScoreboardLine(
+    client,
+    is119,
+    `§fPurse: ${COIN_ICON} §6${oldPurseStr}`,
+    `§fPurse: ${COIN_ICON} §6${newPurseStr}`,
+    7
+  );
+  client._lastScoreboardPurseStr = newPurseStr;
+  pData.lastScoreboardPurseStr = newPurseStr;
+}
+
+export function updatePlayerScoreboardBits(pData: any): void {
+  if (!pData || !pData.client) return;
+  const client = pData.client;
+  const is119 = pData.is119 !== false;
+  const oldBitsStr = client._lastScoreboardBitsStr || pData.lastScoreboardBitsStr || '0';
+  const newBitsStr = formatScoreboardBits(pData.bits || 0);
+
+  if (oldBitsStr === newBitsStr) return;
+
+  replaceScoreboardLine(
+    client,
+    is119,
+    `§fBits: ${BITS_ICON} §b${oldBitsStr}`,
+    `§fBits: ${BITS_ICON} §b${newBitsStr}`,
+    6
+  );
+  client._lastScoreboardBitsStr = newBitsStr;
+  pData.lastScoreboardBitsStr = newBitsStr;
 }
 
 function replaceScoreboardLine(client: any, is119: boolean, oldLine: string, newLine: string, scoreValue: number): void {
