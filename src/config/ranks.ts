@@ -1,11 +1,42 @@
 /**
  * ZylarPixel Rank System
- * 11 Authentic Ranks with Colors, Prefixes, and GUI Display Items
+ * 11 Authentic Ranks with Custom Resource Pack Font Glyphs, Colors, and GUI Display Items
+ *
+ * Resource Pack Glyph Mapping (resourcepack/assets/minecraft/font/default.json):
+ *   \uE010 -> owner.png
+ *   \uE011 -> admin.png
+ *   \uE012 -> dev.png
+ *   \uE013 -> mod.png
+ *   \uE014 -> helper.png
+ *   \uE015 -> mvp_plus_plus.png
+ *   \uE016 -> mvp_plus.png
+ *   \uE017 -> mvp.png
+ *   \uE018 -> vip_plus.png
+ *   \uE019 -> vip.png
+ *   \uE01A -> member.png
+ *
+ * Always prefix rank glyphs with §f so surrounding team/GUI/chat color codes do NOT tint the PNG banner.
  */
+
+export const RANK_GLYPHS = {
+  owner: '\uE010',
+  admin: '\uE011',
+  developer: '\uE012',
+  mod: '\uE013',
+  helper: '\uE014',
+  mvp_plus_plus: '\uE015',
+  mvp_plus: '\uE016',
+  mvp: '\uE017',
+  vip_plus: '\uE018',
+  vip: '\uE019',
+  default: '\uE01A'
+} as const;
 
 export interface RankDefinition {
   id: string;
   name: string;
+  glyph: string;
+  plainPrefix: string;
   prefix: string;
   displayName: string;
   colorCode: number;
@@ -19,8 +50,10 @@ export const RANKS: Record<string, RankDefinition> = {
   owner: {
     id: 'owner',
     name: 'OWNER',
-    prefix: '§c[OWNER]',
-    displayName: '§c[OWNER]',
+    glyph: RANK_GLYPHS.owner,
+    plainPrefix: '[OWNER]',
+    prefix: `§f${RANK_GLYPHS.owner}`,
+    displayName: `§f${RANK_GLYPHS.owner}`,
     colorCode: 12, // Red
     chatColor: '§c',
     iconItem: 'redstone_block',
@@ -30,8 +63,10 @@ export const RANKS: Record<string, RankDefinition> = {
   admin: {
     id: 'admin',
     name: 'ADMIN',
-    prefix: '§c[ADMIN]',
-    displayName: '§c[ADMIN]',
+    glyph: RANK_GLYPHS.admin,
+    plainPrefix: '[ADMIN]',
+    prefix: `§f${RANK_GLYPHS.admin}`,
+    displayName: `§f${RANK_GLYPHS.admin}`,
     colorCode: 12, // Red
     chatColor: '§c',
     iconItem: 'tnt',
@@ -41,8 +76,10 @@ export const RANKS: Record<string, RankDefinition> = {
   developer: {
     id: 'developer',
     name: 'DEVELOPER',
-    prefix: '§b[DEV]',
-    displayName: '§b[DEV]',
+    glyph: RANK_GLYPHS.developer,
+    plainPrefix: '[DEV]',
+    prefix: `§f${RANK_GLYPHS.developer}`,
+    displayName: `§f${RANK_GLYPHS.developer}`,
     colorCode: 11, // Aqua
     chatColor: '§b',
     iconItem: 'lapis_block',
@@ -52,8 +89,10 @@ export const RANKS: Record<string, RankDefinition> = {
   mod: {
     id: 'mod',
     name: 'MOD',
-    prefix: '§2[MOD]',
-    displayName: '§2[MOD]',
+    glyph: RANK_GLYPHS.mod,
+    plainPrefix: '[MOD]',
+    prefix: `§f${RANK_GLYPHS.mod}`,
+    displayName: `§f${RANK_GLYPHS.mod}`,
     colorCode: 2, // Dark Green
     chatColor: '§2',
     iconItem: 'emerald_block',
@@ -63,8 +102,10 @@ export const RANKS: Record<string, RankDefinition> = {
   helper: {
     id: 'helper',
     name: 'HELPER',
-    prefix: '§9[HELPER]',
-    displayName: '§9[HELPER]',
+    glyph: RANK_GLYPHS.helper,
+    plainPrefix: '[HELPER]',
+    prefix: `§f${RANK_GLYPHS.helper}`,
+    displayName: `§f${RANK_GLYPHS.helper}`,
     colorCode: 9, // Blue
     chatColor: '§9',
     iconItem: 'light_blue_dye',
@@ -74,8 +115,10 @@ export const RANKS: Record<string, RankDefinition> = {
   mvp_plus_plus: {
     id: 'mvp_plus_plus',
     name: 'MVP++',
-    prefix: '§6[MVP§c++§6]',
-    displayName: '§6[MVP§c++§6]',
+    glyph: RANK_GLYPHS.mvp_plus_plus,
+    plainPrefix: '[MVP++]',
+    prefix: `§f${RANK_GLYPHS.mvp_plus_plus}`,
+    displayName: `§f${RANK_GLYPHS.mvp_plus_plus}`,
     colorCode: 6, // Gold
     chatColor: '§6',
     iconItem: 'golden_apple',
@@ -85,8 +128,10 @@ export const RANKS: Record<string, RankDefinition> = {
   mvp_plus: {
     id: 'mvp_plus',
     name: 'MVP+',
-    prefix: '§b[MVP§c+§b]',
-    displayName: '§b[MVP§c+§b]',
+    glyph: RANK_GLYPHS.mvp_plus,
+    plainPrefix: '[MVP+]',
+    prefix: `§f${RANK_GLYPHS.mvp_plus}`,
+    displayName: `§f${RANK_GLYPHS.mvp_plus}`,
     colorCode: 11, // Aqua
     chatColor: '§b',
     iconItem: 'diamond',
@@ -96,8 +141,10 @@ export const RANKS: Record<string, RankDefinition> = {
   mvp: {
     id: 'mvp',
     name: 'MVP',
-    prefix: '§b[MVP]',
-    displayName: '§b[MVP]',
+    glyph: RANK_GLYPHS.mvp,
+    plainPrefix: '[MVP]',
+    prefix: `§f${RANK_GLYPHS.mvp}`,
+    displayName: `§f${RANK_GLYPHS.mvp}`,
     colorCode: 11, // Aqua
     chatColor: '§b',
     iconItem: 'prismarine_shard',
@@ -107,8 +154,10 @@ export const RANKS: Record<string, RankDefinition> = {
   vip_plus: {
     id: 'vip_plus',
     name: 'VIP+',
-    prefix: '§a[VIP§6+§a]',
-    displayName: '§a[VIP§6+§a]',
+    glyph: RANK_GLYPHS.vip_plus,
+    plainPrefix: '[VIP+]',
+    prefix: `§f${RANK_GLYPHS.vip_plus}`,
+    displayName: `§f${RANK_GLYPHS.vip_plus}`,
     colorCode: 10, // Green
     chatColor: '§a',
     iconItem: 'gold_ingot',
@@ -118,8 +167,10 @@ export const RANKS: Record<string, RankDefinition> = {
   vip: {
     id: 'vip',
     name: 'VIP',
-    prefix: '§a[VIP]',
-    displayName: '§a[VIP]',
+    glyph: RANK_GLYPHS.vip,
+    plainPrefix: '[VIP]',
+    prefix: `§f${RANK_GLYPHS.vip}`,
+    displayName: `§f${RANK_GLYPHS.vip}`,
     colorCode: 10, // Green
     chatColor: '§a',
     iconItem: 'lime_dye',
@@ -128,9 +179,11 @@ export const RANKS: Record<string, RankDefinition> = {
   },
   default: {
     id: 'default',
-    name: 'DEFAULT',
-    prefix: '§7',
-    displayName: '§7[MEMBER]',
+    name: 'MEMBER',
+    glyph: RANK_GLYPHS.default,
+    plainPrefix: '[MEMBER]',
+    prefix: `§f${RANK_GLYPHS.default}`,
+    displayName: `§f${RANK_GLYPHS.default}`,
     colorCode: 7, // Gray
     chatColor: '§7',
     iconItem: 'iron_ingot',
@@ -145,6 +198,7 @@ export function getRank(rankId?: string): RankDefinition | null {
   if (rawKey === 'mvp++' || rawKey === 'mvpplusplus') return RANKS.mvp_plus_plus;
   if (rawKey === 'mvp+' || rawKey === 'mvpplus') return RANKS.mvp_plus;
   if (rawKey === 'vip+' || rawKey === 'vipplus') return RANKS.vip_plus;
+  if (rawKey === 'member' || rawKey === 'player') return RANKS.default;
   const key = rawKey.replace(/[^a-z0-9_]/g, '');
   return RANKS[key] || null;
 }
@@ -154,15 +208,13 @@ export function getRankOrDefault(rankId?: string): RankDefinition {
 }
 
 export function formatPlayerName(rank: RankDefinition, username: string): string {
-  if (rank.id === 'default') {
-    return `§7${username}`;
-  }
-  return `${rank.prefix} ${username}`;
+  return `${rank.prefix} ${rank.chatColor}${username}`;
 }
 
 export function formatChatMessage(rank: RankDefinition, username: string, message: string): string {
-  if (rank.id === 'default') {
-    return `§7${username}§f: ${message}`;
-  }
-  return `${rank.prefix} ${username}§f: ${message}`;
+  return `${rank.prefix} ${rank.chatColor}${username}§f: ${message}`;
+}
+
+export function formatPlainChatLog(rank: RankDefinition, username: string, message: string): string {
+  return `${rank.plainPrefix} ${username}: ${message}`;
 }

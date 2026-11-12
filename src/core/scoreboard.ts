@@ -347,9 +347,22 @@ export function updatePlayerScoreboardLocation(target: any, arg2?: any, arg3?: a
   updateTablist(client, is119, islandName);
 }
 
+function shortPlayerTeamKey(username: string): string {
+  const clean = username.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (clean.length <= 11 && clean.length === username.length) return clean;
+  let hash = 2166136261;
+  for (let i = 0; i < username.length; i++) {
+    hash ^= username.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const suffix = (hash >>> 0).toString(36).padStart(4, '0').slice(-4);
+  return `${clean.slice(0, 6)}_${suffix}`;
+}
+
 export function sendScoreboardTeam(client: any, username: string, rank: RankDefinition, is119: boolean = true): void {
-  const teamName = 'team_' + rank.id;
-  const prefixStr = rank.id === 'default' ? '§7' : `${rank.prefix} `;
+  const sortOrder = String(Math.max(0, 999 - rank.weight)).padStart(3, '0');
+  const teamName = `r${sortOrder}_${shortPlayerTeamKey(username)}`;
+  const prefixStr = `${rank.prefix} `;
 
   try {
     try { client.write('teams', { team: teamName, mode: 1 }); } catch (e) {}
