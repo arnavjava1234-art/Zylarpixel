@@ -13,6 +13,83 @@
       "ascent": 7,
       "height": 8,
       "chars": ["\uE001"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/owner.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE010"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/admin.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE011"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/dev.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE012"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/mod.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE013"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/helper.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE014"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/mvp_plus_plus.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE015"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/mvp_plus.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE016"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/mvp.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE017"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/vip_plus.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE018"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/vip.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE019"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/ranks/member.png",
+      "ascent": 8,
+      "height": 9,
+      "chars": ["\uE01A"]
     }
   ]
 }
