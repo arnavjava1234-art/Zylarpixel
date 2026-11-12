@@ -2,11 +2,11 @@
   "username": "arnavjava",
   "rank": "vip_plus",
   "isOp": true,
-  "coins": 6103623.3,
+  "coins": 6103627.3,
   "bank": 50000000,
   "bits": 0,
   "stats": {
-    "health": 100,
+    "health": 12.5,
     "maxHealth": 100,
     "defense": 0,
     "strength": 0,
@@ -203,10 +203,70 @@
           }
         }
       }
+    },
+    {
+      "slot": 39,
+      "name": "rotten_flesh",
+      "itemId": 896,
+      "count": 2,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 255
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fRotten Flesh\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "ROTTEN_FLESH"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          }
+        }
+      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794497702204,
+  "lastSeen": 1794503165967,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -308,6 +368,6 @@
   },
   "merchantLastResetDay": 20769,
   "skillXp": {
-    "combat": 55
+    "combat": 67
   }
 }
