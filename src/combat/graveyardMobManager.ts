@@ -63,7 +63,6 @@ export interface GraveyardMobDef {
   wanderSpeed: number; // blocks/sec
   attackReach: number;
   attackCooldownMs: number;
-  combatXp: number;
   coinReward: number;
   drops: MobDropEntry[];
 }
@@ -80,7 +79,6 @@ export const GRAVEYARD_MOBS: Record<GraveyardMobKind, GraveyardMobDef> = {
     wanderSpeed: 1.1,
     attackReach: 2.0,
     attackCooldownMs: 1000,
-    combatXp: 6,
     coinReward: 2,
     drops: [
       { itemName: 'rotten_flesh', chance: 1.0, amount: 1 },
@@ -100,7 +98,6 @@ export const GRAVEYARD_MOBS: Record<GraveyardMobKind, GraveyardMobDef> = {
     wanderSpeed: 1.2,
     attackReach: 2.0,
     attackCooldownMs: 1000,
-    combatXp: 7,
     coinReward: 3,
     drops: [
       { itemName: 'rotten_flesh', chance: 1.0, amount: 1 },
