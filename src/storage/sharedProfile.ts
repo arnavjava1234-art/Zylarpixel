@@ -37,6 +37,12 @@ export interface PlayerProfile {
     foraging: number;
     farming: number;
   };
+  skillXp?: {
+    combat?: number;
+    mining?: number;
+    foraging?: number;
+    farming?: number;
+  };
   inventory: SharedInventoryItem[];
   currentServer: 'hub' | 'islands';
   lastSeen: number;

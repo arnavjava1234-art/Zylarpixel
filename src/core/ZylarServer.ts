@@ -35,6 +35,8 @@ import {
   sendScoreboard,
   updateTablist,
   updatePlayerScoreboardLocation,
+  updatePlayerScoreboardTimeAndDate,
+  updatePlayerScoreboardZone,
   sendScoreboardTeam,
   startScoreboardAnimation,
   stopScoreboardAnimation,
@@ -48,6 +50,25 @@ import {
   trackFallDamageOnMove,
   tickEnvironmentalDeaths
 } from '../combat/deathManager';
+import {
+  getWorldTimeState,
+  formatScoreboardTimeLine,
+  formatScoreboardDateLine,
+  sendWorldTimePacket
+} from '../world/timeManager';
+import {
+  ADMIN_TIME_WINDOW_ID,
+  openAdminTimeMenu,
+  handleAdminTimeMenuClick
+} from '../gui/adminTimeMenu';
+import {
+  initGraveyardSpawnPads,
+  resetGraveyardMobs,
+  tickGraveyardMobs,
+  syncGraveyardMobsForPlayer,
+  handleGraveyardMobAttack,
+  isInsideGraveyardZone
+} from '../combat/graveyardMobManager';
 import { formatPlayerName, formatChatMessage, RANKS, RankDefinition } from '../config/ranks';
 import {
   players,
@@ -609,6 +630,22 @@ export class ZylarServer {
     }
   }
 
+  public syncWorldTimeBroadcast(): void {
+    const timeState = getWorldTimeState();
+    const timeLine = formatScoreboardTimeLine(timeState);
+    const dateLine = formatScoreboardDateLine(timeState);
+
+    for (const [_, p] of players) {
+      if (!this.isClientWritable(p?.client)) continue;
+      sendWorldTimePacket(p.client, timeState);
+      updatePlayerScoreboardTimeAndDate(p, timeLine, dateLine);
+    }
+
+    if (this.config.worldType === 'hub') {
+      tickGraveyardMobs(this);
+    }
+  }
+
   public stop(): void {
     this.clearLoops();
     for (const [_, p] of players) {
@@ -643,6 +680,8 @@ export class ZylarServer {
     if (this.config.worldType === 'hub') {
       this.log('INFO', '⚡ Loading Authentic Hypixel SkyBlock Hub Chunks from Region Files...');
       preWarmHubSpawn();
+      resetGraveyardMobs();
+      initGraveyardSpawnPads();
     } else {
       generateStarterIslands();
     }
@@ -789,6 +828,26 @@ export class ZylarServer {
         this.log('ERROR', 'Environmental deaths loop error:', err?.message || err);
       }
     }, 500));
+
+    // Shared 20-min Real-Time Day/Night Sky + 30-Min Scoreboard Clock Sync (1s)
+    this.intervals.push(setInterval(() => {
+      try {
+        this.syncWorldTimeBroadcast();
+      } catch (err: any) {
+        this.log('ERROR', 'World time sync error:', err?.message || err);
+      }
+    }, 1000));
+
+    // Surface Graveyard Zombie + Zombie Villager 10Hz Simulation (Hub Only)
+    if (this.config.worldType === 'hub') {
+      this.intervals.push(setInterval(() => {
+        try {
+          tickGraveyardMobs(this);
+        } catch (err: any) {
+          this.log('ERROR', 'Graveyard mob tick error:', err?.message || err);
+        }
+      }, 100));
+    }
 
     // F. Hub Banker NPC, Farm Merchant NPC, Crop Guardians & Server Bots Ticker (every 50ms / 20 TPS)
     if (this.config.worldType === 'hub') {
@@ -1312,11 +1371,23 @@ export class ZylarServer {
     }
     giveNetherStar(client);
 
-    // 6. Scoreboard & Below-Name Health
+    // 6. Scoreboard, World Time & Below-Name Health
     try {
-      sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse);
+      const timeState = getWorldTimeState();
+      const timeLine = formatScoreboardTimeLine(timeState);
+      const dateLine = formatScoreboardDateLine(timeState);
+      const initialZone = (this.config.worldType === 'hub' && isInsideGraveyardZone(pData.x, pData.y, pData.z))
+        ? '§cGraveyard'
+        : this.config.scoreboardLocation;
+      pData.currentZoneScoreboardName = initialZone;
+
+      sendScoreboard(client, is119, this.config.scoreboardLocation, pData.purse, timeLine, dateLine, initialZone);
+      sendWorldTimePacket(client, timeState);
       initBelowNameHealth(client, is119);
       updatePlayerHealthScore(client, pData.username, pData.stats.health, is119);
+      if (this.config.worldType === 'hub') {
+        syncGraveyardMobsForPlayer(this, pData);
+      }
     } catch (_) {}
 
     // 7. Global Tablist & Nametag Teams
@@ -1488,8 +1559,15 @@ export class ZylarServer {
         trackFallDamageOnMove(this, pData, pData.x, pData.y, pData.z, data.onGround);
       }
 
-      // 2. Portal Step Detection
+      // 2. Portal Step Detection & Hub Zone / Graveyard Mob Streaming
       this.checkPortalStep(pData, data.x, data.y, data.z);
+      if (this.config.worldType === 'hub') {
+        const nextZone = isInsideGraveyardZone(pData.x, pData.y, pData.z)
+          ? '§cGraveyard'
+          : this.config.scoreboardLocation;
+        updatePlayerScoreboardZone(pData, nextZone);
+        syncGraveyardMobsForPlayer(this, pData);
+      }
 
       // 3. Dynamic Chunk Streaming & View Center Sync
       const currentCx = Math.floor(data.x / 16);
@@ -1890,6 +1968,9 @@ export class ZylarServer {
           } else if (clickedSlot === 25) {
             // Item & Combat Spawner (Diamond Sword)
             openAdminItemSpawner(client, pData, 0);
+          } else if (clickedSlot === 31) {
+            // Time & Day/Night Control (Clock)
+            openAdminTimeMenu(client, pData, 0);
           } else if (clickedSlot === 49) {
             pData.openWindowId = 0;
             try { client.write('close_window', { windowId: 1 }); } catch (_) {}
@@ -1961,6 +2042,12 @@ export class ZylarServer {
         // 9. Farm Merchant Menu (WindowId = 16)
         if (pData.openWindowId === FARM_MERCHANT_WINDOW_ID) {
           handleFarmMerchantClick(client, pData, data, sendSystemMessage, is119);
+          return;
+        }
+
+        // 10. Admin Time Control Menu (WindowId = 17)
+        if (pData.openWindowId === ADMIN_TIME_WINDOW_ID) {
+          handleAdminTimeMenuClick(client, pData, clickedSlot, () => this.syncWorldTimeBroadcast());
           return;
         }
       }
@@ -2367,7 +2454,12 @@ export class ZylarServer {
 
       if (data.mouse !== 1) return; // 1 = Attack
 
-      // Peaceful Hub Safe Zone Check
+      // Hub PvE Graveyard Zombie + Zombie Villager Combat Check (runs before Hub PvP-off return!)
+      if (this.config.worldType === 'hub' && handleGraveyardMobAttack(this, pData, data.target)) {
+        return;
+      }
+
+      // Peaceful Hub Safe Zone Check (Players cannot attack other players)
       if (!this.config.pvp || this.config.worldType === 'hub') {
         return;
       }

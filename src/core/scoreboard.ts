@@ -36,9 +36,18 @@ export function formatScoreboardPurse(purse: number): string {
   return p.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
-export function sendScoreboard(client: any, is119: boolean = true, islandName: string = 'Your Island', initialPurse: number = 0.0): void {
+export function sendScoreboard(
+  client: any,
+  is119: boolean = true,
+  islandName: string = 'Your Island',
+  initialPurse: number = 0.0,
+  initialTimeLine: string = '§fTime: §712:00pm §e☀',
+  initialDateLine: string = '§fDate: §bLate Autumn 1st',
+  initialLocationName?: string
+): void {
   try {
     const title = TITLE_FRAMES[currentTitleIndex];
+    const locationLabel = initialLocationName || islandName;
 
     // 0. Remove previous Objective 'sb' first to wipe all previous scoreboard score lines completely
     try {
@@ -67,6 +76,9 @@ export function sendScoreboard(client: any, is119: boolean = true, islandName: s
     }
 
     client._currentIslandScoreboardName = islandName;
+    client._currentZoneScoreboardName = locationLabel;
+    client._lastScoreboardDateStr = initialDateLine;
+    client._lastScoreboardTimeStr = initialTimeLine;
 
     // 2. Display on Sidebar (position: 1)
     client.write('scoreboard_display_objective', {
@@ -82,9 +94,9 @@ export function sendScoreboard(client: any, is119: boolean = true, islandName: s
       '§701/10/26 §8mini01A',
       ' ',
       `§fIsland: §a${islandName}`,
-      '§fDate: §bLate Autumn 1st',
-      '§fTime: §712:00pm',
-      `§fLocation: §a${islandName}`,
+      initialDateLine,
+      initialTimeLine,
+      `§fLocation: ${locationLabel.startsWith('§') ? locationLabel : `§a${locationLabel}`}`,
       '  ',
       `§fPurse: §6${purseFormatted}`,
       '§fBits: §b0',
@@ -157,10 +169,79 @@ export function updatePlayerScoreboardPurse(pData: any): void {
   } catch (_) {}
 }
 
+function replaceScoreboardLine(client: any, is119: boolean, oldLine: string, newLine: string, scoreValue: number): void {
+  if (!client || client.ended || client.state === 'closed') return;
+  try {
+    if (is119) {
+      if (oldLine) {
+        client.write('scoreboard_score', {
+          itemName: oldLine,
+          action: 1,
+          scoreName: 'sb'
+        });
+      }
+      client.write('scoreboard_score', {
+        itemName: newLine,
+        action: 0,
+        scoreName: 'sb',
+        value: scoreValue
+      });
+    } else {
+      if (oldLine) {
+        client.write('reset_score', {
+          entity_name: oldLine,
+          objective_name: 'sb'
+        });
+      }
+      client.write('scoreboard_score', {
+        itemName: newLine,
+        scoreName: 'sb',
+        value: scoreValue,
+        display_name: undefined,
+        number_format: undefined
+      });
+    }
+  } catch (_) {}
+}
+
+export function updatePlayerScoreboardTimeAndDate(pData: any, timeLine: string, dateLine?: string): void {
+  if (!pData || !pData.client) return;
+  const client = pData.client;
+  const is119 = pData.is119 !== false;
+
+  const prevTime = client._lastScoreboardTimeStr;
+  if (timeLine && prevTime !== timeLine) {
+    replaceScoreboardLine(client, is119, prevTime || '§fTime: §712:00pm', timeLine, 10);
+    client._lastScoreboardTimeStr = timeLine;
+  }
+
+  const prevDate = client._lastScoreboardDateStr;
+  if (dateLine && prevDate !== dateLine) {
+    replaceScoreboardLine(client, is119, prevDate || '§fDate: §bLate Autumn 1st', dateLine, 11);
+    client._lastScoreboardDateStr = dateLine;
+  }
+}
+
+export function updatePlayerScoreboardZone(pData: any, zoneName: string): void {
+  if (!pData || !pData.client) return;
+  const client = pData.client;
+  const is119 = pData.is119 !== false;
+  const oldZone = pData.currentZoneScoreboardName || client._currentZoneScoreboardName || client._currentIslandScoreboardName || 'Village';
+  if (oldZone === zoneName) return;
+
+  const formatLoc = (loc: string) => `§fLocation: ${loc.startsWith('§') ? loc : `§a${loc}`}`;
+  replaceScoreboardLine(client, is119, formatLoc(oldZone), formatLoc(zoneName), 9);
+
+  pData.currentZoneScoreboardName = zoneName;
+  client._currentZoneScoreboardName = zoneName;
+  updateTablist(client, is119, zoneName);
+}
+
 export function updateTablist(client: any, is119: boolean = true, islandName: string = 'Your Island'): void {
   try {
+    const formattedArea = islandName.startsWith('§') ? islandName : `§a${islandName}`;
     const headerStr = '§d§lZYLARPIXEL NETWORK §7(SkyBlock)\n§fplay.zylarpixel.net';
-    const footerStr = `\n§7Area: §a${islandName} §8| §7Server: §dZL-01\n§7Type §e/island §7or §e/is §7to return home`;
+    const footerStr = `\n§7Area: ${formattedArea} §8| §7Server: §dZL-01\n§7Type §e/island §7or §e/is §7to return home`;
 
     if (is119) {
       client.write('playerlist_header', {

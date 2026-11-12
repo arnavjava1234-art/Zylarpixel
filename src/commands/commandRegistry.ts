@@ -39,7 +39,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: 'coin', description: 'Manage player purse balance (/coin <player> set/add/remove <amount>)', opOnly: true },
   { name: 'give', description: 'Give custom SkyBlock item (/give [player] <itemId> [count])', opOnly: true },
   { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true },
-  { name: 'kill', description: 'Eliminate yourself or a target player (/kill [player])', opOnly: true }
+  { name: 'kill', description: 'Eliminate yourself or a target player (/kill [player])', opOnly: true },
+  { name: 'time', description: 'View or set SkyBlock time (/time set <550|1830|8:30am|day|night>)', opOnly: true }
 ];
 
 export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boolean = false): void {
@@ -262,6 +263,48 @@ export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boole
         }
       });
     }
+    // /time <action> [value]
+    else if (c.name === 'time') {
+      const argActionIndex = nodes.length;
+      const argValueIndex = nodes.length + 1;
+      literalNode.children.push(argActionIndex);
+
+      nodes.push({
+        flags: {
+          command_node_type: 2,
+          has_command: 1,
+          has_redirect_node: 0,
+          has_custom_suggestions: 1,
+          unused: 0
+        },
+        children: [argValueIndex],
+        redirectNode: undefined,
+        extraNodeData: {
+          name: 'action',
+          parser: 'brigadier:string',
+          properties: 'SINGLE_WORD',
+          suggestionType: 'minecraft:ask_server'
+        }
+      });
+
+      nodes.push({
+        flags: {
+          command_node_type: 2,
+          has_command: 1,
+          has_redirect_node: 0,
+          has_custom_suggestions: 1,
+          unused: 0
+        },
+        children: [] as number[],
+        redirectNode: undefined,
+        extraNodeData: {
+          name: 'value',
+          parser: 'brigadier:string',
+          properties: 'SINGLE_WORD',
+          suggestionType: 'minecraft:ask_server'
+        }
+      });
+    }
   }
 
   try {
@@ -439,6 +482,25 @@ export function handleTabComplete(client: any, pData: any, data: any, onlinePlay
     candidateMatches = allNames
       .filter(n => n.toLowerCase().startsWith(currentArg))
       .map(n => ({ match: n, tooltip: undefined }));
+  }
+
+  // Sub-case H: /time <set|freeze|resume|query|gui> <value>
+  else if (mainCmd === 'time' && (pData.isOp || isMaster)) {
+    if (currentArgIndex === 1) {
+      const actions = ['set', 'freeze', 'resume', 'query', 'gui', 'day', 'night', 'noon', 'midnight', 'sunrise', 'sunset'];
+      candidateMatches = actions
+        .filter(a => a.startsWith(currentArg))
+        .map(a => ({ match: a, tooltip: undefined }));
+    } else if (currentArgIndex === 2 && parts[1]?.toLowerCase() === 'set') {
+      const presets = [
+        'day', 'night', 'noon', 'midnight', 'sunrise', 'sunset',
+        '550', '830', '1000', '1700', '1850', '1830',
+        '5:30am', '8:30am', '12:00pm', '5:00pm', '6:30pm', '12:00am'
+      ];
+      candidateMatches = presets
+        .filter(v => v.startsWith(currentArg))
+        .map(v => ({ match: v, tooltip: undefined }));
+    }
   }
 
   try {

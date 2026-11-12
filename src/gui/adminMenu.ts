@@ -5,6 +5,7 @@
 
 import { mcData1192 } from '../world/worldManager';
 import { applyUniversalItemFlags } from '../items';
+import { getWorldTimeState } from '../world/timeManager';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;
@@ -129,6 +130,23 @@ export function openAdminMenu(client: any, pData: any): void {
       '§7Supports multi-page catalog.',
       ' ',
       '§eClick to open Item Spawner! §b▶'
+    ]
+  );
+
+  // Slot 31: Time & Day/Night Manager (Clock, Centered Below Row 2)
+  const timeState = getWorldTimeState();
+  items[31] = createGuiItem(
+    'clock',
+    1,
+    '§e§lTime & Day/Night Control',
+    [
+      `§7Now: §f${timeState.slot.spacedLabel} ${timeState.isNight ? '§b☽ Night' : '§e☀ Day'}${timeState.frozen ? ' §3[FROZEN]' : ''}`,
+      `§7Phase: ${timeState.slot.phase.colorCode}${timeState.slot.phase.label}`,
+      ' ',
+      '§7Pick any of the 48 half-hour slots across',
+      '§7Day & Night, or freeze the sky clock!',
+      ' ',
+      '§eClick to open Time Selector! §b▶'
     ]
   );
 

@@ -32,6 +32,13 @@ import { parseCoinInput, formatCoins } from '../gui/bankMenu';
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createItem, getSkyBlockItem, getAllItemIds } from '../items';
 import { handlePlayerDeath, resetPlayerHazardState } from '../combat/deathManager';
+import { openAdminTimeMenu } from '../gui/adminTimeMenu';
+import {
+  getWorldTimeState,
+  parseTimeInput,
+  setWorldTimeFrozen,
+  setWorldTimeTicks
+} from '../world/timeManager';
 
 let teleportCounter = 1;
 
@@ -684,6 +691,64 @@ export function handleCommand(
       cause: 'COMMAND',
       killerName: targetPData === pData ? undefined : pData.username
     });
+    return;
+  }
+
+  // 17. World Time Management (/time set <value>, freeze, resume, query, gui)
+  if (cmd === 'time') {
+    if (!pData.isOp && !isMaster) {
+      sendSystemMessage(client, '§cYou do not have permission to execute this command.', is119);
+      return;
+    }
+
+    const sub = (parts[1] || 'query').toLowerCase();
+
+    if (sub === 'gui' || sub === 'menu') {
+      openAdminTimeMenu(client, pData, 0);
+      return;
+    }
+
+    if (sub === 'freeze' || sub === 'pause') {
+      const st = setWorldTimeFrozen(true);
+      pData.server?.syncWorldTimeBroadcast?.();
+      sendSystemMessage(client, `§b[Time] §fSkyBlock clock §cfrozen §fat §e${st.slot.spacedLabel} ${st.isNight ? '§b☽' : '§e☀'}§f.`, is119);
+      return;
+    }
+
+    if (sub === 'resume' || sub === 'unfreeze' || sub === 'start') {
+      const st = setWorldTimeFrozen(false);
+      pData.server?.syncWorldTimeBroadcast?.();
+      sendSystemMessage(client, `§b[Time] §fSkyBlock clock §aresumed §fat §e${st.slot.spacedLabel} ${st.isNight ? '§b☽' : '§e☀'}§f.`, is119);
+      return;
+    }
+
+    if (sub === 'query' || sub === 'check') {
+      const st = getWorldTimeState();
+      const cycleTag = st.isNight ? '§b☽ Night (Zombie Villagers Active)' : '§e☀ Day (Graveyard Zombie Only)';
+      const freezeTag = st.frozen ? ' §3[FROZEN]' : '';
+      sendSystemMessage(
+        client,
+        `§e[Time] §f${st.slot.spacedLabel} ${cycleTag}${freezeTag} §8| §b${st.seasonName} ${st.ordinalDay} §8(${st.dayTick}/24000 ticks)`,
+        is119
+      );
+      return;
+    }
+
+    const rawTimeArg = sub === 'set' ? parts.slice(2).join(' ') : parts.slice(1).join(' ');
+    const parsed = parseTimeInput(rawTimeArg);
+    if (!parsed.ok) {
+      sendSystemMessage(client, `§c${(parsed as { error: string }).error}`, is119);
+      sendSystemMessage(client, '§7Usage: §e/time set <550|1850|8:30am|18:30|day|night|gui>', is119);
+      return;
+    }
+
+    const st = setWorldTimeTicks(parsed.rawTicks);
+    pData.server?.syncWorldTimeBroadcast?.();
+    sendSystemMessage(
+      client,
+      `§a[Time] Set time to §e${st.slot.spacedLabel} ${st.isNight ? '§b☽ Night' : '§e☀ Day'} §8(${st.dayTick} ticks · ${parsed.matchedFormat})§a!`,
+      is119
+    );
     return;
   }
 
