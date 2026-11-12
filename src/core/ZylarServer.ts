@@ -1227,7 +1227,7 @@ export class ZylarServer {
     // 1. Handshake & Login Packet (Locked to 1.19.2)
     try {
       client.write('login', {
-        entityId: client.id,
+        entityId: pData.entityId,
         isHardcore: false,
         gameMode: this.config.gamemode,
         previousGameMode: -1,
