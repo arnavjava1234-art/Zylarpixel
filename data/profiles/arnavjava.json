@@ -1,6 +1,6 @@
 {
   "username": "arnavjava",
-  "rank": "mvp_plus_plus",
+  "rank": "mod",
   "isOp": true,
   "coins": 6103623.3,
   "bank": 50000000,
@@ -146,7 +146,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794495072577,
+  "lastSeen": 1794495089259,
   "bankTransactions": [
     {
       "type": "deposit",
