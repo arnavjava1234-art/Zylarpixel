@@ -2,8 +2,9 @@
   "username": "arnavjava",
   "rank": "mvp_plus_plus",
   "isOp": true,
-  "coins": 100000000162,
+  "coins": 6103623.3,
   "bank": 50000000,
+  "bits": 0,
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -17,24 +18,24 @@
     "farmingFortune": 0
   },
   "skills": {
-    "combat": 1,
+    "combat": 2,
     "mining": 1,
     "foraging": 1,
     "farming": 1
   },
   "inventory": [
     {
-      "slot": 37,
+      "slot": 36,
       "name": "wheat_seeds",
       "itemId": 771,
-      "count": 64,
+      "count": 22,
       "nbtData": {
         "type": "compound",
         "name": "",
         "value": {
           "HideFlags": {
             "type": "int",
-            "value": 254
+            "value": 255
           },
           "display": {
             "type": "compound",
@@ -85,126 +86,6 @@
     },
     {
       "slot": 38,
-      "name": "wheat_seeds",
-      "itemId": 771,
-      "count": 64,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat Seeds\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT_SEEDS"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 40,
-      "name": "wheat_seeds",
-      "itemId": 771,
-      "count": 38,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 254
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat Seeds\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT_SEEDS"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
-      "slot": 42,
       "name": "golden_sword",
       "itemId": 745,
       "count": 1,
@@ -214,7 +95,7 @@
         "value": {
           "HideFlags": {
             "type": "int",
-            "value": 254
+            "value": 255
           },
           "Unbreakable": {
             "type": "byte",
@@ -225,19 +106,13 @@
             "value": {
               "Name": {
                 "type": "string",
-                "value": "{\"text\":\"§fRogue Sword\"}"
+                "value": "{\"text\":\"§fGolden Sword\"}"
               },
               "Lore": {
                 "type": "list",
                 "value": {
                   "type": "string",
                   "value": [
-                    "{\"text\":\"§7Damage: §c+20\"}",
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§6Ability: Speed Boost §e§lRIGHT CLICK§r\"}",
-                    "{\"text\":\"§7Gain §a+100 ✦ Speed §7for §a30 seconds§7.\"}",
-                    "{\"text\":\"§8Mana Cost: §350\"}",
-                    "{\"text\":\"§8Cooldown: §a5s\"}",
                     "{\"text\":\" \"}",
                     "{\"text\":\"§f§lCOMMON SWORD\"}"
                   ]
@@ -250,7 +125,7 @@
             "value": {
               "id": {
                 "type": "string",
-                "value": "ROGUE_SWORD"
+                "value": "GOLDEN_SWORD"
               },
               "rarity": {
                 "type": "string",
@@ -260,13 +135,9 @@
                 "type": "string",
                 "value": "SWORD"
               },
-              "uuid": {
-                "type": "string",
-                "value": "b50d609e-7046-419a-8576-8dddf46cb4d5"
-              },
               "origin": {
                 "type": "string",
-                "value": "ZYLARPIXEL"
+                "value": "VANILLA"
               }
             }
           }
@@ -275,7 +146,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794460465207,
+  "lastSeen": 1794491691549,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -369,9 +240,14 @@
     }
   ],
   "cooldowns": {
-    "Speed Boost": 1793888060767
+    "Speed Boost": 1794475993291
   },
   "activeBuffs": {},
-  "merchantDailyPurchases": {},
-  "merchantLastResetDay": 20769
+  "merchantDailyPurchases": {
+    "wheat_seeds": 27
+  },
+  "merchantLastResetDay": 20769,
+  "skillXp": {
+    "combat": 55
+  }
 }
