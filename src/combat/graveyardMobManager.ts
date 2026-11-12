@@ -1030,7 +1030,7 @@ export function handleGraveyardMobAttack(server: any, pData: any, targetEntityId
       }
     }
 
-    awardCombatXpAndCoins(pData, mob.def);
+    awardMobCoins(pData, mob.def.coinReward);
   }
 
   return true;
