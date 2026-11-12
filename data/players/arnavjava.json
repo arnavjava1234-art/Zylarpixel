@@ -1,7 +1,7 @@
 {
   "username": "ARNAVJAVA",
   "uuid": "308c3f3c-d3cd-3d54-bb19-e8cb9246c6fd",
-  "rank": "vip",
+  "rank": "vip_plus",
   "isOp": true,
   "island": {
     "originX": 0,
@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-12T14:59:20.079Z",
+  "lastLogin": "2026-11-12T14:59:27.655Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -25,7 +25,7 @@
     "speed": 100,
     "farmingFortune": 0
   },
-  "rankId": "vip",
+  "rankId": "vip_plus",
   "purse": 6103623.3,
   "bank": 50000000,
   "bankTransactions": [
@@ -247,5 +247,5 @@
     "wheat_seeds": 27
   },
   "merchantLastResetDay": 20769,
-  "lastSeen": 1794495560079
+  "lastSeen": 1794495567655
 }
