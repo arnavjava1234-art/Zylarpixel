@@ -38,7 +38,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: 'money', description: 'Manage player purse balance (/money <player> set/add/remove <amount>)', opOnly: true },
   { name: 'coin', description: 'Manage player purse balance (/coin <player> set/add/remove <amount>)', opOnly: true },
   { name: 'give', description: 'Give custom SkyBlock item (/give [player] <itemId> [count])', opOnly: true },
-  { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true }
+  { name: 'item', description: 'Spawn custom SkyBlock item (/item <itemId> [count])', opOnly: true },
+  { name: 'kill', description: 'Eliminate yourself or a target player (/kill [player])', opOnly: true }
 ];
 
 export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boolean = false): void {
@@ -238,6 +239,29 @@ export function sendDeclaredCommands(client: any, isOp: boolean, isMaster: boole
         }
       });
     }
+
+    // /kill [player]
+    else if (c.name === 'kill') {
+      const argPlayerIndex = nodes.length;
+      literalNode.children.push(argPlayerIndex);
+      nodes.push({
+        flags: {
+          command_node_type: 2,
+          has_command: 1,
+          has_redirect_node: 0,
+          has_custom_suggestions: 1,
+          unused: 0
+        },
+        children: [] as number[],
+        redirectNode: undefined,
+        extraNodeData: {
+          name: 'player',
+          parser: 'brigadier:string',
+          properties: 'SINGLE_WORD',
+          suggestionType: 'minecraft:ask_server'
+        }
+      });
+    }
   }
 
   try {
@@ -407,6 +431,14 @@ export function handleTabComplete(client: any, pData: any, data: any, onlinePlay
           .map(id => ({ match: id, tooltip: undefined }));
       }
     }
+  }
+
+  // Sub-case G: /kill [player]
+  else if (mainCmd === 'kill' && (pData.isOp || isMaster) && currentArgIndex === 1) {
+    const allNames = getUniquePlayerNames();
+    candidateMatches = allNames
+      .filter(n => n.toLowerCase().startsWith(currentArg))
+      .map(n => ({ match: n, tooltip: undefined }));
   }
 
   try {

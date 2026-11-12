@@ -42,6 +42,12 @@ import {
   updatePlayerHealthScore
 } from './scoreboard';
 import { spawnDamageIndicator } from '../combat/damageIndicator';
+import {
+  handlePlayerDeath,
+  resetPlayerHazardState,
+  trackFallDamageOnMove,
+  tickEnvironmentalDeaths
+} from '../combat/deathManager';
 import { formatPlayerName, formatChatMessage, RANKS, RankDefinition } from '../config/ranks';
 import {
   players,
@@ -775,6 +781,15 @@ export class ZylarServer {
       }
     }, 100));
 
+    // E2. Environmental Hazards Loop (Lava, Fire, Drowning, Cactus, Suffocation - every 500ms)
+    this.intervals.push(setInterval(() => {
+      try {
+        tickEnvironmentalDeaths(this);
+      } catch (err: any) {
+        this.log('ERROR', 'Environmental deaths loop error:', err?.message || err);
+      }
+    }, 500));
+
     // F. Hub Banker NPC, Farm Merchant NPC, Crop Guardians & Server Bots Ticker (every 50ms / 20 TPS)
     if (this.config.worldType === 'hub') {
       this.botTickerInterval = setInterval(() => {
@@ -1148,6 +1163,7 @@ export class ZylarServer {
     pData.yaw = spawnYaw;
     pData.pitch = spawnPitch;
     pData.currentWorld = this.config.worldType === 'hub' ? 'zylarpixel:hub' : 'zylarpixel:islands';
+    resetPlayerHazardState(pData, spawnY);
 
     // 1. Handshake & Login Packet (Locked to 1.19.2)
     try {
@@ -1454,87 +1470,22 @@ export class ZylarServer {
       if (typeof data.yaw === 'number') pData.yaw = data.yaw;
       if (typeof data.pitch === 'number') pData.pitch = data.pitch;
 
-      // 1. Void Rescue Protection
+      // 1. Universal Void Death Check (50% Coin Purse Penalty in Hub & Islands)
       if (this.config.worldType === 'hub') {
         if (pData.y < 20.0 && (!pData.voidImmunityUntil || now >= pData.voidImmunityUntil)) {
-          pData.voidImmunityUntil = now + 2500;
-          pData.teleportLockUntil = now + 1500;
-          const rescueTpId = ++this.teleportCounter;
-          pData.pendingTeleportId = rescueTpId;
-
-          const spawnCx = Math.floor(HUB_SPAWN_X / 16);
-          const spawnCz = Math.floor(HUB_SPAWN_Z / 16);
-          pData.currentChunkX = spawnCx;
-          pData.currentChunkZ = spawnCz;
-          try {
-            client.write('update_view_position', { chunkX: spawnCx, chunkZ: spawnCz });
-          } catch (_) {}
-
-          for (let dx = -3; dx <= 3; dx++) {
-            for (let dz = -3; dz <= 3; dz++) {
-              const targetCx = spawnCx + dx;
-              const targetCz = spawnCz + dz;
-              pData.loadedChunks.add(`${targetCx},${targetCz}`);
-              try {
-                client.write('map_chunk', dumpHubChunkPacket(targetCx, targetCz, is119));
-              } catch (_) {}
-            }
-          }
-
-          this.sendPositionPacket(client, HUB_SPAWN_X, 71.0, HUB_SPAWN_Z, 180, 0, rescueTpId, is119);
-          pData.x = HUB_SPAWN_X;
-          pData.y = 71.0;
-          pData.z = HUB_SPAWN_Z;
-
-          sendSystemMessage(client, '§e[Void Rescue] Safely rescued and teleported to Hub spawn!', is119);
-          try {
-            client.write('named_sound_effect', {
-              soundName: 'entity.enderman.teleport',
-              soundCategory: 0,
-              x: Math.floor(HUB_SPAWN_X * 8),
-              y: Math.floor(71.0 * 8),
-              z: Math.floor(HUB_SPAWN_Z * 8),
-              volume: 1.0,
-              pitch: 1.0,
-              seed: [0, 0]
-            });
-          } catch (_) {}
+          handlePlayerDeath(this, pData, { cause: 'VOID' });
           return;
         }
       } else {
         if (pData.y < 30.0 && (!pData.voidImmunityUntil || now >= pData.voidImmunityUntil)) {
-          pData.voidImmunityUntil = now + 3000;
-          pData.teleportLockUntil = now + 1500;
-
-          const spawnX = pData.island ? pData.island.spawnX : 0.5;
-          const spawnY = pData.island ? pData.island.spawnY : 101.0;
-          const spawnZ = pData.island ? pData.island.spawnZ : 0.5;
-
-          teleportPlayerWithChunks(pData, spawnX, spawnY, spawnZ);
-          this.syncNearbyPlayers(pData);
-          updatePlayerScoreboardLocation(client, is119, 'Your Island');
-
-          for (const [slot, item] of pData.inventory) {
-            try {
-              const tagged = tagVanillaItemStack({
-                present: true,
-                itemId: item.itemId,
-                itemCount: item.count,
-                nbtData: item.nbtData
-              }, is119);
-              client.write('set_slot', {
-                windowId: 0,
-                stateId: 1,
-                slot,
-                item: tagged
-              });
-            } catch (_) {}
-          }
-          giveNetherStar(client);
-
-          sendSystemMessage(client, '§7[§dZylarPixel§7] §cYou fell into the void! Teleported back to your island. §a(Inventory Kept)', is119);
+          handlePlayerDeath(this, pData, { cause: 'VOID' });
           return;
         }
+      }
+
+      // 1b. Fall Damage Tracking (Server-Side)
+      if (typeof data.onGround === 'boolean') {
+        trackFallDamageOnMove(this, pData, pData.x, pData.y, pData.z, data.onGround);
       }
 
       // 2. Portal Step Detection
@@ -1679,6 +1630,11 @@ export class ZylarServer {
 
     client.on('position', handleMovement);
     client.on('position_look', handleMovement);
+    client.on('flying', (data: any) => {
+      if (data && data.onGround) {
+        trackFallDamageOnMove(this, pData, pData.x, pData.y, pData.z, true);
+      }
+    });
 
     client.on('look', (data: any) => {
       pData.yaw = (typeof data.yaw === 'number') ? data.yaw : (pData.yaw || 0);
@@ -1707,6 +1663,7 @@ export class ZylarServer {
       if (data && data.teleportId === pData.pendingTeleportId) {
         pData.pendingTeleportId = undefined;
         pData.teleportLockUntil = 0;
+        resetPlayerHazardState(pData, pData.y);
       }
     });
 
@@ -1719,6 +1676,10 @@ export class ZylarServer {
     client.on('abilities', (data: any) => {
       if (data && typeof data.flags === 'number') {
         client._abilitiesFlags = data.flags;
+        pData.isFlying = !!(data.flags & 0x02);
+        if (pData.isFlying) {
+          pData.fallPeakY = pData.y;
+        }
       }
     });
 
@@ -1737,32 +1698,11 @@ export class ZylarServer {
 
     client.on('client_command', (data: any) => {
       if (data && data.action === 0) {
-        const spawnX = pData.island ? pData.island.spawnX : 0.5;
-        const spawnY = pData.island ? pData.island.spawnY : 101.0;
-        const spawnZ = pData.island ? pData.island.spawnZ : 0.5;
-        teleportPlayerWithChunks(pData, spawnX, spawnY, spawnZ);
-        this.syncNearbyPlayers(pData);
-        updatePlayerScoreboardLocation(client, is119, 'Your Island');
-
-        for (const [slot, item] of pData.inventory) {
-          if (slot === HOTBAR_NETHER_STAR_SLOT) continue;
-          try {
-            const tagged = tagVanillaItemStack({
-              present: true,
-              itemId: item.itemId,
-              itemCount: item.count,
-              nbtData: item.nbtData
-            }, is119);
-            item.nbtData = tagged.nbtData;
-            client.write('set_slot', {
-              windowId: 0,
-              stateId: 1,
-              slot,
-              item: tagged
-            });
-          } catch (_) {}
+        if (pData.lastDeathAt && Date.now() - pData.lastDeathAt < 2500) {
+          this.respawnPlayerAfterDeath(pData);
+        } else {
+          handlePlayerDeath(this, pData, { cause: 'GENERIC' });
         }
-        giveNetherStar(client);
       }
     });
 
@@ -2551,28 +2491,9 @@ export class ZylarServer {
         updatePlayerHealthScore(p.client, targetPData.username, targetPData.stats.health, p.is119);
       }
 
-      // Death Check
+      // Death Check (Universal 50% Purse Penalty + Instant Respawn)
       if (targetPData.stats.health <= 0) {
-        if (this.isClientWritable(targetClient)) {
-          sendSystemMessage(targetClient, `§c☠ You died! Respawning at island...`, targetPData.is119);
-        }
-        for (const [_, p] of players) {
-          if (!this.isClientWritable(p?.client)) continue;
-          sendSystemMessage(p.client, `§c☠ §e${targetPData.username} §7was slain by §c${pData.username}§7!`, p.is119);
-        }
-        targetPData.stats.health = targetPData.stats.maxHealth;
-        targetPData.stats.mana = targetPData.stats.maxMana;
-        const sX = targetPData.island ? targetPData.island.spawnX : 0.5;
-        const sY = targetPData.island ? targetPData.island.spawnY : 101.0;
-        const sZ = targetPData.island ? targetPData.island.spawnZ : 0.5;
-        if (this.isClientWritable(targetClient)) {
-          teleportPlayerWithChunks(targetPData, sX, sY, sZ);
-          syncVanillaHealthAndHunger(targetClient, targetPData.stats);
-        }
-        for (const [_, p] of players) {
-          if (!this.isClientWritable(p?.client)) continue;
-          updatePlayerHealthScore(p.client, targetPData.username, targetPData.stats.health, p.is119);
-        }
+        handlePlayerDeath(this, targetPData, { cause: 'PVP', killerName: pData.username });
       }
     });
 
@@ -2614,6 +2535,75 @@ export class ZylarServer {
     if (!this.isClientWritable(client)) {
       onDisconnect();
     }
+  }
+
+  public respawnPlayerAfterDeath(pData: any): void {
+    const client = pData?.client;
+    if (!this.isClientWritable(client)) return;
+    const is119 = pData.is119 !== false;
+
+    if (this.config.worldType === 'hub') {
+      const rescueTpId = ++this.teleportCounter;
+      pData.pendingTeleportId = rescueTpId;
+      pData.teleportLockUntil = Date.now() + 1500;
+      pData.voidImmunityUntil = Date.now() + 2500;
+
+      const spawnCx = Math.floor(HUB_SPAWN_X / 16);
+      const spawnCz = Math.floor(HUB_SPAWN_Z / 16);
+      pData.currentChunkX = spawnCx;
+      pData.currentChunkZ = spawnCz;
+      try {
+        client.write('update_view_position', { chunkX: spawnCx, chunkZ: spawnCz });
+      } catch (_) {}
+
+      pData.loadedChunks = pData.loadedChunks || new Set<string>();
+      for (let dx = -3; dx <= 3; dx++) {
+        for (let dz = -3; dz <= 3; dz++) {
+          const targetCx = spawnCx + dx;
+          const targetCz = spawnCz + dz;
+          pData.loadedChunks.add(`${targetCx},${targetCz}`);
+          try {
+            client.write('map_chunk', dumpHubChunkPacket(targetCx, targetCz, is119));
+          } catch (_) {}
+        }
+      }
+
+      this.sendPositionPacket(client, HUB_SPAWN_X, HUB_SPAWN_Y, HUB_SPAWN_Z, 180, 0, rescueTpId, is119);
+      pData.x = HUB_SPAWN_X;
+      pData.y = HUB_SPAWN_Y;
+      pData.z = HUB_SPAWN_Z;
+      pData.yaw = 180;
+      pData.pitch = 0;
+      resetPlayerHazardState(pData, HUB_SPAWN_Y);
+      this.syncNearbyPlayers(pData);
+    } else {
+      const spawnX = pData.island ? pData.island.spawnX : 0.5;
+      const spawnY = pData.island ? pData.island.spawnY : 101.0;
+      const spawnZ = pData.island ? pData.island.spawnZ : 0.5;
+      teleportPlayerWithChunks(pData, spawnX, spawnY, spawnZ);
+      this.syncNearbyPlayers(pData);
+      updatePlayerScoreboardLocation(client, is119, 'Your Island');
+    }
+
+    for (const [slot, item] of pData.inventory) {
+      if (slot === HOTBAR_NETHER_STAR_SLOT) continue;
+      try {
+        const tagged = tagVanillaItemStack({
+          present: true,
+          itemId: item.itemId,
+          itemCount: item.count,
+          nbtData: item.nbtData
+        }, is119);
+        item.nbtData = tagged.nbtData;
+        client.write('set_slot', {
+          windowId: 0,
+          stateId: 1,
+          slot,
+          item: formatSlotForClient(tagged, is119)
+        });
+      } catch (_) {}
+    }
+    giveNetherStar(client);
   }
 
   private checkPortalStep(pData: any, x: number, y: number, z: number): void {

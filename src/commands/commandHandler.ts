@@ -31,6 +31,7 @@ import { sendDeclaredCommands } from './commandRegistry';
 import { parseCoinInput, formatCoins } from '../gui/bankMenu';
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createItem, getSkyBlockItem, getAllItemIds } from '../items';
+import { handlePlayerDeath, resetPlayerHazardState } from '../combat/deathManager';
 
 let teleportCounter = 1;
 
@@ -94,6 +95,7 @@ export function teleportPlayerWithChunks(pData: any, targetX: number, targetY: n
   pData.pendingTeleportId = tpId;
   pData.teleportLockUntil = Date.now() + 1500;
   pData.voidImmunityUntil = Date.now() + 2500; // 2.5s immunity against void rubberband loops!
+  resetPlayerHazardState(pData, targetY);
 
   client.write('position', {
     x: targetX,
@@ -657,6 +659,31 @@ export function handleCommand(
     persistPlayerSession(targetPData);
 
     sendSystemMessage(client, `§a[Admin] Gave §e${count}x §f${itemDef.name} §ato §e${targetPData.username}§a!`, is119);
+    return;
+  }
+
+  // 16. Kill Player (/kill [player]) -> triggers universal death & 50% coin penalty
+  if (cmd === 'kill') {
+    if (!pData.isOp && !isMaster) {
+      sendSystemMessage(client, '§cYou do not have permission to execute this command.', is119);
+      return;
+    }
+
+    const targetName = parts[1];
+    let targetPData = pData;
+    if (targetName) {
+      const found = findPlayerByName(targetName);
+      if (!found) {
+        sendSystemMessage(client, `§cPlayer "${targetName}" is not currently online on this server.`, is119);
+        return;
+      }
+      targetPData = found;
+    }
+
+    handlePlayerDeath(pData.server, targetPData, {
+      cause: 'COMMAND',
+      killerName: targetPData === pData ? undefined : pData.username
+    });
     return;
   }
 
