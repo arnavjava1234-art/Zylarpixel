@@ -2645,7 +2645,7 @@ export class ZylarServer {
         );
       } else {
         const formatted = formatChatMessage(pData.rank, pData.username, clean);
-        console.log(`[CHAT] ${formatted.replace(/§[0-9a-fk-or]/g, '')}`);
+        console.log(`[CHAT] ${formatPlainChatLog(pData.rank, pData.username, clean)}`);
         for (const [_, p] of players) {
           if (!this.isClientWritable(p?.client)) continue;
           sendSystemMessage(p.client, formatted, p.is119);

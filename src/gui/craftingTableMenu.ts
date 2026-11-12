@@ -541,7 +541,7 @@ export function handleCraftingTableClick(
   // 2. Quick Craft Teasers (Slots 16, 25, 34)
   if (QUICK_CRAFT_SLOTS.includes(clickedSlot as any)) {
     playSound(client, pData, 'entity.villager.no', 1.0);
-    sendSystemMessage(client, '§cQuick Crafting requires §a[VIP] §crank or higher! (Feature coming soon)', is119);
+    sendSystemMessage(client, `§cQuick Crafting requires ${RANKS.vip.prefix} §crank or higher! (Feature coming soon)`, is119);
     try {
       client.write('set_slot', {
         windowId: CRAFTING_TABLE_WINDOW_ID,
