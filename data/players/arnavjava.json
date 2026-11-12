@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-12T17:06:05.963Z",
+  "lastLogin": "2026-11-12T17:15:18.469Z",
   "stats": {
     "health": 12.5,
     "maxHealth": 100,
@@ -367,5 +367,5 @@
     "wheat_seeds": 27
   },
   "merchantLastResetDay": 20769,
-  "lastSeen": 1794503165963
+  "lastSeen": 1794503718469
 }
