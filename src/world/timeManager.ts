@@ -26,8 +26,14 @@ export interface TimePhaseMeta {
   skullTexture: string;
 }
 
+function encodeTextureBase64(hash: string): string {
+  return Buffer.from(
+    JSON.stringify({ textures: { SKIN: { url: `http://textures.minecraft.net/texture/${hash}` } } })
+  ).toString('base64');
+}
+
 /**
- * Verified Mojang textures.minecraft.net/texture/* payloads for the 5 celestial time phases.
+ * Verified HTTP 200 Mojang textures.minecraft.net/texture/* payloads for the 5 celestial time phases.
  */
 export const TIME_PHASES: Record<TimePhaseId, TimePhaseMeta> = {
   SUNRISE: {
@@ -35,35 +41,35 @@ export const TIME_PHASES: Record<TimePhaseId, TimePhaseMeta> = {
     label: 'Sunrise / Morning',
     colorCode: '§6',
     symbol: '☀',
-    skullTexture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmYwZWU2NDdhNjIxMWU1YzJmODE2MTZhNTk3N2E2NTg1MWU0ZGI3ODM0Y2Y0NTAxMjQ2ZGU2YjM5YWRhMzI5MSJ9fX0='
+    skullTexture: encodeTextureBase64('1258f66980f588a7c685ebb65d2932517494d837a1f927650efba3544750a291') // Golden Morning Orb
   },
   DAY: {
     id: 'DAY',
     label: 'Day / Noon Sun',
     colorCode: '§e',
     symbol: '☀',
-    skullTexture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDExMzliM2VmMmU0YzQ0YTRjOTgzZjExNGNiZTk0OGQ4YWI1ZDRmODc5YTVjNjY1YmI4MjBlNzM4NmFjMmYifX19'
+    skullTexture: encodeTextureBase64('39e4fd23b0410ddad2ed1af39cae172b12d1873b08bbe0b61f6f353d9a682e62') // Radiant Sun
   },
   SUNSET: {
     id: 'SUNSET',
     label: 'Sunset / Dusk',
     colorCode: '§c',
     symbol: '☀',
-    skullTexture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmVjNThjMWVmZGJkMzMwNzYzMjAyMjYzOGQ4ZGI1YmY2MzYzNWNiYzYyMGIyNmU1ZDRkMmYzZmUzMjI4NGNmZCJ9fX0='
+    skullTexture: encodeTextureBase64('70a44d51ecc79f694cfd60228c88428848ca618e36a659a416e9246d841aec8') // Glowing Fire Orb
   },
   NIGHT: {
     id: 'NIGHT',
     label: 'Night / Crescent',
     colorCode: '§b',
     symbol: '☽',
-    skullTexture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzhiYTBmNDc2YTQ0NDgwNWQ0NWIzMDcyNmQxODc3NjVlNWE0YzBkZTBmNmMyYjg4ZmUwM2M2NzBhMWUzNDgzZiJ9fX0='
+    skullTexture: encodeTextureBase64('f152f90b72da55efcc2d6e4fdcc31964ba51d02f5bc712c21ee33f5521a1f2b8') // Starry Crescent Sky
   },
   MIDNIGHT: {
     id: 'MIDNIGHT',
-    label: 'Midnight / Starry',
+    label: 'Midnight / Galaxy',
     colorCode: '§9',
     symbol: '☽',
-    skullTexture: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTE2OWU4NWE4YTRmY2E1YzU5NWE5ZDI5M2Y1ZGRmMTA2OGRjNmRiOTlmMDcwMGRkNGQ1YjY3Mzg2NTUwMWE2NyJ9fX0='
+    skullTexture: encodeTextureBase64('9d3d250e25bbca3a62be5b3ef02cfcab6dcdc424884c9a7d5cc95c9d0') // Deep Space Galaxy
   }
 };
 

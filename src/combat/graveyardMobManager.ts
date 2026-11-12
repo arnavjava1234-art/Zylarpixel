@@ -75,8 +75,8 @@ export const GRAVEYARD_MOBS: Record<GraveyardMobKind, GraveyardMobDef> = {
     level: 1,
     maxHp: 100,
     damage: 20,
-    chaseSpeed: 4.3,
-    wanderSpeed: 1.6,
+    chaseSpeed: 3.0,
+    wanderSpeed: 1.1,
     attackReach: 2.0,
     attackCooldownMs: 1000,
     combatXp: 6,
@@ -95,8 +95,8 @@ export const GRAVEYARD_MOBS: Record<GraveyardMobKind, GraveyardMobDef> = {
     level: 1,
     maxHp: 120,
     damage: 24,
-    chaseSpeed: 4.5,
-    wanderSpeed: 1.7,
+    chaseSpeed: 3.15,
+    wanderSpeed: 1.2,
     attackReach: 2.0,
     attackCooldownMs: 1000,
     combatXp: 7,
@@ -110,6 +110,8 @@ export const GRAVEYARD_MOBS: Record<GraveyardMobKind, GraveyardMobDef> = {
     ]
   }
 };
+
+const MOB_TAG_Y_OFFSET = 1.75; // Small+Marker ArmorStand adds +0.50 -> text renders at mob.y + 2.25 (cleanly above 1.95 head)
 
 export interface SpawnPad {
   x: number;
@@ -130,6 +132,10 @@ export interface ActiveGraveyardMob {
   z: number;
   yaw: number;
   pitch: number;
+  knockbackVx: number;
+  knockbackVy: number;
+  knockbackVz: number;
+  knockbackUntil: number;
   homePad: SpawnPad;
   targetUsername: string | null;
   lastDamagedAt: number;
@@ -309,13 +315,13 @@ function spawnMobPacketsForClient(client: any, mob: ActiveGraveyardMob): void {
     velocity: { x: 0, y: 0, z: 0 }
   });
 
-  // Nametag ArmorStand attached as passenger so HP label glides automatically with zero extra teleport packets
+  // Standalone floating ArmorStand positioned directly above the 1.95-block zombie head (no set_passengers!)
   sendToClientSafe(client, 'spawn_entity', {
     entityId: mob.tagEntityId,
     objectUUID: mob.tagUuid,
     type: 2, // minecraft:armor_stand
     x: mob.x,
-    y: mob.y + 1.95,
+    y: mob.y + MOB_TAG_Y_OFFSET,
     z: mob.z,
     pitch: 0,
     yaw: 0,
@@ -332,11 +338,6 @@ function spawnMobPacketsForClient(client: any, mob: ActiveGraveyardMob): void {
       { key: 3, type: 7, value: true }, // CustomNameVisible
       { key: 15, type: 0, value: 0x11 } // Small + Marker
     ]
-  });
-
-  sendToClientSafe(client, 'set_passengers', {
-    entityId: mob.mobEntityId,
-    passengers: [mob.tagEntityId]
   });
 }
 
@@ -428,6 +429,10 @@ function spawnMobInSlot(server: any, slotIndex: number, kind: GraveyardMobKind, 
     z: pad.z,
     yaw: Math.random() * 360 - 180,
     pitch: 0,
+    knockbackVx: 0,
+    knockbackVy: 0,
+    knockbackVz: 0,
+    knockbackUntil: 0,
     homePad: pad,
     targetUsername: null,
     lastDamagedAt: 0,
@@ -475,13 +480,22 @@ function updateMobNametag(server: any, mob: ActiveGraveyardMob): void {
   }, mob.mobEntityId);
 }
 
-function findGroundHeightAt(x: number, currentY: number, z: number): number | null {
+function isSpaceClearAt(x: number, y: number, z: number): boolean {
+  const bx = Math.floor(x);
+  const by = Math.floor(y + 0.05);
+  const bz = Math.floor(z);
+  return isPassableBlock(getHubBlockName(bx, by, bz)) && isPassableBlock(getHubBlockName(bx, by + 1, bz));
+}
+
+function findGroundHeightAt(x: number, currentY: number, z: number, maxDrop: number = 1): number | null {
   const bx = Math.floor(x);
   const bz = Math.floor(z);
-  const baseBlockY = Math.floor(currentY);
+  const baseBlockY = Math.floor(currentY + 0.05);
 
-  // Check current level, step-up (+1), or drop (-1..-3) cleanly
-  for (const dy of [0, 1, -1, -2, -3]) {
+  const offsets = [0, 1];
+  for (let d = 1; d <= maxDrop; d++) offsets.push(-d);
+
+  for (const dy of offsets) {
     const feetY = baseBlockY + dy;
     const floor = getHubBlockName(bx, feetY - 1, bz);
     const feet = getHubBlockName(bx, feetY, bz);
@@ -493,7 +507,15 @@ function findGroundHeightAt(x: number, currentY: number, z: number): number | nu
   return null;
 }
 
-function moveMobPosition(server: any, mob: ActiveGraveyardMob, nextX: number, nextY: number, nextZ: number, yaw: number): void {
+function moveMobPosition(
+  server: any,
+  mob: ActiveGraveyardMob,
+  nextX: number,
+  nextY: number,
+  nextZ: number,
+  yaw: number,
+  onGround: boolean = true
+): void {
   const dx = nextX - mob.x;
   const dy = nextY - mob.y;
   const dz = nextZ - mob.z;
@@ -517,14 +539,23 @@ function moveMobPosition(server: any, mob: ActiveGraveyardMob, nextX: number, ne
         dZ,
         yaw: yawByte,
         pitch: 0,
-        onGround: true
+        onGround
+      }, mob.mobEntityId);
+
+      // Keep detached floating nametag ArmorStand locked cleanly above head
+      broadcastPacket(server, 'rel_entity_move', {
+        entityId: mob.tagEntityId,
+        dX,
+        dY,
+        dZ,
+        onGround
       }, mob.mobEntityId);
     } else {
       broadcastPacket(server, 'entity_look', {
         entityId: mob.mobEntityId,
         yaw: yawByte,
         pitch: 0,
-        onGround: true
+        onGround
       }, mob.mobEntityId);
     }
   } else {
@@ -535,7 +566,17 @@ function moveMobPosition(server: any, mob: ActiveGraveyardMob, nextX: number, ne
       z: nextZ,
       yaw: yawByte,
       pitch: 0,
-      onGround: true
+      onGround
+    }, mob.mobEntityId);
+
+    broadcastPacket(server, 'entity_teleport', {
+      entityId: mob.tagEntityId,
+      x: nextX,
+      y: nextY + MOB_TAG_Y_OFFSET,
+      z: nextZ,
+      yaw: 0,
+      pitch: 0,
+      onGround
     }, mob.mobEntityId);
   }
 
@@ -549,6 +590,10 @@ function rubberBandMobToHome(server: any, mob: ActiveGraveyardMob): void {
   mob.hp = mob.def.maxHp;
   mob.targetUsername = null;
   mob.wanderTarget = null;
+  mob.knockbackVx = 0;
+  mob.knockbackVy = 0;
+  mob.knockbackVz = 0;
+  mob.knockbackUntil = 0;
   mob.x = mob.homePad.x;
   mob.y = mob.homePad.y;
   mob.z = mob.homePad.z;
@@ -559,6 +604,16 @@ function rubberBandMobToHome(server: any, mob: ActiveGraveyardMob): void {
     y: mob.homePad.y,
     z: mob.homePad.z,
     yaw: toByteAngle(mob.yaw),
+    pitch: 0,
+    onGround: true
+  }, mob.mobEntityId);
+
+  broadcastPacket(server, 'entity_teleport', {
+    entityId: mob.tagEntityId,
+    x: mob.homePad.x,
+    y: mob.homePad.y + MOB_TAG_Y_OFFSET,
+    z: mob.homePad.z,
+    yaw: 0,
     pitch: 0,
     onGround: true
   }, mob.mobEntityId);
@@ -600,7 +655,59 @@ function selectBestTarget(mob: ActiveGraveyardMob, now: number): any | null {
   return best;
 }
 
-function stepMobToward(server: any, mob: ActiveGraveyardMob, goalX: number, goalZ: number, speedPerSec: number, dtSec: number): void {
+function stepMobKnockbackAndGravity(server: any, mob: ActiveGraveyardMob, dtSec: number): void {
+  let finalX = mob.x;
+  let finalZ = mob.z;
+  const candX = mob.x + mob.knockbackVx * dtSec;
+  const candZ = mob.z + mob.knockbackVz * dtSec;
+
+  if (Math.abs(mob.knockbackVx) > 0.05 || Math.abs(mob.knockbackVz) > 0.05) {
+    if (isSpaceClearAt(candX, mob.y, candZ)) {
+      finalX = candX;
+      finalZ = candZ;
+    } else {
+      if (isSpaceClearAt(candX, mob.y, mob.z)) finalX = candX;
+      else mob.knockbackVx = 0;
+      if (isSpaceClearAt(finalX, mob.y, candZ)) finalZ = candZ;
+      else mob.knockbackVz = 0;
+    }
+  }
+
+  // Smooth gravity fall capped gently per 100ms tick so zombies never teleport down cliffs
+  mob.knockbackVy = Math.max(-9.0, mob.knockbackVy - 22.0 * dtSec);
+  let nextY = mob.y + Math.max(-0.6, Math.min(0.8, mob.knockbackVy * dtSec));
+
+  const surfaceY = findGroundHeightAt(finalX, mob.y, finalZ, 6);
+  let landed = false;
+  if (surfaceY !== null && nextY <= surfaceY && mob.knockbackVy <= 0) {
+    nextY = surfaceY;
+    mob.knockbackVy = 0;
+    landed = true;
+  } else if (surfaceY === null && nextY < GRAVEYARD_BOUNDS.minY - 6) {
+    nextY = mob.y;
+    mob.knockbackVy = 0;
+    landed = true;
+  }
+
+  mob.knockbackVx *= 0.65;
+  mob.knockbackVz *= 0.65;
+  if (Math.hypot(mob.knockbackVx, mob.knockbackVz) < 0.25) {
+    mob.knockbackVx = 0;
+    mob.knockbackVz = 0;
+  }
+
+  moveMobPosition(server, mob, finalX, nextY, finalZ, mob.yaw, landed);
+}
+
+function stepMobToward(
+  server: any,
+  mob: ActiveGraveyardMob,
+  goalX: number,
+  goalZ: number,
+  speedPerSec: number,
+  dtSec: number,
+  allowLargeDrops: boolean
+): void {
   const toGoalX = goalX - mob.x;
   const toGoalZ = goalZ - mob.z;
   const distToGoal = Math.hypot(toGoalX, toGoalZ);
@@ -632,17 +739,24 @@ function stepMobToward(server: any, mob: ActiveGraveyardMob, goalX: number, goal
     const dirZ = Math.cos(yawRad);
     const nextX = mob.x + dirX * stepSize + sepX;
     const nextZ = mob.z + dirZ * stepSize + sepZ;
-    const groundY = findGroundHeightAt(nextX, mob.y, nextZ);
+    const maxDrop = allowLargeDrops ? 3 : 1;
+    const groundY = findGroundHeightAt(nextX, mob.y, nextZ, maxDrop);
     if (groundY !== null) {
       const yawDeg = (yawRad * 180) / Math.PI;
-      moveMobPosition(server, mob, nextX, groundY, nextZ, yawDeg);
+      // Avoid jarring 2-3 block instant vertical snaps: step horizontally first and let gravity fall smoothly
+      if (groundY < mob.y - 1.0 && isSpaceClearAt(nextX, mob.y, nextZ)) {
+        mob.knockbackVy = -1.5;
+        moveMobPosition(server, mob, nextX, mob.y - 0.25, nextZ, yawDeg, false);
+      } else {
+        moveMobPosition(server, mob, nextX, groundY, nextZ, yawDeg, true);
+      }
       return;
     }
   }
 
   // Only turn gaze cleanly if temporarily blocked
   const yawDeg = (baseAngle * 180) / Math.PI;
-  moveMobPosition(server, mob, mob.x, mob.y, mob.z, yawDeg);
+  moveMobPosition(server, mob, mob.x, mob.y, mob.z, yawDeg, true);
 }
 
 /**
@@ -702,17 +816,27 @@ export function tickGraveyardMobs(server: any): void {
       continue;
     }
 
+    // Simulate active knockback arc / smooth falling before AI pursuit
+    if (mob.knockbackVy !== 0 || Math.abs(mob.knockbackVx) > 0.05 || Math.abs(mob.knockbackVz) > 0.05) {
+      stepMobKnockbackAndGravity(server, mob, 0.1);
+    }
+
+    // Pause AI walking during knockback hitstun / airborne recoil so knockback isn't erased
+    if (now < mob.knockbackUntil || mob.knockbackVy !== 0) {
+      continue;
+    }
+
     const target = selectBestTarget(mob, now);
     if (target) {
       const distToTarget = Math.hypot(target.x - mob.x, target.z - mob.z);
       const yDiff = Math.abs(target.y - mob.y);
 
       if (distToTarget > 1.35) {
-        stepMobToward(server, mob, target.x, target.z, mob.def.chaseSpeed, 0.1);
+        stepMobToward(server, mob, target.x, target.z, mob.def.chaseSpeed, 0.1, true);
       } else {
         // Face target when already in melee range
         const yawDeg = (Math.atan2(-(target.x - mob.x), target.z - mob.z) * 180) / Math.PI;
-        moveMobPosition(server, mob, mob.x, mob.y, mob.z, yawDeg);
+        moveMobPosition(server, mob, mob.x, mob.y, mob.z, yawDeg, true);
       }
 
       if (distToTarget <= mob.def.attackReach && yDiff <= 2.2 && now - mob.lastAttackAt >= mob.def.attackCooldownMs) {
@@ -736,7 +860,7 @@ export function tickGraveyardMobs(server: any): void {
         }
       }
     } else {
-      // Casual Idle Wander near homePad
+      // Casual Idle Wander near homePad (strictly capped to +-1 block ledges)
       if (!mob.wanderTarget || now >= mob.nextWanderAt || Math.hypot(mob.wanderTarget.x - mob.x, mob.wanderTarget.z - mob.z) < 0.4) {
         mob.nextWanderAt = now + 2500 + Math.random() * 4000;
         const angle = Math.random() * Math.PI * 2;
@@ -746,7 +870,7 @@ export function tickGraveyardMobs(server: any): void {
           z: mob.homePad.z + Math.sin(angle) * rad
         };
       }
-      stepMobToward(server, mob, mob.wanderTarget.x, mob.wanderTarget.z, mob.def.wanderSpeed, 0.1);
+      stepMobToward(server, mob, mob.wanderTarget.x, mob.wanderTarget.z, mob.def.wanderSpeed, 0.1, false);
     }
   }
 }
@@ -844,16 +968,26 @@ export function handleGraveyardMobAttack(server: any, pData: any, targetEntityId
 
   if (mob.hp > 0) {
     updateMobNametag(server, mob);
-    // Clean knockback along attacker facing vector (wall-checked)
+    // Real ballistic knockback arc + 420ms hitstun along attacker facing vector
     const dirX = mob.x - pData.x;
     const dirZ = mob.z - pData.z;
     const len = Math.max(0.01, Math.hypot(dirX, dirZ));
-    const kbX = mob.x + (dirX / len) * 0.65;
-    const kbZ = mob.z + (dirZ / len) * 0.65;
-    const kbY = findGroundHeightAt(kbX, mob.y, kbZ);
-    if (kbY !== null) {
-      moveMobPosition(server, mob, kbX, kbY, kbZ, mob.yaw);
-    }
+    const nx = dirX / len;
+    const nz = dirZ / len;
+    mob.knockbackVx = nx * 5.2;
+    mob.knockbackVy = 4.6;
+    mob.knockbackVz = nz * 5.2;
+    mob.knockbackUntil = now + 420;
+
+    broadcastPacket(server, 'entity_velocity', {
+      entityId: mob.mobEntityId,
+      velocity: {
+        x: Math.round(nx * 2800),
+        y: 2400,
+        z: Math.round(nz * 2800)
+      }
+    }, mob.mobEntityId);
+    stepMobKnockbackAndGravity(server, mob, 0.06);
   } else {
     // Mob Killed!
     mob.dyingUntil = now + 550;

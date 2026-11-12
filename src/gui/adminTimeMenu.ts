@@ -39,7 +39,7 @@ function createTimeHeadGuiItem(
 ): any {
   const itemDef = mcData1192.itemsByName['player_head'] || { id: 998 };
   const loreStrings = loreArray.map(l => JSON.stringify({ text: l }));
-  const hash = crypto.createHash('md5').update(`TimePhaseHead:${phaseKey}`).digest();
+  const hash = crypto.createHash('md5').update(`TimePhaseHeadV2:${phaseKey}`).digest();
   const intUuid = [
     hash.readInt32BE(0),
     hash.readInt32BE(4),
@@ -65,7 +65,7 @@ function createTimeHeadGuiItem(
       type: 'compound',
       value: {
         Id: { type: 'intArray', value: intUuid },
-        Name: { type: 'string', value: `Time_${phaseKey}` },
+        Name: { type: 'string', value: `TimeV2_${phaseKey}` },
         Properties: {
           type: 'compound',
           value: {
