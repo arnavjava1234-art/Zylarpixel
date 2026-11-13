@@ -19,6 +19,7 @@ import { createGuiItem } from './statsMenu';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { COIN_ICON } from '../config/currencyIcons';
+import { formatGuiTitle } from './guiTheme';
 
 export const BANK_MAIN_WINDOW_ID = 7;
 export const BANK_DEPOSIT_WINDOW_ID = 8;
