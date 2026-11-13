@@ -35,7 +35,7 @@
         "value": {
           "HideFlags": {
             "type": "int",
-            "value": 254
+            "value": 255
           },
           "display": {
             "type": "compound",
@@ -76,13 +76,17 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794550355437,
+  "lastSeen": 1794550885104,
   "bankTransactions": [],
   "merchantDailyPurchases": {},
   "merchantLastResetDay": 0

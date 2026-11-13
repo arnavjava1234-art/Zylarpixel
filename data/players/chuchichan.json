@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-11-13T06:12:35.434Z",
+  "lastLogin": "2026-11-13T06:21:25.068Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -44,7 +44,7 @@
         "value": {
           "HideFlags": {
             "type": "int",
-            "value": 254
+            "value": 255
           },
           "display": {
             "type": "compound",
@@ -85,6 +85,10 @@
                 "value": "VANILLA"
               }
             }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           }
         }
       }
@@ -92,5 +96,5 @@
   ],
   "merchantDailyPurchases": {},
   "merchantLastResetDay": 0,
-  "lastSeen": 1794550355434
+  "lastSeen": 1794550885068
 }
