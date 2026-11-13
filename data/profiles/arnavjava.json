@@ -265,17 +265,38 @@
       }
     },
     {
-      "slot": 32,
+      "slot": 40,
       "name": "black_stained_glass_pane",
       "itemId": 454,
-      "count": 1,
+      "count": 2,
       "nbtData": {
         "type": "compound",
         "name": "",
         "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 255
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "id": {
+                "type": "string",
+                "value": "BLACK_STAINED_GLASS_PANE"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "ITEM"
+              }
+            }
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
           },
           "display": {
             "type": "compound",
@@ -296,89 +317,16 @@
               }
             }
           },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "BLACK_STAINED_GLASS_PANE"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "slot": 25,
-      "name": "black_stained_glass_pane",
-      "itemId": 454,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
           "HideFlags": {
             "type": "int",
             "value": 255
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fBlack Stained Glass Pane\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "BLACK_STAINED_GLASS_PANE"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
           }
         }
       }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794578710255,
+  "lastSeen": 1794578715407,
   "bankTransactions": [
     {
       "type": "deposit",
