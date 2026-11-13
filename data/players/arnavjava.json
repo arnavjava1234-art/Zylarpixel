@@ -10,9 +10,9 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-13T11:53:22.776Z",
+  "lastLogin": "2026-11-13T11:53:35.698Z",
   "stats": {
-    "health": 90,
+    "health": 85,
     "maxHealth": 100,
     "defense": 0,
     "strength": 0,
@@ -26,7 +26,7 @@
     "farmingFortune": 0
   },
   "rankId": "vip_plus",
-  "purse": 6103631.3,
+  "purse": 6103633.3,
   "bank": 50000000,
   "bankTransactions": [
     {
@@ -306,7 +306,7 @@
       "slot": 39,
       "name": "rotten_flesh",
       "itemId": 896,
-      "count": 4,
+      "count": 5,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -367,5 +367,5 @@
     "wheat_seeds": 27
   },
   "merchantLastResetDay": 20769,
-  "lastSeen": 1794570802776
+  "lastSeen": 1794570815698
 }
