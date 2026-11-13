@@ -16,6 +16,7 @@ import { getAllRegisteredItems, createSkyBlockItemStack, SkyBlockItemDefinition 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { playSound } from './bankMenu';
+import { formatGuiTitle } from './guiTheme';
 
 export const ADMIN_ITEM_SPAWNER_WINDOW_ID = 13;
 export const ITEMS_PER_PAGE = 28;
