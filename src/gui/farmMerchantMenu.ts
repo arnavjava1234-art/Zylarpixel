@@ -449,7 +449,7 @@ export function openFarmMerchantMenu(client: any, pData: any, is119: boolean = t
   client.write('open_window', {
     windowId: FARM_MERCHANT_WINDOW_ID,
     inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8Farm Merchant' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Farm Merchant') })
   });
 
   // 2. Base fillers: gray stained glass panes

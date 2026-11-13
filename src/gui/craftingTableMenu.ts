@@ -11,6 +11,7 @@ import { playSound } from './bankMenu';
 import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession } from '../players/playerManager';
 import { RANKS } from '../config/ranks';
+import { formatGuiTitle } from './guiTheme';
 
 export const CRAFTING_TABLE_WINDOW_ID = 15;
 
