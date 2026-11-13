@@ -8,6 +8,7 @@
 
 import * as crypto from 'crypto';
 import { createGuiItem, createAdminBaseSlots, openAdminMenu } from './adminMenu';
+import { formatGuiTitle } from './guiTheme';
 import { playSound } from './bankMenu';
 import { applyUniversalItemFlags } from '../items';
 import { mcData1192 } from '../world/worldManager';
