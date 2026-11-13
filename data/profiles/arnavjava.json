@@ -6,7 +6,7 @@
   "bank": 50000000,
   "bits": 0,
   "stats": {
-    "health": 47.5,
+    "health": 100,
     "maxHealth": 100,
     "defense": 0,
     "strength": 0,
@@ -266,7 +266,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794573134599,
+  "lastSeen": 1794573278942,
   "bankTransactions": [
     {
       "type": "deposit",
