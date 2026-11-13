@@ -217,6 +217,48 @@ export function createCloseItem(): any {
 }
 
 /**
+ * Checks whether an item stack represents an untouchable GUI element
+ * (e.g. barrier blocks, decorative glass panes, VIP teasers, recipe barriers).
+ */
+export function isUntouchableGuiItem(item: any): boolean {
+  if (!item) return false;
+  if (item.present === false) return false;
+
+  const id = item.itemId !== undefined ? item.itemId : item.id;
+  if (typeof id !== 'number') return false;
+
+  const barrierId = mcData1192.itemsByName.barrier?.id;
+  const blackGlassId = mcData1192.itemsByName.black_stained_glass_pane?.id;
+  const redGlassId = mcData1192.itemsByName.red_stained_glass_pane?.id;
+
+  // 1. Barriers cannot be owned or manipulated by survival players
+  if (barrierId !== undefined && id === barrierId) return true;
+
+  // 2. Black & Red Stained Glass Panes used as borders and teasers
+  if (
+    (blackGlassId !== undefined && id === blackGlassId) ||
+    (redGlassId !== undefined && id === redGlassId)
+  ) {
+    return true;
+  }
+
+  // 3. Check NBT display names for GUI markers
+  try {
+    const rawNbt = JSON.stringify(item.nbtData || {});
+    if (
+      rawNbt.includes('Quick Crafting') ||
+      rawNbt.includes('Recipe Required') ||
+      rawNbt.includes('§8 ') ||
+      rawNbt.includes('§cClose')
+    ) {
+      return true;
+    }
+  } catch (_) {}
+
+  return false;
+}
+
+/**
  * Adds items directly to player's survival inventory (hotbar 36..43 first, then 9..35).
  * Returns the quantity successfully added.
  */
