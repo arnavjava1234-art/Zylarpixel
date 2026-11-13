@@ -9,6 +9,7 @@
 
 import { createGuiItem, createAdminBaseSlots } from './adminMenu';
 import { RANKS } from '../config/ranks';
+import { formatGuiTitle } from './guiTheme';
 
 export const RANK_SLOT_MAP: Record<number, string> = {
   // Staff Tiers (Centered in Row 1)

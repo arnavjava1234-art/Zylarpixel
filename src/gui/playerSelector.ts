@@ -14,7 +14,7 @@ export function openPlayerSelector(client: any, pData: any, playersMap: Map<numb
   client.write('open_window', {
     windowId: 3,
     inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8Select Player to Change Rank' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Select Player to Change Rank') })
   });
 
   const items = createAdminBaseSlots(54);
