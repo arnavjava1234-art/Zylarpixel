@@ -44,9 +44,12 @@ export function openAdminItemSpawner(
     windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
     inventoryType: 5, // generic_9x6 (54 slots)
     windowTitle: JSON.stringify({
-      text: totalPages > 1
-        ? `§8Item Spawner (${currentPage + 1}/${totalPages})`
-        : '§8Item & Combat Spawner'
+      text: formatGuiTitle(
+        6,
+        totalPages > 1
+          ? `Item Spawner (${currentPage + 1}/${totalPages})`
+          : 'Item & Combat Spawner'
+      )
     })
   });
 

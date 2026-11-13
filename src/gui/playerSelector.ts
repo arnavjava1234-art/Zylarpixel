@@ -6,6 +6,7 @@
 import { createGuiItem, createAdminBaseSlots } from './adminMenu';
 import { createPlayerSkullItem } from '../storage/skinService';
 import { formatPlayerName } from '../config/ranks';
+import { formatGuiTitle } from './guiTheme';
 
 export function openPlayerSelector(client: any, pData: any, playersMap: Map<number, any>): void {
   pData.openWindowId = 3;
