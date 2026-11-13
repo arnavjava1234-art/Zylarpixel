@@ -873,27 +873,18 @@ proxyServer.on('playerJoin', (client: any) => {
       log('INFO', `[ResourcePack] ${username} accepted pack, downloading...`);
       if (session.resourcePackTimeout) clearTimeout(session.resourcePackTimeout);
       session.resourcePackTimeout = setTimeout(() => {
-        kickForResourcePack('§c§lResource Pack Download Timed Out!\n\n§7Please reconnect and accept the resource pack.');
+        log('WARN', `[ResourcePack] ${username} download timed out; allowing into Hub gracefully.`);
+        finishPackGateAndEnterHub();
       }, 30000);
     } else if (res === 0) {
       log('INFO', `[ResourcePack] ${username} loaded pack successfully! Entering Hub...`);
       finishPackGateAndEnterHub();
     } else if (res === 1) {
-      log('WARN', `[ResourcePack] ${username} DECLINED required resource pack. Kicking.`);
-      kickForResourcePack(
-        '§c§lZylarPixel Resource Pack Required!\n\n' +
-        '§7You must accept the server resource pack to play here.\n\n' +
-        '§eHow to fix:\n' +
-        '§fMultiplayer §8➜ §fEdit Server §8➜ §fServer Resource Packs: §aEnabled\n' +
-        '§7Then reconnect!'
-      );
+      log('WARN', `[ResourcePack] ${username} declined resource pack prompt; allowing into Hub gracefully.`);
+      finishPackGateAndEnterHub();
     } else {
-      log('WARN', `[ResourcePack] ${username} failed to download resource pack (result=${res}). Kicking.`);
-      kickForResourcePack(
-        '§c§lResource Pack Download Failed!\n\n' +
-        '§7Your client could not download the custom icons pack.\n' +
-        '§ePlease wait a few seconds and reconnect!'
-      );
+      log('WARN', `[ResourcePack] ${username} reported pack result=${res}; allowing into Hub gracefully.`);
+      finishPackGateAndEnterHub();
     }
   });
 
@@ -907,11 +898,8 @@ proxyServer.on('playerJoin', (client: any) => {
 
     session.resourcePackTimeout = setTimeout(() => {
       if (!session.resourcePackLoaded) {
-        log('WARN', `[ResourcePack] ${username} timed out responding to forced pack prompt.`);
-        kickForResourcePack(
-          '§c§lResource Pack Verification Timed Out!\n\n' +
-          '§7Please set §fServer Resource Packs: §aEnabled §7and reconnect!'
-        );
+        log('WARN', `[ResourcePack] ${username} pack prompt timed out; allowing into Hub.`);
+        finishPackGateAndEnterHub();
       }
     }, 120000);
 
@@ -919,12 +907,12 @@ proxyServer.on('playerJoin', (client: any) => {
       client.write('resource_pack_send', {
         url: pack.url,
         hash: pack.hash,
-        forced: true,
+        forced: false,
         promptMessage: JSON.stringify({
-          text: '§d§lZYLARPIXEL SKYBLOCK\n\n§fThis server uses a tiny custom §6Coin §f& §bBits §ficon pack (~2 KB).\n§eClick Proceed to download and join!'
+          text: '§d§lZYLARPIXEL SKYBLOCK\n\n§fOfficial custom §6Coin§f, §bBits§f, and §eKnight GUI §fpack.\n§eClick Proceed to download and join!'
         })
       });
-      log('INFO', `[ResourcePack] Sent forced pack to ${username} -> ${pack.url} (sha1=${pack.hash})`);
+      log('INFO', `[ResourcePack] Sent pack to ${username} -> ${pack.url} (sha1=${pack.hash})`);
     } catch (err: any) {
       log('WARN', `[ResourcePack] Error sending resource_pack_send to ${username}:`, err?.message || err);
       finishPackGateAndEnterHub();
