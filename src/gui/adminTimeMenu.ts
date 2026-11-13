@@ -118,7 +118,7 @@ export function openAdminTimeMenu(client: any, pData: any, page: number = 0): vo
   client.write('open_window', {
     windowId: ADMIN_TIME_WINDOW_ID,
     inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: `§8Time Control - ${pageLabel}` })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, `Time Control - ${pageLabel}`) })
   });
 
   const items = createAdminBaseSlots(54);
