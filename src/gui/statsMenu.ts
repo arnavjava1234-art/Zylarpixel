@@ -8,6 +8,7 @@ import { PlayerSession } from '../types';
 import { calculateEHP } from '../stats/statsManager';
 import { applyUniversalItemFlags } from '../items';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
+import { formatGuiTitle } from './guiTheme';
 
 export function createGuiItem(
   itemName: string,
