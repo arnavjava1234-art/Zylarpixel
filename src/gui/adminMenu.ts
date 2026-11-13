@@ -7,6 +7,7 @@ import { mcData1192 } from '../world/worldManager';
 import { applyUniversalItemFlags } from '../items';
 import { getWorldTimeState } from '../world/timeManager';
 import { COIN_ICON } from '../config/currencyIcons';
+import { formatGuiTitle } from './guiTheme';
 
 export function createGuiItem(itemName: string, count: number, displayName: string, loreArray: string[] = []): any {
   const itemDef = mcData1192.itemsByName[itemName] || mcData1192.itemsByName.stone;

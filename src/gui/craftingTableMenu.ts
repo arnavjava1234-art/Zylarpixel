@@ -449,7 +449,7 @@ export function openCraftingTableMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: CRAFTING_TABLE_WINDOW_ID,
     inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8Crafting Table' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Crafting Table') })
   });
 
   // 2. Base fillers: black stained glass panes
