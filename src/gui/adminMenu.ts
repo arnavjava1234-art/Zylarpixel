@@ -62,7 +62,7 @@ export function openAdminMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: 1,
     inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: '§8ZylarPixel Admin Control Panel' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Admin Control Panel') })
   });
 
   // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)

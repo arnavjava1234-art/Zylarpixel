@@ -18,6 +18,7 @@ import { loadPlayerData, savePlayerData, getAllDiskPlayerNames } from '../storag
 import { loadPlayerProfile, savePlayerProfile } from '../storage/sharedProfile';
 import { findPlayerByName, persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
+import { formatGuiTitle } from './guiTheme';
 import { parseCoinInput, formatCoins, playSound, restoreSignBlock } from './bankMenu';
 import { COIN_ICON } from '../config/currencyIcons';
 
