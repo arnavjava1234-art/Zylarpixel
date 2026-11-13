@@ -334,7 +334,7 @@ export function openBankWithdrawMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: BANK_WITHDRAW_WINDOW_ID,
     inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Bank Withdrawal' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(4, 'Bank Withdrawal') })
   });
 
   const items = new Array(36).fill(null).map(() =>
@@ -420,7 +420,7 @@ export function openBankUpgradesMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: BANK_UPGRADES_WINDOW_ID,
     inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Bank Account Upgrades' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(4, 'Bank Account Upgrades') })
   });
 
   const items = new Array(36).fill(null).map(() =>
