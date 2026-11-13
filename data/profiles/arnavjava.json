@@ -1,12 +1,12 @@
 {
   "username": "arnavjava",
-  "rank": "vip_plus",
+  "rank": "owner",
   "isOp": true,
   "coins": 6103638.3,
   "bank": 50000000,
   "bits": 0,
   "stats": {
-    "health": 71,
+    "health": 100,
     "maxHealth": 100,
     "defense": 0,
     "strength": 0,
@@ -266,7 +266,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794570824532,
+  "lastSeen": 1794570909781,
   "bankTransactions": [
     {
       "type": "deposit",
