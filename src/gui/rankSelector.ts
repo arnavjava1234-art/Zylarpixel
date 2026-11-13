@@ -39,7 +39,7 @@ export function openRankSelector(client: any, pData: any, targetPlayer: any = nu
   client.write('open_window', {
     windowId: 2,
     inventoryType: 5, // generic_9x6
-    windowTitle: JSON.stringify({ text: title })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, `Rank: ${target.username}`) })
   });
 
   // 2. Populate 54 slots (Outer border: Black Stained Glass, Inner background: Gray Stained Glass)
