@@ -52,7 +52,7 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
   client.write('open_window', {
     windowId: 5,
     inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8Your SkyBlock Stats' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Your SkyBlock Stats') })
   });
 
   // 2. Fill background with dark gray glass panes (premium dark theme)

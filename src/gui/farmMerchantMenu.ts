@@ -19,6 +19,7 @@ import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { COIN_ICON } from '../config/currencyIcons';
+import { formatGuiTitle } from './guiTheme';
 
 export const FARM_MERCHANT_WINDOW_ID = 16;
 export const DAILY_MERCHANT_LIMIT = 640;
