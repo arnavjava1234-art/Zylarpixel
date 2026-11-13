@@ -2,11 +2,11 @@
   "username": "arnavjava",
   "rank": "vip_plus",
   "isOp": true,
-  "coins": 6103633.3,
+  "coins": 6103638.3,
   "bank": 50000000,
   "bits": 0,
   "stats": {
-    "health": 85,
+    "health": 71,
     "maxHealth": 100,
     "defense": 0,
     "strength": 0,
@@ -208,7 +208,7 @@
       "slot": 39,
       "name": "rotten_flesh",
       "itemId": 896,
-      "count": 5,
+      "count": 7,
       "nbtData": {
         "type": "compound",
         "name": "",
@@ -266,7 +266,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794570815702,
+  "lastSeen": 1794570824532,
   "bankTransactions": [
     {
       "type": "deposit",
