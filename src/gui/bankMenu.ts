@@ -136,7 +136,7 @@ export function openBankMainMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: BANK_MAIN_WINDOW_ID,
     inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Personal Bank Account' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(4, 'Personal Bank Account') })
   });
 
   // 2. Base fillers: Dark Gray / Black Stained Glass Pane
@@ -259,7 +259,7 @@ export function openBankDepositMenu(client: any, pData: any): void {
   client.write('open_window', {
     windowId: BANK_DEPOSIT_WINDOW_ID,
     inventoryType: 3,
-    windowTitle: JSON.stringify({ text: '§8Bank Deposit' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(4, 'Bank Deposit') })
   });
 
   const items = new Array(36).fill(null).map(() =>
