@@ -36,7 +36,7 @@ export function openCoinPlayerSelector(
   client.write('open_window', {
     windowId: ADMIN_COIN_SELECTOR_WINDOW_ID,
     inventoryType: 5, // generic_9x6 (54 slots)
-    windowTitle: JSON.stringify({ text: '§8Manage Coins: Select Player' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'Manage Coins: Select Player') })
   });
 
   const items = createAdminBaseSlots(54);
@@ -182,7 +182,7 @@ export function openCoinActionMenu(
   client.write('open_window', {
     windowId: ADMIN_COIN_ACTION_WINDOW_ID,
     inventoryType: 3, // generic_9x4 (36 slots)
-    windowTitle: JSON.stringify({ text: `§8Purse: ${targetUsername}` })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(4, `Purse: ${targetUsername}`) })
   });
 
   const items = createAdminBaseSlots(36);
