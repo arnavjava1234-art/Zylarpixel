@@ -71,7 +71,7 @@ export function openSkyBlockMenu(client: any, pSession: any): void {
   client.write('open_window', {
     windowId: SKYBLOCK_MENU_WINDOW_ID,
     inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8SkyBlock Menu' })
+    windowTitle: JSON.stringify({ text: formatGuiTitle(6, 'SkyBlock Menu') })
   });
 
   // 2. Base fillers: dark gray / black glass pane
