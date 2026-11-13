@@ -90,6 +90,34 @@
       "ascent": 8,
       "height": 9,
       "chars": ["\uE01A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/medals/medal_gold_red.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE002"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/medals/medal_gold_navy.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE003"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/medals/medal_silver_blue.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE004"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/medals/knight_helmet.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE005"]
     }
   ]
 }

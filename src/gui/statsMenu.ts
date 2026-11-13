@@ -51,30 +51,84 @@ export function openStatsMenu(client: any, pData: PlayerSession): void {
   client.write('open_window', {
     windowId: 5,
     inventoryType: 5,
-    windowTitle: JSON.stringify({ text: '§8Your SkyBlock Stats' })
+    windowTitle: JSON.stringify({ text: '§8✦ Gilded Knight Tablet ✦' })
   });
 
   // 2. Fill background with dark gray glass panes (premium dark theme)
   const items = new Array(54).fill(null).map(() =>
-    createGuiItem('black_stained_glass_pane', 1, '§7', [])
+    createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
   );
+
+  // Ornate Gold Corner Accent Slots (Slots 0, 8, 45, 53)
+  const goldCorner = createGuiItem('yellow_stained_glass_pane', 1, '§6✦ Gilded Filigree ✦', ['§7Ancient antique gold filigree corner bracket.']);
+  items[0] = goldCorner;
+  items[8] = goldCorner;
+  items[45] = goldCorner;
+  items[53] = goldCorner;
 
   const stats = pData.stats;
   const ehp = calculateEHP(stats.maxHealth, stats.defense);
 
-  // Slot 13: Player Overview (Nether Star or Head)
+  // Slot 4 (Top Center): Iron Helmet (Knight's Crest)
+  items[4] = createGuiItem(
+    'iron_helmet',
+    1,
+    `\uE005 §6§l✦ KNIGHT'S CREST ✦`,
+    [
+      `§7Forged in honor of the Zylar Vanguard.`,
+      `§7Knight Champion: §f${pData.username}`,
+      `§7Rank: ${pData.rank.prefix}`,
+      ' ',
+      '§8Symbol of honor and heroic stature.'
+    ]
+  );
+
+  // Slot 11: Medal #1 - Order of the Vanguard (Gold & Crimson Ribbon)
+  items[11] = createGuiItem(
+    'gold_nugget',
+    1,
+    `\uE002 §c§lOrder of the Vanguard`,
+    [
+      `§7First Knightly Distinction`,
+      `§7Awarded for courageous combat prowess.`,
+      ' ',
+      `§7Strength Bonus: §c+${Math.floor(stats.strength)}% Damage`,
+      `§7Base Hit Bonus: §c+${Math.floor(stats.strength / 5)}`,
+      ' ',
+      `§eCombat Distinction`
+    ]
+  );
+
+  // Slot 13: Medal #2 - Champion of ZylarPixel (Center Knight Dossier)
   items[13] = createGuiItem(
     'nether_star',
     1,
-    `§a§l${pData.username}'s Profile`,
+    `\uE003 §e§lChampion of ZylarPixel`,
     [
-      `§7Rank: ${pData.rank.prefix}`,
+      `§7Central Knight Dossier & Standing`,
+      `§7Hero: §f${pData.username}`,
+      ' ',
       `§7Purse: ${COIN_ICON} §6${(pData as any).purse ? (pData as any).purse.toFixed(1) : '0.0'} coins`,
       `§7Bits: ${BITS_ICON} §b${((pData as any).bits || 0).toLocaleString('en-US')}`,
-      ' ',
       `§7Effective Health (EHP): §a${ehp.toLocaleString()}`,
       ' ',
-      '§eView your combat and survivability attributes below!'
+      '§eKnightly Profile & Attributes'
+    ]
+  );
+
+  // Slot 15: Medal #3 - Sanctum Aegis (Silver & Azure Ribbon)
+  items[15] = createGuiItem(
+    'iron_ingot',
+    1,
+    `\uE004 §9§lSanctum Aegis`,
+    [
+      `§7Third Knightly Distinction`,
+      `§7Awarded for unyielding defense and resilience.`,
+      ' ',
+      `§7Damage Reduction: §a${(stats.defense / (stats.defense + 100) * 100).toFixed(1)}%`,
+      `§7Defense Rating: §a${Math.floor(stats.defense)} ❈`,
+      ' ',
+      `§eDefensive Distinction`
     ]
   );
 

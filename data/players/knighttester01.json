@@ -1,0 +1,39 @@
+{
+  "username": "KnightTester01",
+  "uuid": "70978cb5-0489-32c8-ab4c-32ec22e718b8",
+  "rank": "default",
+  "isOp": false,
+  "island": {
+    "owner": "KnightTester01",
+    "originX": 70000,
+    "originZ": 0,
+    "spawnX": 70000.5,
+    "spawnY": 101,
+    "spawnZ": 0.5,
+    "tier": 1
+  },
+  "lastLogin": "2026-11-13T04:26:02.660Z",
+  "stats": {
+    "health": 100,
+    "maxHealth": 100,
+    "defense": 0,
+    "strength": 0,
+    "damage": 0,
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 0,
+    "mana": 100,
+    "maxMana": 100,
+    "speed": 100,
+    "farmingFortune": 0
+  },
+  "rankId": "default",
+  "purse": 0,
+  "bank": 0,
+  "bankTransactions": [],
+  "bits": 0,
+  "inventory": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794543962660
+}
