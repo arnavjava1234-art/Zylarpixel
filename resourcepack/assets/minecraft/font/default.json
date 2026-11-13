@@ -5,91 +5,157 @@
       "file": "minecraft:font/coin.png",
       "ascent": 8,
       "height": 10,
-      "chars": ["\uE000"]
+      "chars": [
+        "\ue000"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/bits.png",
       "ascent": 8,
       "height": 10,
-      "chars": ["\uE001"]
+      "chars": [
+        "\ue001"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/owner.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE010"]
+      "chars": [
+        "\ue010"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/admin.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE011"]
+      "chars": [
+        "\ue011"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/dev.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE012"]
+      "chars": [
+        "\ue012"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/mod.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE013"]
+      "chars": [
+        "\ue013"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/helper.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE014"]
+      "chars": [
+        "\ue014"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/mvp_plus_plus.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE015"]
+      "chars": [
+        "\ue015"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/mvp_plus.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE016"]
+      "chars": [
+        "\ue016"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/mvp.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE017"]
+      "chars": [
+        "\ue017"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/vip_plus.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE018"]
+      "chars": [
+        "\ue018"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/vip.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE019"]
+      "chars": [
+        "\ue019"
+      ]
     },
     {
       "type": "bitmap",
       "file": "minecraft:font/ranks/member.png",
       "ascent": 8,
       "height": 9,
-      "chars": ["\uE01A"]
+      "chars": [
+        "\ue01a"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/gui/tavern_timber_6row.png",
+      "ascent": 29,
+      "height": 254,
+      "chars": [
+        "\ue030"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/gui/tavern_timber_4row.png",
+      "ascent": 29,
+      "height": 218,
+      "chars": [
+        "\ue031"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/gui/tavern_timber_3row.png",
+      "ascent": 29,
+      "height": 200,
+      "chars": [
+        "\ue032"
+      ]
+    },
+    {
+      "type": "space",
+      "advances": {
+        "\uf801": -1,
+        "\uf802": -2,
+        "\uf804": -4,
+        "\uf808": -8,
+        "\uf810": -16,
+        "\uf820": -32,
+        "\uf826": -38,
+        "\uf8c6": -198
+      }
     }
   ]
 }
