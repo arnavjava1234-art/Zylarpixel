@@ -85,66 +85,6 @@
       }
     },
     {
-      "slot": 38,
-      "name": "golden_sword",
-      "itemId": 745,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 255
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fGolden Sword\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON SWORD\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "GOLDEN_SWORD"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "SWORD"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
       "slot": 37,
       "name": "wheat",
       "itemId": 772,
@@ -263,10 +203,70 @@
           }
         }
       }
+    },
+    {
+      "slot": 38,
+      "name": "golden_sword",
+      "itemId": 745,
+      "count": 1,
+      "nbtData": {
+        "type": "compound",
+        "name": "",
+        "value": {
+          "HideFlags": {
+            "type": "int",
+            "value": 255
+          },
+          "Unbreakable": {
+            "type": "byte",
+            "value": 1
+          },
+          "display": {
+            "type": "compound",
+            "value": {
+              "Name": {
+                "type": "string",
+                "value": "{\"text\":\"§fGolden Sword\"}"
+              },
+              "Lore": {
+                "type": "list",
+                "value": {
+                  "type": "string",
+                  "value": [
+                    "{\"text\":\" \"}",
+                    "{\"text\":\"§f§lCOMMON SWORD\"}"
+                  ]
+                }
+              }
+            }
+          },
+          "ExtraAttributes": {
+            "type": "compound",
+            "value": {
+              "id": {
+                "type": "string",
+                "value": "GOLDEN_SWORD"
+              },
+              "rarity": {
+                "type": "string",
+                "value": "COMMON"
+              },
+              "itemType": {
+                "type": "string",
+                "value": "SWORD"
+              },
+              "origin": {
+                "type": "string",
+                "value": "VANILLA"
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794571471982,
+  "lastSeen": 1794572384634,
   "bankTransactions": [
     {
       "type": "deposit",
