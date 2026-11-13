@@ -263,70 +263,10 @@
           }
         }
       }
-    },
-    {
-      "slot": 40,
-      "name": "black_stained_glass_pane",
-      "itemId": 454,
-      "count": 2,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "id": {
-                "type": "string",
-                "value": "BLACK_STAINED_GLASS_PANE"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fBlack Stained Glass Pane\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "HideFlags": {
-            "type": "int",
-            "value": 255
-          }
-        }
-      }
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794580227578,
+  "lastSeen": 1794581601935,
   "bankTransactions": [
     {
       "type": "deposit",
