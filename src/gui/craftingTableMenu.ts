@@ -570,9 +570,50 @@ export function handleCraftingTableClick(
 ): void {
   const clickedSlot = data.slot;
 
-  // 1. Close Button (Slot 49)
+  // 0. Click Outside Window (-999): drop item or wipe if untouchable
+  if (clickedSlot === -999) {
+    const cursor = data.cursorItem || data.carriedItem;
+    if (isUntouchableGuiItem(cursor)) {
+      try {
+        client.write('set_slot', {
+          windowId: -1,
+          stateId: data.stateId,
+          slot: -1,
+          item: { present: false }
+        });
+      } catch (_) {}
+      return;
+    }
+  }
+
+  // 1. Hotbar Nether Star (Slot 89 or Mode 2 Button 8)
+  if (clickedSlot === 89 || (data.mode === 2 && data.button === 8)) {
+    try {
+      client.write('set_slot', {
+        windowId: CRAFTING_TABLE_WINDOW_ID,
+        stateId: data.stateId,
+        slot: 89,
+        item: createNetherStarItem()
+      });
+      client.write('set_slot', {
+        windowId: -1,
+        stateId: data.stateId,
+        slot: -1,
+        item: { present: false }
+      });
+    } catch (_) {}
+    giveNetherStar(client);
+    syncChestPlayerInventory(client, pData, is119);
+    return;
+  }
+
+  // 2. Close Button (Slot 49)
   if (clickedSlot === CLOSE_SLOT) {
     playSound(client, pData, 'random.click', 1.0);
+    // If client attempted hotbar swap (mode 2) or shift-click (mode 1), resync chest inventory before closing
+    if (data.mode === 1 || data.mode === 2) {
+      syncChestPlayerInventory(client, pData, is119);
+    }
     pData.openWindowId = 0;
     try {
       client.write('close_window', { windowId: CRAFTING_TABLE_WINDOW_ID });
@@ -581,7 +622,7 @@ export function handleCraftingTableClick(
     return;
   }
 
-  // 2. Quick Craft Teasers (Slots 16, 25, 34)
+  // 3. Quick Craft Teasers (Slots 16, 25, 34)
   if (QUICK_CRAFT_SLOTS.includes(clickedSlot as any)) {
     playSound(client, pData, 'entity.villager.no', 1.0);
     sendSystemMessage(client, `§cQuick Crafting requires ${RANKS.vip.prefix} §crank or higher! (Feature coming soon)`, is119);
@@ -599,10 +640,14 @@ export function handleCraftingTableClick(
         item: { present: false }
       });
     } catch (_) {}
+    // If client attempted shift-click, hotbar swap or double click, resync chest player inventory!
+    if (data.mode === 1 || data.mode === 2 || data.mode === 6) {
+      syncChestPlayerInventory(client, pData, is119);
+    }
     return;
   }
 
-  // 3. Decorative Black Glass Borders (< 54 and not grid, not output, not teaser, not close)
+  // 4. Decorative Black Glass Borders (< 54 and not grid, not output, not teaser, not close)
   if (
     clickedSlot >= 0 &&
     clickedSlot < 54 &&
@@ -616,17 +661,26 @@ export function handleCraftingTableClick(
         slot: clickedSlot,
         item: createGuiItem('black_stained_glass_pane', 1, '§8 ', [])
       });
+
+      // Clear cursor if it holds an untouchable GUI item or if cursor was empty
+      const cursor = data.cursorItem || data.carriedItem;
+      const shouldClearCursor = !cursor || !cursor.present || isUntouchableGuiItem(cursor);
       client.write('set_slot', {
         windowId: -1,
         stateId: data.stateId,
         slot: -1,
-        item: data.cursorItem || data.carriedItem || { present: false }
+        item: shouldClearCursor ? { present: false } : cursor
       });
     } catch (_) {}
+
+    // Resync player inventory if shift-click, hotbar swap or double click was attempted
+    if (data.mode === 1 || data.mode === 2 || data.mode === 6) {
+      syncChestPlayerInventory(client, pData, is119);
+    }
     return;
   }
 
-  // 4. Crafting Output Slot (Slot 23)
+  // 5. Crafting Output Slot (Slot 23)
   if (clickedSlot === OUTPUT_SLOT) {
     const recipe = matchRecipe(pData.craftingGrid);
 
@@ -646,6 +700,16 @@ export function handleCraftingTableClick(
           item: { present: false }
         });
       } catch (_) {}
+      if (data.mode === 1 || data.mode === 2 || data.mode === 6) {
+        syncChestPlayerInventory(client, pData, is119);
+      }
+      return;
+    }
+
+    // Cancel hotbar swap on valid output to prevent desync
+    if (data.mode === 2) {
+      updateCraftingOutputSlot(client, pData, is119);
+      syncChestPlayerInventory(client, pData, is119);
       return;
     }
 
@@ -768,9 +832,10 @@ export function handleCraftingTableClick(
     }
   }
 
-  // 5. Grid or Player Inventory Slot Interaction
+  // 6. Grid or Player Inventory Slot Interaction
   if (Array.isArray(data.changedSlots)) {
     const mcData = is119 ? mcData1192 : mcData1211;
+    let hadIllegalItem = false;
 
     for (const change of data.changedSlots) {
       const loc = change.location;
@@ -782,9 +847,21 @@ export function handleCraftingTableClick(
         continue;
       }
 
+      // Block any untouchable GUI items from entering grid or player inventory
+      if (isUntouchableGuiItem(it)) {
+        hadIllegalItem = true;
+        continue;
+      }
+
       // Grid slot changed
       if (loc in CRAFT_SLOT_MAP) {
         const gridIdx = CRAFT_SLOT_MAP[loc];
+        // Nether Star cannot be put in crafting grid
+        if (it && it.present && it.itemId === mcData1192.itemsByName.nether_star?.id) {
+          hadIllegalItem = true;
+          continue;
+        }
+
         if (!it || !it.present || it.itemCount <= 0) {
           pData.craftingGrid[gridIdx] = null;
         } else {
@@ -836,15 +913,21 @@ export function handleCraftingTableClick(
       }
     }
 
+    if (hadIllegalItem) {
+      syncChestPlayerInventory(client, pData, is119);
+      syncCraftingGridSlots(client, pData, is119);
+    }
+
     // Sync cursor if cursorItem or carriedItem provided
     const cursor = data.cursorItem || data.carriedItem;
     if (cursor) {
+      const isIllegalCursor = isUntouchableGuiItem(cursor);
       try {
         client.write('set_slot', {
           windowId: -1,
           stateId: data.stateId,
           slot: -1,
-          item: cursor
+          item: isIllegalCursor ? { present: false } : cursor
         });
       } catch (_) {}
     }
@@ -859,14 +942,26 @@ export function handleCraftingTableClick(
  * Handles window closure: safely returns any remaining grid items back to player inventory (or ground).
  */
 export function handleCraftingTableClose(client: any, pData: any, is119: boolean = true): void {
+  // Wipe cursor on window close so no ghost item lingers
+  try {
+    client.write('set_slot', {
+      windowId: -1,
+      stateId: 1,
+      slot: -1,
+      item: { present: false }
+    });
+  } catch (_) {}
+
   if (Array.isArray(pData.craftingGrid)) {
     for (let i = 0; i < 9; i++) {
       const item = pData.craftingGrid[i];
       if (item && item.count > 0) {
-        const added = addItemToPlayerInventory(pData, item.itemId, item.count, is119);
-        const leftover = item.count - added;
-        if (leftover > 0) {
-          dropItemAtPlayerFeet(pData, item.itemId, leftover, is119);
+        if (!isUntouchableGuiItem({ present: true, itemId: item.itemId, itemCount: item.count, nbtData: item.nbtData })) {
+          const added = addItemToPlayerInventory(pData, item.itemId, item.count, is119);
+          const leftover = item.count - added;
+          if (leftover > 0) {
+            dropItemAtPlayerFeet(pData, item.itemId, leftover, is119);
+          }
         }
       }
     }
