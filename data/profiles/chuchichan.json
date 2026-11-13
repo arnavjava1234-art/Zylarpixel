@@ -4,6 +4,7 @@
   "isOp": false,
   "coins": 60,
   "bank": 0,
+  "bits": 0,
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -13,7 +14,8 @@
     "intelligence": 0,
     "maxMana": 100,
     "critChance": 30,
-    "critDamage": 50
+    "critDamage": 50,
+    "farmingFortune": 0
   },
   "skills": {
     "combat": 1,
@@ -80,6 +82,8 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1792246448440,
-  "bankTransactions": []
+  "lastSeen": 1794550355437,
+  "bankTransactions": [],
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0
 }

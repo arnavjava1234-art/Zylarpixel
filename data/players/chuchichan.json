@@ -12,7 +12,7 @@
     "spawnZ": 0.5,
     "tier": 1
   },
-  "lastLogin": "2026-10-17T14:14:08.435Z",
+  "lastLogin": "2026-11-13T06:12:35.434Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -24,7 +24,8 @@
     "intelligence": 0,
     "mana": 100,
     "maxMana": 100,
-    "speed": 100
+    "speed": 100,
+    "farmingFortune": 0
   },
   "rankId": "default",
   "purse": 60,
@@ -89,5 +90,7 @@
       }
     }
   ],
-  "lastSeen": 1792246448435
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 0,
+  "lastSeen": 1794550355434
 }
