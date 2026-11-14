@@ -102,6 +102,7 @@ import { openStatsMenu } from '../gui/statsMenu';
 import {
   openSkyBlockMenu,
   handleSkyBlockMenuClick,
+  createNetherStarItem,
   giveNetherStar,
   SKYBLOCK_MENU_WINDOW_ID,
   HOTBAR_NETHER_STAR_SLOT
