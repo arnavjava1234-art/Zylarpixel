@@ -230,6 +230,14 @@ export function handleAdminItemSpawnerClick(
         slot: targetSlot,
         item: itemStack
       });
+      // Also update visible container slot in open Spawner window
+      const containerSlot = targetSlot >= 36 ? targetSlot - 36 + 81 : targetSlot - 9 + 54;
+      client.write('set_slot', {
+        windowId: ADMIN_ITEM_SPAWNER_WINDOW_ID,
+        stateId: 1,
+        slot: containerSlot,
+        item: itemStack
+      });
       client.write('named_sound_effect', {
         soundName: 'entity.item.pickup',
         soundCategory: 0,
