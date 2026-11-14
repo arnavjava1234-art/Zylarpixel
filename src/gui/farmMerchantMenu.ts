@@ -15,7 +15,8 @@
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { playSound } from './bankMenu';
-import { tagVanillaItemStack, applyUniversalItemFlags } from '../items';
+import { createNetherStarItem, giveNetherStar } from './skyblockMenu';
+import { tagVanillaItemStack, applyUniversalItemFlags, formatSlotForClient } from '../items';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { COIN_ICON } from '../config/currencyIcons';
