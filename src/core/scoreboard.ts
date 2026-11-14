@@ -113,7 +113,7 @@ export function sendScoreboard(
       '§eObjective',
       '§7Currently no active quests',
       '    ',
-      '§dplay.zylarpixel.net'
+      '§eplay.zylarpixel.net'
     ];
 
     lines.forEach((line, idx) => {
