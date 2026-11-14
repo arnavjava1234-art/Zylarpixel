@@ -2328,6 +2328,17 @@ export class ZylarServer {
         restoreSignBlock(client, pData, pData.pendingAdminSignPrompt.location);
         pData.pendingAdminSignPrompt = null;
       }
+
+      // CRITICAL FIX: Reset cursor and fully resync player survival inventory on GUI close
+      try {
+        client.write('set_slot', {
+          windowId: -1,
+          stateId: 1,
+          slot: -1,
+          item: { present: false }
+        });
+      } catch (_) {}
+      resyncPlayerSurvivalInventory();
     });
 
     // D. Incoming Sign Text Update (Real Oak Sign GUI for Banking & Admin Coin Management)
