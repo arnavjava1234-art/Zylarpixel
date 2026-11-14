@@ -104,9 +104,9 @@ export function sendScoreboard(
     client._lastScoreboardPurseStr = purseFormatted;
     client._lastScoreboardBitsStr = bitsFormatted;
 
-    // 3. Set Scores (Hypixel layout with Bits & Quest Objective)
+    // 3. Set Scores: Monolithic Obsidian (Variation 23) layout
     const lines = [
-      '§701/10/26 §8mini01A',
+      '§8Hub • §701/10/26 §8mini01A',
       ' ',
       `§fIsland: §a${islandName}`,
       initialDateLine,
@@ -116,10 +116,10 @@ export function sendScoreboard(
       `§fPurse: ${COIN_ICON} §6${purseFormatted}`,
       `§fBits: ${BITS_ICON} §b${bitsFormatted}`,
       '   ',
-      '§eObjective',
+      '§8▶ §eObjective',
       '§7Currently no active quests',
       '    ',
-      '§dplay.zylarpixel.net'
+      '§8www.zylarpixel.net'
     ];
 
     lines.forEach((line, idx) => {
