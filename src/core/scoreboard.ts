@@ -10,11 +10,11 @@ import { RankDefinition } from '../config/ranks';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
-  '§d§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
+  '§6§lZYLARPIXEL',
+  '§6§lZYLARPIXEL',
+  '§6§lZYLARPIXEL',
   '§f§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
+  '§6§lZYLARPIXEL',
   '§e§lSKYBLOCK',
   '§e§lSKYBLOCK',
   '§6§lS§e§lKYBLOCK',
