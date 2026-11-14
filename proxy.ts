@@ -176,9 +176,9 @@ function broadcastGlobalProxyTablist(): void {
     try {
       const currentLoc = observer.isInLimbo ? '§dTemporary Limbo (Proxy Host)' : (observer.currentServer === 'hub' ? '§6Village Hub' : '§aPrivate Island');
       observer.client.write('playerlist_header', {
-        header: JSON.stringify({ text: '\n§d§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n' }),
+        header: JSON.stringify({ text: '§f\ue040\n§6§lZYLARPIXEL SKYBLOCK NETWORK\n§7play.zylarpixel.net\n' }),
         footer: JSON.stringify({
-          text: `\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n`
+          text: `\n§7Current Server: ${currentLoc} §8• §7Network Players: §a${activeSessions.length}§7/§a100\n§eType §f/hub §eor §f/is §eto switch servers!\n§f\ue041`
         })
       });
     } catch (_) {}
