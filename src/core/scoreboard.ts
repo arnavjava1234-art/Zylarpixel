@@ -249,8 +249,8 @@ export function updatePlayerScoreboardZone(pData: any, zoneName: string): void {
 export function updateTablist(client: any, is119: boolean = true, islandName: string = 'Your Island'): void {
   try {
     const formattedArea = islandName.startsWith('§') ? islandName : `§a${islandName}`;
-    const headerStr = '§6§lZYLARPIXEL NETWORK §7(SkyBlock)\n§fplay.zylarpixel.net';
-    const footerStr = `\n§7Area: ${formattedArea} §8| §7Server: §6ZL-01\n§7Type §e/island §7or §e/is §7to return home`;
+    const headerStr = '§f\ue040\n§6§lZYLARPIXEL NETWORK §7(SkyBlock)\n§fplay.zylarpixel.net';
+    const footerStr = `\n§7Area: ${formattedArea} §8| §7Server: §6ZL-01\n§7Type §e/island §7or §e/is §7to return home\n§f\ue041`;
 
     if (is119) {
       client.write('playerlist_header', {
