@@ -10,30 +10,24 @@ import { RankDefinition } from '../config/ranks';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
-  '§8[ §fZYLAR §8]',
-  '§8[ §f§lZYLAR §8]',
-  '§8[ §6§lZYLAR §8]',
-  '§8[ §e§lZYLAR §8]',
-  '§8[ §6§lZYLAR §8]',
-  '§8[ §f§lZYLAR §8]',
-  '§8[ §7ZYLAR §8]',
-  '§8[ §8§lZYLARPIXEL §8]',
-  '§8[ §7§lZYLARPIXEL §8]',
-  '§8[ §f§lZYLAR§6§lPIXEL §8]',
-  '§8[ §6§lZYLAR§f§lPIXEL §8]',
-  '§8[ §f§lZYLAR§6§lPIXEL §8]',
-  '§8[ §7§lZYLARPIXEL §8]',
-  '§8[ §8§lSKYBLOCK §8]',
-  '§8[ §7§lSKYBLOCK §8]',
-  '§8[ §f§lSKYBLOCK §8]',
-  '§8[ §6§lSKYBLOCK §8]',
-  '§8[ §e§lSKYBLOCK §8]',
-  '§8[ §6§lSKYBLOCK §8]',
-  '§8[ §f§lSKYBLOCK §8]',
-  '§8[ §7§lSKYBLOCK §8]',
-  '§8[ §8§lSKYBLOCK §8]',
-  '§8[ §fZYLAR §8]',
-  '§8[ §fZYLAR §8]'
+  '§d§lZYLARPIXEL',
+  '§d§lZYLARPIXEL',
+  '§d§lZYLARPIXEL',
+  '§f§lZYLARPIXEL',
+  '§d§lZYLARPIXEL',
+  '§e§lSKYBLOCK',
+  '§e§lSKYBLOCK',
+  '§6§lS§e§lKYBLOCK',
+  '§e§lS§6§lK§e§lYBLOCK',
+  '§e§lSK§6§lY§e§lBLOCK',
+  '§e§lSKY§6§lB§e§lLOCK',
+  '§e§lSKYB§6§lL§e§lOCK',
+  '§e§lSKYBL§6§lO§e§lCK',
+  '§e§lSKYBLO§6§lC§e§lK',
+  '§e§lSKYBLOC§6§lK',
+  '§f§lSKYBLOCK',
+  '§e§lSKYBLOCK',
+  '§e§lSKYBLOCK'
 ];
 
 let currentTitleIndex = 0;
@@ -104,9 +98,9 @@ export function sendScoreboard(
     client._lastScoreboardPurseStr = purseFormatted;
     client._lastScoreboardBitsStr = bitsFormatted;
 
-    // 3. Set Scores: Monolithic Obsidian (Variation 23) layout
+    // 3. Set Scores (Hypixel layout with Bits & Quest Objective)
     const lines = [
-      '§8Hub • §701/10/26 §8mini01A',
+      '§701/10/26 §8mini01A',
       ' ',
       `§fIsland: §a${islandName}`,
       initialDateLine,
@@ -116,10 +110,10 @@ export function sendScoreboard(
       `§fPurse: ${COIN_ICON} §6${purseFormatted}`,
       `§fBits: ${BITS_ICON} §b${bitsFormatted}`,
       '   ',
-      '§8▶ §eObjective',
+      '§eObjective',
       '§7Currently no active quests',
       '    ',
-      '§8www.zylarpixel.net'
+      '§dplay.zylarpixel.net'
     ];
 
     lines.forEach((line, idx) => {
@@ -255,8 +249,8 @@ export function updatePlayerScoreboardZone(pData: any, zoneName: string): void {
 export function updateTablist(client: any, is119: boolean = true, islandName: string = 'Your Island'): void {
   try {
     const formattedArea = islandName.startsWith('§') ? islandName : `§a${islandName}`;
-    const headerStr = '§2§l☘ §a§lELDER SANCTUM §2§l☘\n§8» §7Protected by the Crop Guardians §8«';
-    const footerStr = `\n§7Sanctuary: ${formattedArea} §8• §7Server: §2ZL-01\n§7Guardians Active: §a10/10 §8• §7Status: §aProtected\n§8----------------------------------------\n§6play.zylarpixel.net`;
+    const headerStr = '§d§lZYLARPIXEL NETWORK §7(SkyBlock)\n§fplay.zylarpixel.net';
+    const footerStr = `\n§7Area: ${formattedArea} §8| §7Server: §dZL-01\n§7Type §e/island §7or §e/is §7to return home`;
 
     if (is119) {
       client.write('playerlist_header', {
