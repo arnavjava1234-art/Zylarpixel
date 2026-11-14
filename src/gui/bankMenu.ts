@@ -763,8 +763,15 @@ export function handleBankClick(
       pData.currentGuiItems = null;
       playSound(client, pData, 'random.chestclosed', 1.0);
       try {
+        client.write('set_slot', {
+          windowId: -1,
+          stateId: 1,
+          slot: -1,
+          item: { present: false }
+        });
         client.write('close_window', { windowId: BANK_MAIN_WINDOW_ID });
       } catch (_) {}
+      giveNetherStar(client);
       return true;
     }
     return true; // Absorb other clicks
