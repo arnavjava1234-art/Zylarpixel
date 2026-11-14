@@ -10,24 +10,30 @@ import { RankDefinition } from '../config/ranks';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
-  '§d§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
-  '§f§lZYLARPIXEL',
-  '§d§lZYLARPIXEL',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§6§lS§e§lKYBLOCK',
-  '§e§lS§6§lK§e§lYBLOCK',
-  '§e§lSK§6§lY§e§lBLOCK',
-  '§e§lSKY§6§lB§e§lLOCK',
-  '§e§lSKYB§6§lL§e§lOCK',
-  '§e§lSKYBL§6§lO§e§lCK',
-  '§e§lSKYBLO§6§lC§e§lK',
-  '§e§lSKYBLOC§6§lK',
-  '§f§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK'
+  '§8[ §fZYLAR §8]',
+  '§8[ §f§lZYLAR §8]',
+  '§8[ §6§lZYLAR §8]',
+  '§8[ §e§lZYLAR §8]',
+  '§8[ §6§lZYLAR §8]',
+  '§8[ §f§lZYLAR §8]',
+  '§8[ §7ZYLAR §8]',
+  '§8[ §8§lZYLARPIXEL §8]',
+  '§8[ §7§lZYLARPIXEL §8]',
+  '§8[ §f§lZYLAR§6§lPIXEL §8]',
+  '§8[ §6§lZYLAR§f§lPIXEL §8]',
+  '§8[ §f§lZYLAR§6§lPIXEL §8]',
+  '§8[ §7§lZYLARPIXEL §8]',
+  '§8[ §8§lSKYBLOCK §8]',
+  '§8[ §7§lSKYBLOCK §8]',
+  '§8[ §f§lSKYBLOCK §8]',
+  '§8[ §6§lSKYBLOCK §8]',
+  '§8[ §e§lSKYBLOCK §8]',
+  '§8[ §6§lSKYBLOCK §8]',
+  '§8[ §f§lSKYBLOCK §8]',
+  '§8[ §7§lSKYBLOCK §8]',
+  '§8[ §8§lSKYBLOCK §8]',
+  '§8[ §fZYLAR §8]',
+  '§8[ §fZYLAR §8]'
 ];
 
 let currentTitleIndex = 0;
