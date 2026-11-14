@@ -1826,7 +1826,90 @@ export class ZylarServer {
       }
     });
 
-    // B. Window / GUI Clicks
+    // B. Window / GUI Helpers & Clicks
+    const getGuiContainerSize = (session: any): number => {
+      if (session.currentGuiItems && Array.isArray(session.currentGuiItems)) {
+        return session.currentGuiItems.length;
+      }
+      if (
+        session.openWindowId === BANK_MAIN_WINDOW_ID ||
+        session.openWindowId === BANK_DEPOSIT_WINDOW_ID ||
+        session.openWindowId === BANK_WITHDRAW_WINDOW_ID ||
+        session.openWindowId === BANK_UPGRADES_WINDOW_ID ||
+        session.openWindowId === ADMIN_COIN_ACTION_WINDOW_ID
+      ) {
+        return 36;
+      }
+      return 54;
+    };
+
+    const resyncContainerPlayerInventory = (
+      windowId: number,
+      containerSize: number,
+      stateId: number = 1
+    ): void => {
+      // Main inventory: survival slots 9..35 -> container slots containerSize .. containerSize + 26
+      for (let s = 9; s < 36; s++) {
+        const cSlot = s - 9 + containerSize;
+        const it = pData.inventory.get(s);
+        const formatted = it && it.count > 0 ? formatSlotForClient(tagVanillaItemStack({
+          present: true,
+          itemId: it.itemId,
+          itemCount: it.count,
+          nbtData: it.nbtData
+        }, is119), is119) : { present: false };
+        try {
+          client.write('set_slot', { windowId, stateId, slot: cSlot, item: formatted });
+        } catch (_) {}
+      }
+
+      // Hotbar: survival slots 36..43 -> container slots containerSize + 27 .. containerSize + 34
+      for (let s = 36; s < 44; s++) {
+        const cSlot = s - 36 + containerSize + 27;
+        const it = pData.inventory.get(s);
+        const formatted = it && it.count > 0 ? formatSlotForClient(tagVanillaItemStack({
+          present: true,
+          itemId: it.itemId,
+          itemCount: it.count,
+          nbtData: it.nbtData
+        }, is119), is119) : { present: false };
+        try {
+          client.write('set_slot', { windowId, stateId, slot: cSlot, item: formatted });
+        } catch (_) {}
+      }
+
+      // Slot containerSize + 35: Hotbar Slot 8 Nether Star
+      try {
+        client.write('set_slot', {
+          windowId,
+          stateId,
+          slot: containerSize + 35,
+          item: formatSlotForClient(createNetherStarItem(is119), is119)
+        });
+      } catch (_) {}
+    };
+
+    const resyncPlayerSurvivalInventory = (): void => {
+      for (const [slot, item] of pData.inventory) {
+        if (slot === HOTBAR_NETHER_STAR_SLOT) continue;
+        try {
+          const tagged = tagVanillaItemStack({
+            present: true,
+            itemId: item.itemId,
+            itemCount: item.count,
+            nbtData: item.nbtData
+          }, is119);
+          client.write('set_slot', {
+            windowId: 0,
+            stateId: 1,
+            slot,
+            item: formatSlotForClient(tagged, is119)
+          });
+        } catch (_) {}
+      }
+      giveNetherStar(client);
+    };
+
     client.on('window_click', (data: any) => {
       const clickedSlot = data.slot;
 
