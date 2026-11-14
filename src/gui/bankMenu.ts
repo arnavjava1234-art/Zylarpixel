@@ -16,6 +16,7 @@
 
 import { mcData1192, mcData1211 } from '../world/worldManager';
 import { createGuiItem } from './statsMenu';
+import { giveNetherStar } from './skyblockMenu';
 import { persistPlayerSession, sendSystemMessage } from '../players/playerManager';
 import { updatePlayerScoreboardPurse } from '../core/scoreboard';
 import { COIN_ICON } from '../config/currencyIcons';
