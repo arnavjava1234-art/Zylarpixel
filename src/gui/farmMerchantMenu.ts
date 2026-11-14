@@ -641,7 +641,22 @@ export function handleFarmMerchantClick(
       // Hotbar slots (slots 36..43)
       survivalSlot = clickedSlot - 81 + 36;
     } else if (clickedSlot === 89) {
-      // Hotbar Slot 9 (Nether star) -> Protected!
+      // Hotbar Slot 9 (Nether star) -> Resync & protect!
+      try {
+        client.write('set_slot', {
+          windowId: -1,
+          stateId: data.stateId || 1,
+          slot: -1,
+          item: { present: false }
+        });
+        client.write('set_slot', {
+          windowId: FARM_MERCHANT_WINDOW_ID,
+          stateId: data.stateId || 1,
+          slot: 89,
+          item: formatSlotForClient(createNetherStarItem(is119), is119)
+        });
+      } catch (_) {}
+      giveNetherStar(client);
       return;
     }
 

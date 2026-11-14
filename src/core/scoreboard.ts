@@ -10,24 +10,24 @@ import { RankDefinition } from '../config/ranks';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
-  '§6§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§f§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§6§lS§e§lKYBLOCK',
-  '§e§lS§6§lK§e§lYBLOCK',
-  '§e§lSK§6§lY§e§lBLOCK',
-  '§e§lSKY§6§lB§e§lLOCK',
-  '§e§lSKYB§6§lL§e§lOCK',
-  '§e§lSKYBL§6§lO§e§lCK',
-  '§e§lSKYBLO§6§lC§e§lK',
-  '§e§lSKYBLOC§6§lK',
-  '§f§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK'
+  '§f\ue042 §6§lZYLARPIXEL',
+  '§f\ue042 §6§lZYLARPIXEL',
+  '§f\ue042 §6§lZYLARPIXEL',
+  '§f\ue042 §f§lZYLARPIXEL',
+  '§f\ue042 §6§lZYLARPIXEL',
+  '§f\ue042 §e§lSKYBLOCK',
+  '§f\ue042 §e§lSKYBLOCK',
+  '§f\ue042 §6§lS§e§lKYBLOCK',
+  '§f\ue042 §e§lS§6§lK§e§lYBLOCK',
+  '§f\ue042 §e§lSK§6§lY§e§lBLOCK',
+  '§f\ue042 §e§lSKY§6§lB§e§lLOCK',
+  '§f\ue042 §e§lSKYB§6§lL§e§lOCK',
+  '§f\ue042 §e§lSKYBL§6§lO§e§lCK',
+  '§f\ue042 §e§lSKYBLO§6§lC§e§lK',
+  '§f\ue042 §e§lSKYBLOC§6§lK',
+  '§f\ue042 §f§lSKYBLOCK',
+  '§f\ue042 §e§lSKYBLOCK',
+  '§f\ue042 §e§lSKYBLOCK'
 ];
 
 let currentTitleIndex = 0;
