@@ -2039,6 +2039,135 @@ export class ZylarServer {
           return;
         }
 
+        const containerSize = getGuiContainerSize(pData);
+        const netherStarContainerSlot = containerSize + 35; // Hotbar slot 8 in open container
+
+        // A. Protect Hotbar Nether Star (Direct Click or Hotbar Swap via Number Key 9 / Button 8)
+        if (clickedSlot === netherStarContainerSlot || (data.mode === 2 && data.button === 8)) {
+          try {
+            client.write('set_slot', {
+              windowId: -1,
+              stateId: data.stateId,
+              slot: -1,
+              item: { present: false }
+            });
+            client.write('set_slot', {
+              windowId: pData.openWindowId,
+              stateId: data.stateId,
+              slot: netherStarContainerSlot,
+              item: formatSlotForClient(createNetherStarItem(is119), is119)
+            });
+          } catch (_) {}
+          giveNetherStar(client);
+          openSkyBlockMenu(client, pData);
+          return;
+        }
+
+        // B. Click Outside Window (-999): Clear cursor immediately
+        if (clickedSlot === -999) {
+          try {
+            client.write('set_slot', {
+              windowId: -1,
+              stateId: data.stateId,
+              slot: -1,
+              item: { present: false }
+            });
+          } catch (_) {}
+          giveNetherStar(client);
+          return;
+        }
+
+        // C. Strict Mode Enforcement: In read-only menus, only Mode 0 (standard left/right click) is allowed!
+        // Mode 1 (Shift-click), Mode 2 (Number swap), Mode 4 (Drop), Mode 5 (Drag), Mode 6 (Double-click)
+        // are rejected immediately and all predicted client slot movements are fully reverted!
+        if (data.mode !== 0) {
+          try {
+            client.write('set_slot', {
+              windowId: -1,
+              stateId: data.stateId,
+              slot: -1,
+              item: { present: false }
+            });
+          } catch (_) {}
+
+          if (Array.isArray(data.changedSlots)) {
+            for (const change of data.changedSlots) {
+              const loc = change.location;
+              if (loc >= 0 && loc < containerSize) {
+                // Revert container display slot
+                try {
+                  client.write('set_slot', {
+                    windowId: pData.openWindowId,
+                    stateId: data.stateId,
+                    slot: loc,
+                    item: pData.currentGuiItems ? (pData.currentGuiItems[loc] || { present: false }) : { present: false }
+                  });
+                } catch (_) {}
+              } else if (loc >= containerSize && loc < containerSize + 36) {
+                // Revert player inventory slot inside container
+                const survivalSlot = loc < containerSize + 27
+                  ? loc - containerSize + 9
+                  : loc - (containerSize + 27) + 36;
+                const realItem = pData.inventory.get(survivalSlot);
+                const formatted = realItem && realItem.count > 0 ? formatSlotForClient(tagVanillaItemStack({
+                  present: true,
+                  itemId: realItem.itemId,
+                  itemCount: realItem.count,
+                  nbtData: realItem.nbtData
+                }, is119), is119) : { present: false };
+                try {
+                  client.write('set_slot', {
+                    windowId: pData.openWindowId,
+                    stateId: data.stateId,
+                    slot: loc,
+                    item: formatted
+                  });
+                } catch (_) {}
+              }
+            }
+          }
+          resyncContainerPlayerInventory(pData.openWindowId, containerSize, data.stateId);
+          return;
+        }
+
+        // D. Player Bottom Inventory Slots (clickedSlot >= containerSize)
+        if (clickedSlot >= containerSize) {
+          // Farm Merchant GUI allows clicking crops to sell
+          if (pData.openWindowId === FARM_MERCHANT_WINDOW_ID) {
+            handleFarmMerchantClick(client, pData, data, sendSystemMessage, is119);
+            return;
+          }
+
+          // In other read-only menus, clicking survival inventory slots clears cursor and resyncs slot
+          const survivalSlot = clickedSlot < containerSize + 27
+            ? clickedSlot - containerSize + 9
+            : clickedSlot - (containerSize + 27) + 36;
+          const realItem = pData.inventory.get(survivalSlot);
+          const formatted = realItem && realItem.count > 0 ? formatSlotForClient(tagVanillaItemStack({
+            present: true,
+            itemId: realItem.itemId,
+            itemCount: realItem.count,
+            nbtData: realItem.nbtData
+          }, is119), is119) : { present: false };
+
+          try {
+            client.write('set_slot', {
+              windowId: -1,
+              stateId: data.stateId,
+              slot: -1,
+              item: { present: false }
+            });
+            client.write('set_slot', {
+              windowId: pData.openWindowId,
+              stateId: data.stateId,
+              slot: clickedSlot,
+              item: formatted
+            });
+          } catch (_) {}
+          return;
+        }
+
+        // E. Top Container GUI Slots (clickedSlot >= 0 && clickedSlot < containerSize)
         // Clear cursor item immediately
         try {
           client.write('set_slot', {
@@ -2049,8 +2178,8 @@ export class ZylarServer {
           });
         } catch (_) {}
 
-        // CRITICAL FIX: Restore clicked slot item in GUI so items (like player head!) NEVER disappear!
-        if (pData.currentGuiItems && clickedSlot >= 0 && clickedSlot < 54) {
+        // Restore clicked slot item in GUI so items NEVER disappear
+        if (pData.currentGuiItems && clickedSlot >= 0 && clickedSlot < containerSize) {
           try {
             client.write('set_slot', {
               windowId: pData.openWindowId,
