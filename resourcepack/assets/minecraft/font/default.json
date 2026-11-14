@@ -145,6 +145,42 @@
       ]
     },
     {
+      "type": "bitmap",
+      "file": "minecraft:font/hud/tab_elder_header.png",
+      "ascent": 14,
+      "height": 28,
+      "chars": [
+        "\ue040"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/hud/tab_elder_footer.png",
+      "ascent": 12,
+      "height": 24,
+      "chars": [
+        "\ue041"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/hud/scoreboard_obsidian_header.png",
+      "ascent": 12,
+      "height": 24,
+      "chars": [
+        "\ue042"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/hud/scoreboard_obsidian_frame.png",
+      "ascent": 90,
+      "height": 180,
+      "chars": [
+        "\ue043"
+      ]
+    },
+    {
       "type": "space",
       "advances": {
         "\uf81c": -28,
