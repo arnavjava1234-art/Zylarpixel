@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-16T15:58:33.118Z",
+  "lastLogin": "2026-11-16T16:04:42.518Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -26,8 +26,8 @@
     "farmingFortune": 0
   },
   "rankId": "owner",
-  "purse": 6103640.3,
-  "bank": 50000000,
+  "purse": 31103640.3,
+  "bank": 25000000,
   "bankTransactions": [
     {
       "type": "deposit",
@@ -118,6 +118,11 @@
       "type": "deposit",
       "amount": 25000000,
       "timestamp": 1792079549385
+    },
+    {
+      "type": "withdraw",
+      "amount": 25000000,
+      "timestamp": 1794845082518
     }
   ],
   "bits": 0,
@@ -367,5 +372,5 @@
     "wheat_seeds": 27
   },
   "merchantLastResetDay": 20769,
-  "lastSeen": 1794844713119
+  "lastSeen": 1794845082518
 }
