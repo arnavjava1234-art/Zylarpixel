@@ -2,7 +2,7 @@
   "username": "arnavjava",
   "rank": "owner",
   "isOp": true,
-  "coins": 1944003.6,
+  "coins": 1944038.6,
   "bank": 25000000,
   "bits": 0,
   "stats": {
@@ -24,66 +24,6 @@
     "farming": 1
   },
   "inventory": [
-    {
-      "slot": 36,
-      "name": "wheat_seeds",
-      "itemId": 771,
-      "count": 35,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 255
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat Seeds\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT_SEEDS"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
     {
       "slot": 39,
       "name": "rotten_flesh",
@@ -206,7 +146,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794895297277,
+  "lastSeen": 1794895297785,
   "bankTransactions": [
     {
       "type": "deposit",
