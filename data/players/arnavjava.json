@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-17T05:23:27.615Z",
+  "lastLogin": "2026-11-17T05:23:35.702Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -26,7 +26,7 @@
     "farmingFortune": 0
   },
   "rankId": "owner",
-  "purse": 7775910.5,
+  "purse": 3887955.2,
   "bank": 25000000,
   "bankTransactions": [
     {
@@ -372,5 +372,5 @@
     "wheat_seeds": 27
   },
   "merchantLastResetDay": 20769,
-  "lastSeen": 1794893007615
+  "lastSeen": 1794893015702
 }
