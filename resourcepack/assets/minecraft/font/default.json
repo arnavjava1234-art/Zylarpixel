@@ -146,7 +146,7 @@
     },
     {
       "type": "bitmap",
-      "file": "minecraft:font/hud/tab_elder_header.png",
+      "file": "minecraft:font/hud/tab_knight_header.png",
       "ascent": 14,
       "height": 28,
       "chars": [
@@ -155,18 +155,18 @@
     },
     {
       "type": "bitmap",
-      "file": "minecraft:font/hud/tab_elder_footer.png",
-      "ascent": 12,
-      "height": 24,
+      "file": "minecraft:font/hud/tab_knight_footer.png",
+      "ascent": 10,
+      "height": 20,
       "chars": [
         "\ue041"
       ]
     },
     {
       "type": "bitmap",
-      "file": "minecraft:font/hud/scoreboard_obsidian_header.png",
-      "ascent": 12,
-      "height": 24,
+      "file": "minecraft:font/hud/scoreboard_dwarven_header.png",
+      "ascent": 14,
+      "height": 28,
       "chars": [
         "\ue042"
       ]
