@@ -10,24 +10,7 @@ import { RankDefinition } from '../config/ranks';
 import { COIN_ICON, BITS_ICON } from '../config/currencyIcons';
 
 export const TITLE_FRAMES = [
-  '§6§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§f§lZYLARPIXEL',
-  '§6§lZYLARPIXEL',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§6§lS§e§lKYBLOCK',
-  '§e§lS§6§lK§e§lYBLOCK',
-  '§e§lSK§6§lY§e§lBLOCK',
-  '§e§lSKY§6§lB§e§lLOCK',
-  '§e§lSKYB§6§lL§e§lOCK',
-  '§e§lSKYBL§6§lO§e§lCK',
-  '§e§lSKYBLO§6§lC§e§lK',
-  '§e§lSKYBLOC§6§lK',
-  '§f§lSKYBLOCK',
-  '§e§lSKYBLOCK',
-  '§e§lSKYBLOCK'
+  '§f\ue042'
 ];
 
 let currentTitleIndex = 0;
