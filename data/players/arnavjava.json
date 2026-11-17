@@ -10,7 +10,7 @@
     "spawnY": 101,
     "spawnZ": 0.5
   },
-  "lastLogin": "2026-11-17T06:01:08.475Z",
+  "lastLogin": "2026-11-17T06:01:37.274Z",
   "stats": {
     "health": 100,
     "maxHealth": 100,
@@ -26,7 +26,7 @@
     "farmingFortune": 0
   },
   "rankId": "owner",
-  "purse": 1943979.6,
+  "purse": 1944003.6,
   "bank": 25000000,
   "bankTransactions": [
     {
@@ -188,66 +188,6 @@
       }
     },
     {
-      "slot": 37,
-      "name": "wheat",
-      "itemId": 772,
-      "count": 7,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 255
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fWheat\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "WHEAT"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          },
-          "Unbreakable": {
-            "type": "byte",
-            "value": 1
-          }
-        }
-      }
-    },
-    {
       "slot": 39,
       "name": "rotten_flesh",
       "itemId": 896,
@@ -366,67 +306,9 @@
           }
         }
       }
-    },
-    {
-      "slot": 40,
-      "name": "poisonous_potato",
-      "itemId": 993,
-      "count": 1,
-      "nbtData": {
-        "type": "compound",
-        "name": "",
-        "value": {
-          "HideFlags": {
-            "type": "int",
-            "value": 255
-          },
-          "display": {
-            "type": "compound",
-            "value": {
-              "Name": {
-                "type": "string",
-                "value": "{\"text\":\"§fPoisonous Potato\"}"
-              },
-              "Lore": {
-                "type": "list",
-                "value": {
-                  "type": "string",
-                  "value": [
-                    "{\"text\":\" \"}",
-                    "{\"text\":\"§f§lCOMMON\"}"
-                  ]
-                }
-              }
-            }
-          },
-          "ExtraAttributes": {
-            "type": "compound",
-            "value": {
-              "id": {
-                "type": "string",
-                "value": "POISONOUS_POTATO"
-              },
-              "rarity": {
-                "type": "string",
-                "value": "COMMON"
-              },
-              "itemType": {
-                "type": "string",
-                "value": "ITEM"
-              },
-              "origin": {
-                "type": "string",
-                "value": "VANILLA"
-              }
-            }
-          }
-        }
-      }
     }
   ],
-  "merchantDailyPurchases": {
-    "wheat_seeds": 27
-  },
-  "merchantLastResetDay": 20769,
-  "lastSeen": 1794895268475
+  "merchantDailyPurchases": {},
+  "merchantLastResetDay": 20774,
+  "lastSeen": 1794895297274
 }
