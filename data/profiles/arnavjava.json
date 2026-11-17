@@ -2,7 +2,7 @@
   "username": "arnavjava",
   "rank": "owner",
   "isOp": true,
-  "coins": 3887955.2,
+  "coins": 3887957.2,
   "bank": 25000000,
   "bits": 0,
   "stats": {
@@ -266,7 +266,7 @@
     }
   ],
   "currentServer": "hub",
-  "lastSeen": 1794894254481,
+  "lastSeen": 1794895253571,
   "bankTransactions": [
     {
       "type": "deposit",
